@@ -52,12 +52,19 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 - Bibles : uniquement libres de droits (Louis Segond 1910, Darby, Martin, Ostervald, KJV).
 - Inspirations retenues (SplitCam) : moniteur de santé du direct, mode répétition, destinations
   préconfigurées, assistant « combien de caméras ? », télécommande depuis le téléphone.
+- Téléphone caméra : Larix Broadcaster gratuit = filigrane « TEST STREAM » + coupure après 30 min (+30 min
+  avec filigrane) → inutilisable pour un culte. Pistes : mode webcam USB Android 14+, et surtout une caméra
+  « téléphone sans application » (page web + WebRTC reçue dans OBS) à construire nous-mêmes. Solution
+  principale de l'église : caméscope HDMI + boîtier de capture.
+- L'aperçu de la régie = captures OBS toutes les 500 ms → il paraît en retard ; la latence réelle se juge
+  sur la sortie projecteur.
 - Audio : sortie de table de mixage via interface audio USB ; vumètre ; option « musique hors direct »
   (coupe le son uniquement sur le direct pendant la louange, à cause des droits musicaux).
 
 ## Feuille de route
 - **Phase 0 (en cours)** : prototype technique — piloter OBS, caméra (webcam/téléphone), projection HDMI,
-  fondus caméra ↔ verset/affiche/texte sans écran noir. Puis encapsulation Tauri sur Windows.
+  fondus caméra ↔ verset/affiche/texte sans écran noir. ✅ Validé sur le vrai matériel le 2026-11-11
+  (webcam du PC, téléphone Larix en SRT, versets/textes/images). Reste : encapsulation Tauri sur Windows.
 - **Phase 1** : remplacer PowerPoint — diapos, éditeur, import .pptx, Bible complète, médiathèque, déroulé du culte.
 - **Phase 2** : le direct — sources du jour, Aperçu/Direct, enregistrement, diffusion 1 plateforme, santé du direct.
 - **Phase 3** : multidiffusion (relais), bandeaux sur le direct, plusieurs écrans, écran retour prédicateur.
