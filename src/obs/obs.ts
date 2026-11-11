@@ -10,6 +10,8 @@ export const BACKGROUND = "DiffChurch - Fond";
 export const OVERLAY = "DiffChurch - Contenu";
 export const CAMERA_PREFIX = "DiffChurch - Caméra";
 export const PHONE_INPUT = "DiffChurch - Téléphone (Wi-Fi)";
+/** Préfixe des caméras téléphone « sans application » (QR code + WebRTC). */
+export const PHONE_QR_PREFIX = "DiffChurch - Téléphone QR";
 
 export const CANVAS_W = 1920;
 export const CANVAS_H = 1080;
@@ -35,7 +37,7 @@ export interface VideoDevice {
 
 export interface CameraSource {
   name: string;
-  kind: "device" | "phone" | "other";
+  kind: "device" | "phone" | "phone-qr" | "other";
 }
 
 /** Une source vidéo de l'utilisateur, déjà présente dans OBS (hors DiffChurch). */
@@ -206,10 +208,20 @@ export class ObsController {
   async listCameraSources(): Promise<CameraSource[]> {
     const { inputs } = await this.ws.call("GetInputList");
     return (inputs as Array<{ inputName: string; inputKind: string }>)
-      .filter((i) => VIDEO_INPUT_KINDS.has(i.inputKind) && !i.inputName.endsWith("(sonde)"))
+      .filter(
+        (i) =>
+          (VIDEO_INPUT_KINDS.has(i.inputKind) && !i.inputName.endsWith("(sonde)")) ||
+          (i.inputKind === "browser_source" && i.inputName.startsWith(PHONE_QR_PREFIX)),
+      )
       .map((i) => ({
         name: i.inputName,
-        kind: i.inputName === PHONE_INPUT ? "phone" : i.inputName.startsWith(CAMERA_PREFIX) ? "device" : "other",
+        kind: i.inputName.startsWith(PHONE_QR_PREFIX)
+          ? "phone-qr"
+          : i.inputName === PHONE_INPUT
+            ? "phone"
+            : i.inputName.startsWith(CAMERA_PREFIX)
+              ? "device"
+              : "other",
       }));
   }
 
@@ -248,6 +260,30 @@ export class ObsController {
     }
     await this.activateCamera(PHONE_INPUT);
     return PHONE_INPUT;
+  }
+
+  /**
+   * Téléphone « sans application » : OBS charge une page qui reçoit la caméra du téléphone en WebRTC.
+   * Le téléphone ouvre simplement une page web (QR code). Le son du téléphone arrive dans OBS.
+   */
+  async usePhoneQr(cam = "1"): Promise<string> {
+    const name = `${PHONE_QR_PREFIX} ${cam}`;
+    const settings = {
+      url: `${window.location.origin}/receiver.html?cam=${encodeURIComponent(cam)}`,
+      width: CANVAS_W,
+      height: CANVAS_H,
+      fps_custom: false,
+      shutdown: false,
+      restart_when_active: false,
+      reroute_audio: true, // le son du téléphone apparaît dans le mélangeur audio d'OBS
+    };
+    if (!(await this.inputExists(name))) {
+      await this.ws.call("CreateInput", { sceneName: SCENE, inputName: name, inputKind: "browser_source", inputSettings: settings });
+    } else {
+      await this.ws.call("SetInputSettings", { inputName: name, inputSettings: settings });
+    }
+    await this.activateCamera(name);
+    return name;
   }
 
   /** Affiche cette caméra (ajustée au cadre 16:9) et masque les autres caméras de la scène. */

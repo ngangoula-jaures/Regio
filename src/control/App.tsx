@@ -13,6 +13,7 @@ import {
 import { readCustomEvent, type Content, type Layout } from "../shared/content";
 import { SAMPLE_VERSES } from "../shared/bible-sample";
 import { loadImageAsDataUrl } from "./images";
+import { PhoneQr } from "./PhoneQr";
 import "./App.css";
 
 const SETTINGS_KEY = "diffchurch.obs";
@@ -162,6 +163,14 @@ export default function App() {
       await refreshSources();
     });
 
+  const [showQr, setShowQr] = useState(false);
+  const usePhoneQr = () =>
+    run(async () => {
+      setActiveCamera(await obs.current.usePhoneQr("1"));
+      setShowQr(true);
+      await refreshSources();
+    });
+
   const usePhone = () =>
     run(async () => {
       setActiveCamera(await obs.current.usePhoneOverWifi());
@@ -216,14 +225,25 @@ export default function App() {
               <div className="list">
                 {cameras.map((c) => (
                   <button key={c.name} className={`row ${activeCamera === c.name ? "active" : ""}`} onClick={() => useSource(c.name)}>
-                    {c.kind === "phone" ? "📱" : "🎥"} {c.name.replace(/^DiffChurch - /, "")}
+                    {c.kind === "phone" || c.kind === "phone-qr" ? "📱" : "🎥"} {c.name.replace(/^DiffChurch - /, "")}
                   </button>
                 ))}
               </div>
               <div className="actions">
                 <button onClick={detectDevices}>Détecter les caméras USB / HDMI</button>
-                <button onClick={usePhone}>📱 Téléphone en Wi-Fi</button>
+                <button onClick={usePhoneQr}>📱 Téléphone (QR code)</button>
+                <button onClick={usePhone} className="secondary">
+                  Téléphone via Larix (avancé)
+                </button>
               </div>
+              {showQr && (
+                <div className="sub">
+                  <PhoneQr cam="1" />
+                  <button className="secondary" onClick={() => setShowQr(false)}>
+                    Masquer le QR code
+                  </button>
+                </div>
+              )}
               {devices && (
                 <div className="list sub">
                   {devices.length === 0 && <p className="muted">Aucun périphérique détecté.</p>}
@@ -234,7 +254,7 @@ export default function App() {
                   ))}
                 </div>
               )}
-              {activeCamera?.includes("Téléphone") && (
+              {activeCamera === "DiffChurch - Téléphone (Wi-Fi)" && (
                 <div className="help">
                   Sur le téléphone, application <b>Larix Broadcaster</b> → Connexions → nouvelle connexion :
                   <code>srt://IP_DU_PC:{PHONE_SRT_PORT}</code>

@@ -1,17 +1,17 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-// @ts-expect-error type error without @types/node package
+import { phoneBridge } from "./server/phone-bridge.ts";
 import process from "node:process";
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
 export default defineConfig(() => ({
-  plugins: [react()],
+  plugins: [react(), phoneBridge()],
 
-  // Deux pages : la régie (index.html) et la sortie chargée par OBS (render.html).
+  // Pages : régie (index), sortie OBS (render), caméra téléphone (phone) et sa réception dans OBS (receiver).
   build: {
     rollupOptions: {
-      input: { main: "index.html", render: "render.html" },
+      input: { main: "index.html", render: "render.html", phone: "phone.html", receiver: "receiver.html" },
     },
   },
 

@@ -38,8 +38,14 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   Le contrôle envoie le contenu via `BroadcastCustomEvent` ; la page render écoute `CustomEvent`.
 - **Scène OBS de sortie** gérée par l'app : `DiffChurch - Sortie` = fond de secours + caméra(s) + contenu.
 - **Projecteur** = projecteur plein écran OBS (`OpenVideoMixProjector`) sur l'écran HDMI.
-- **Téléphone caméra** : Wi-Fi via SRT (app Larix Broadcaster → OBS Media Source en mode listener),
-  ou USB (mode webcam Android 14+ / apps type Camo/DroidCam).
+- **Téléphone caméra « sans application » (QR code)** : le téléphone ouvre `phone.html` (HTTPS obligatoire
+  pour la caméra ; certificat auto-signé dans `.cert/`, non versionné) et envoie caméra + micro en **WebRTC**
+  directement à `receiver.html`, chargée dans OBS comme Browser Source (`DiffChurch - Téléphone QR <n>`,
+  `reroute_audio` → le son arrive dans le mélangeur OBS). La signalisation passe par `/diffchurch/signal`
+  (websocket), fournie en dev par le plugin Vite `server/phone-bridge.ts` (HTTPS sur le port 8443).
+  `/diffchurch/info` donne l'adresse Wi-Fi du PC (pour le QR code) et l'état des connexions.
+  TODO Tauri : réimplémenter ce pont en Rust.
+- Alternative avancée : Larix Broadcaster en SRT (→ OBS Media Source en mode listener, port 9000).
 - **Stockage** : SQLite (Bible, médiathèque, déroulés) — à partir de la Phase 1.
 - Plus tard : affichage différent projecteur / direct (scène dédiée par sortie), relais multi-plateformes.
 
@@ -75,9 +81,15 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   (OBS Studio installé sous Windows).
 - Phase 0 : `npm run dev` dans WSL → ouvrir `http://localhost:1420` dans un navigateur Windows.
   OBS (Windows) charge `http://localhost:1420/render.html` (redirection localhost WSL2 → Windows).
+- Caméra téléphone en dev : le serveur tourne dans WSL → lancer une fois (et après chaque redémarrage
+  de WSL) `scripts/telephone-wsl.ps1` dans PowerShell **administrateur** (redirection du port 8443 + pare-feu).
 - Tauri (Rust) se compile côté Windows (Rust + Node installés sous Windows) — pas dans WSL
   (pas de webkit2gtk ni de sudo ici).
 - Vérifier avec `npm run build` (tsc + vite) avant de rendre la main.
+- Tests de bout en bout (serveur de dev lancé) : `npm run test:e2e` = `test:regie` (régie ↔ faux OBS
+  `tests/e2e/fake-obs.mjs`) + `test:phone` (caméra téléphone WebRTC avec caméra simulée). Le faux OBS
+  doit reproduire le comportement RÉEL d'OBS (ex. CustomEvent sans enveloppe `eventData`).
+- Ne jamais lancer `pkill -f "<motif>"` dans une commande qui contient elle-même ce motif (elle se tue).
 
 ## Conventions
 - Interface utilisateur en **français** ; identifiants de code en anglais ; commentaires en français ou anglais, courts.

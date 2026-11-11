@@ -110,3 +110,11 @@ input, textarea {
 .render-status.ok { background: #1f3326; color: var(--green); }
 .render-status.ko { background: #3a2320; color: var(--orange); }
 .render-status button { padding: 4px 10px; }
+
+.secondary { font-size: 12px; color: var(--muted); }
+.sub { margin-top: 12px; }
+.phone-qr { display: flex; flex-direction: column; gap: 10px; }
+.phone-qr img { width: 220px; height: 220px; align-self: center; border-radius: 8px; background: #fff; }
+.phone-qr ol { margin: 0; padding-left: 18px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.phone-qr .url { display: block; font-size: 11px; word-break: break-all; color: var(--accent); margin: 8px 0; }
+.phone-qr select { width: 100%; margin-bottom: 8px; background: #110f16; color: inherit; border: 1px solid var(--line); border-radius: 6px; padding: 5px; }

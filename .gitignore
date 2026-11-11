@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Certificat HTTPS auto-signé (caméra téléphone)
+.cert/
+*.tsbuildinfo
