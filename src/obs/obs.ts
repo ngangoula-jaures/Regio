@@ -9,15 +9,14 @@ export const SCENE = "DiffChurch - Sortie";
 export const BACKGROUND = "DiffChurch - Fond";
 export const OVERLAY = "DiffChurch - Contenu";
 export const CAMERA_PREFIX = "DiffChurch - Caméra";
-export const PHONE_INPUT = "DiffChurch - Téléphone (Wi-Fi)";
 /** Préfixe des caméras téléphone « sans application » (QR code + WebRTC). */
 export const PHONE_QR_PREFIX = "DiffChurch - Téléphone QR";
 
 export const CANVAS_W = 1920;
 export const CANVAS_H = 1080;
 
-/** Port d'écoute SRT pour le téléphone (app Larix Broadcaster). */
-export const PHONE_SRT_PORT = 9000;
+/** Anciennes sources créées par des versions précédentes de DiffChurch, à supprimer. */
+const OBSOLETE_INPUTS = ["DiffChurch - Téléphone (Wi-Fi)"]; // téléphone via Larix (SRT), abandonné
 
 export interface ConnectionSettings {
   host: string;
@@ -37,7 +36,7 @@ export interface VideoDevice {
 
 export interface CameraSource {
   name: string;
-  kind: "device" | "phone" | "phone-qr" | "other";
+  kind: "device" | "phone-qr" | "other";
 }
 
 /** Une source vidéo de l'utilisateur, déjà présente dans OBS (hors DiffChurch). */
@@ -46,7 +45,6 @@ const VIDEO_INPUT_KINDS = new Set([
   "av_capture_input", // macOS
   "av_capture_input_v2",
   "v4l2_input", // Linux
-  "ffmpeg_source",
 ]);
 
 export class ObsController {
@@ -128,6 +126,10 @@ export class ObsController {
         await this.ws.call("SetInputSettings", { inputName: OVERLAY, inputSettings: overlaySettings });
       }
       await this.ensureInScene(OVERLAY);
+    }
+
+    for (const name of OBSOLETE_INPUTS) {
+      if (await this.inputExists(name)) await this.ws.call("RemoveInput", { inputName: name });
     }
 
     await this.reorder();
@@ -217,11 +219,9 @@ export class ObsController {
         name: i.inputName,
         kind: i.inputName.startsWith(PHONE_QR_PREFIX)
           ? "phone-qr"
-          : i.inputName === PHONE_INPUT
-            ? "phone"
-            : i.inputName.startsWith(CAMERA_PREFIX)
-              ? "device"
-              : "other",
+          : i.inputName.startsWith(CAMERA_PREFIX)
+            ? "device"
+            : "other",
       }));
   }
 
@@ -236,30 +236,6 @@ export class ObsController {
     }
     await this.activateCamera(name);
     return name;
-  }
-
-  /**
-   * Téléphone en Wi-Fi : OBS écoute en SRT, le téléphone (Larix Broadcaster) envoie vers
-   * srt://IP_DU_PC:9000. Latence ~200 ms.
-   */
-  async usePhoneOverWifi(): Promise<string> {
-    const settings = {
-      is_local_file: false,
-      input: `srt://0.0.0.0:${PHONE_SRT_PORT}?mode=listener&latency=200000`,
-      input_format: "mpegts",
-      reconnect_delay_sec: 1,
-      restart_on_activate: false,
-      close_when_inactive: false,
-      buffering_mb: 1,
-      hw_decode: true,
-    };
-    if (!(await this.inputExists(PHONE_INPUT))) {
-      await this.ws.call("CreateInput", { sceneName: SCENE, inputName: PHONE_INPUT, inputKind: "ffmpeg_source", inputSettings: settings });
-    } else {
-      await this.ws.call("SetInputSettings", { inputName: PHONE_INPUT, inputSettings: settings });
-    }
-    await this.activateCamera(PHONE_INPUT);
-    return PHONE_INPUT;
   }
 
   /**

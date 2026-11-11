@@ -4,7 +4,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ObsController,
-  PHONE_SRT_PORT,
   type CameraSource,
   type ConnectionSettings,
   type Monitor,
@@ -171,12 +170,6 @@ export default function App() {
       await refreshSources();
     });
 
-  const usePhone = () =>
-    run(async () => {
-      setActiveCamera(await obs.current.usePhoneOverWifi());
-      await refreshSources();
-    });
-
   const useSource = (name: string) =>
     run(async () => {
       await obs.current.activateCamera(name);
@@ -225,16 +218,13 @@ export default function App() {
               <div className="list">
                 {cameras.map((c) => (
                   <button key={c.name} className={`row ${activeCamera === c.name ? "active" : ""}`} onClick={() => useSource(c.name)}>
-                    {c.kind === "phone" || c.kind === "phone-qr" ? "📱" : "🎥"} {c.name.replace(/^DiffChurch - /, "")}
+                    {c.kind === "phone-qr" ? "📱" : "🎥"} {c.name.replace(/^DiffChurch - /, "")}
                   </button>
                 ))}
               </div>
               <div className="actions">
                 <button onClick={detectDevices}>Détecter les caméras USB / HDMI</button>
                 <button onClick={usePhoneQr}>📱 Téléphone (QR code)</button>
-                <button onClick={usePhone} className="secondary">
-                  Téléphone via Larix (avancé)
-                </button>
               </div>
               {showQr && (
                 <div className="sub">
@@ -252,14 +242,6 @@ export default function App() {
                       ➕ {d.name}
                     </button>
                   ))}
-                </div>
-              )}
-              {activeCamera === "DiffChurch - Téléphone (Wi-Fi)" && (
-                <div className="help">
-                  Sur le téléphone, application <b>Larix Broadcaster</b> → Connexions → nouvelle connexion :
-                  <code>srt://IP_DU_PC:{PHONE_SRT_PORT}</code>
-                  (IP du PC : tapez <code>ipconfig</code> dans un terminal Windows, ligne « Adresse IPv4 » du Wi-Fi).
-                  Le PC et le téléphone doivent être sur le même Wi-Fi. Autorisez OBS si le pare-feu Windows le demande.
                 </div>
               )}
             </div>

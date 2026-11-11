@@ -45,7 +45,6 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   (websocket), fournie en dev par le plugin Vite `server/phone-bridge.ts` (HTTPS sur le port 8443).
   `/diffchurch/info` donne l'adresse Wi-Fi du PC (pour le QR code) et l'état des connexions.
   TODO Tauri : réimplémenter ce pont en Rust.
-- Alternative avancée : Larix Broadcaster en SRT (→ OBS Media Source en mode listener, port 9000).
 - **Stockage** : SQLite (Bible, médiathèque, déroulés) — à partir de la Phase 1.
 - Plus tard : affichage différent projecteur / direct (scène dédiée par sortie), relais multi-plateformes.
 
@@ -58,10 +57,10 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 - Bibles : uniquement libres de droits (Louis Segond 1910, Darby, Martin, Ostervald, KJV).
 - Inspirations retenues (SplitCam) : moniteur de santé du direct, mode répétition, destinations
   préconfigurées, assistant « combien de caméras ? », télécommande depuis le téléphone.
-- Téléphone caméra : Larix Broadcaster gratuit = filigrane « TEST STREAM » + coupure après 30 min (+30 min
-  avec filigrane) → inutilisable pour un culte. Pistes : mode webcam USB Android 14+, et surtout une caméra
-  « téléphone sans application » (page web + WebRTC reçue dans OBS) à construire nous-mêmes. Solution
-  principale de l'église : caméscope HDMI + boîtier de capture.
+- Téléphone caméra : **uniquement notre caméra QR code (WebRTC)**. Larix Broadcaster est ABANDONNÉ et
+  retiré du logiciel (version gratuite : filigrane « TEST STREAM » + coupure après 30 min ; latence et
+  image dégradée en SRT). Ne pas le réintroduire, même en « option avancée ». Le mode webcam USB natif
+  n'existe pas sur le Samsung de l'utilisateur. Solution principale de l'église : caméscope HDMI + boîtier de capture.
 - L'aperçu de la régie = captures OBS toutes les 500 ms → il paraît en retard ; la latence réelle se juge
   sur la sortie projecteur.
 - Audio : sortie de table de mixage via interface audio USB ; vumètre ; option « musique hors direct »
@@ -70,7 +69,8 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 ## Feuille de route
 - **Phase 0 (en cours)** : prototype technique — piloter OBS, caméra (webcam/téléphone), projection HDMI,
   fondus caméra ↔ verset/affiche/texte sans écran noir. ✅ Validé sur le vrai matériel le 2026-11-11
-  (webcam du PC, téléphone Larix en SRT, versets/textes/images). Reste : encapsulation Tauri sur Windows.
+  (webcam du PC, téléphone, versets/textes/images). Caméra téléphone QR code (WebRTC) validée sur le vrai
+  téléphone le 2026-11-11 : latence bien meilleure que Larix. Reste : encapsulation Tauri sur Windows.
 - **Phase 1** : remplacer PowerPoint — diapos, éditeur, import .pptx, Bible complète, médiathèque, déroulé du culte.
 - **Phase 2** : le direct — sources du jour, Aperçu/Direct, enregistrement, diffusion 1 plateforme, santé du direct.
 - **Phase 3** : multidiffusion (relais), bandeaux sur le direct, plusieurs écrans, écran retour prédicateur.

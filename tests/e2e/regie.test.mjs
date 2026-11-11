@@ -4,6 +4,8 @@ import { startFakeObs } from "./fake-obs.mjs";
 
 const SCENE = "DiffChurch - Sortie";
 const obs = startFakeObs(4466);
+// Source laissée par une ancienne version (Larix/SRT, abandonné) : doit être supprimée à la connexion.
+obs.state.inputs.push({ inputName: "DiffChurch - Téléphone (Wi-Fi)", inputKind: "ffmpeg_source", settings: {} });
 const browser = await launch();
 const errors = [];
 const fail = async (msg) => {
@@ -23,6 +25,8 @@ try {
   await control.click("text=Se connecter et préparer OBS");
   await control.waitForSelector("text=Caméra seule");
   await check(obs.state.scenes.includes(SCENE), "scène de sortie créée");
+  await check(!obs.state.inputs.some((i) => i.inputName === "DiffChurch - Téléphone (Wi-Fi)"), "ancienne source Larix supprimée");
+  await check((await control.locator("text=Larix").count()) === 0, "plus aucune mention de Larix dans la régie");
 
   // Verset envoyé AVANT l'ouverture de la page d'affichage → récupéré via « hello ».
   const overlay = obs.state.inputs.find((i) => i.inputName === "DiffChurch - Contenu");
