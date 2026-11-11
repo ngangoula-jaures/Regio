@@ -17,6 +17,8 @@ export default function Phone() {
   const [facing, setFacing] = useState<"environment" | "user">("environment");
   const [micOn, setMicOn] = useState(true);
   const [signalOk, setSignalOk] = useState(false);
+  const [portrait, setPortrait] = useState(false);
+  const [stats, setStats] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -46,6 +48,71 @@ export default function Phone() {
     }
   }
 
+  /**
+   * Plein écran + verrouillage à l'horizontale (comme une appli caméra) : le navigateur envoie alors
+   * une image horizontale, même si la rotation automatique est désactivée. Non pris en charge partout
+   * (ex. iPhone) : dans ce cas l'avertissement « Tournez le téléphone » prend le relais.
+   */
+  async function lockLandscape() {
+    try {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen({ navigationUI: "hide" });
+      const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
+      await orientation.lock?.("landscape");
+    } catch {
+      /* non pris en charge */
+    }
+  }
+
+  function unlockLandscape() {
+    try {
+      screen.orientation?.unlock?.();
+    } catch {
+      /* ignore */
+    }
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }
+
+  // Détecte une image en portrait (téléphone tenu verticalement).
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const check = () => setPortrait(v.videoWidth > 0 && v.videoHeight > v.videoWidth);
+    v.addEventListener("resize", check);
+    v.addEventListener("loadedmetadata", check);
+    return () => {
+      v.removeEventListener("resize", check);
+      v.removeEventListener("loadedmetadata", check);
+    };
+  }, []);
+
+  // Infos techniques du direct (résolution réellement envoyée, débit, cause d'une baisse de qualité).
+  useEffect(() => {
+    if (phase !== "live") {
+      setStats(null);
+      return;
+    }
+    let lastBytes = 0;
+    let lastTime = 0;
+    const t = window.setInterval(async () => {
+      const pc = pcRef.current.pc;
+      if (!pc) return;
+      const report = await pc.getStats();
+      report.forEach((r) => {
+        if (r.type !== "outbound-rtp" || r.kind !== "video") return;
+        const mbps = lastTime ? ((r.bytesSent - lastBytes) * 8) / ((r.timestamp - lastTime) * 1000) : null;
+        lastBytes = r.bytesSent;
+        lastTime = r.timestamp;
+        const limit = { bandwidth: "réseau Wi-Fi", cpu: "téléphone trop sollicité", other: "autre" }[r.qualityLimitationReason as string];
+        setStats(
+          `${r.frameWidth ?? "?"}×${r.frameHeight ?? "?"} · ${Math.round(r.framesPerSecond ?? 0)} i/s` +
+            (mbps === null ? "" : ` · ${mbps.toFixed(1)} Mb/s`) +
+            (limit ? ` · qualité réduite : ${limit}` : ""),
+        );
+      });
+    }, 2000);
+    return () => window.clearInterval(t);
+  }, [phase]);
+
   async function openCamera(face: "environment" | "user", q: Quality): Promise<MediaStream> {
     const [w, h] = q === "1080" ? [1920, 1080] : [1280, 720];
     return navigator.mediaDevices.getUserMedia({
@@ -58,13 +125,18 @@ export default function Phone() {
   async function start() {
     setError(null);
     setPhase("starting");
+    await lockLandscape(); // avant tout : nécessite le geste de l'utilisateur (le clic)
     try {
       const stream = await openCamera(facing, quality);
       streamRef.current = stream;
       if (videoRef.current) videoRef.current.srcObject = stream;
       await requestWakeLock();
       setPhase("waiting");
-      const signal = new SignalClient("phone", cam, onSignal, setSignalOk);
+      const signal = new SignalClient("phone", cam, onSignal, setSignalOk, () => {
+        stopAll();
+        setPhase("error");
+        setError(`Un autre appareil a pris la place de la caméra n° ${cam}.`);
+      });
       signalRef.current = signal;
       signal.start();
     } catch (e) {
@@ -86,6 +158,7 @@ export default function Phone() {
 
   function stop() {
     stopAll();
+    unlockLandscape();
     if (videoRef.current) videoRef.current.srcObject = null;
     setPhase("idle");
   }
@@ -227,6 +300,14 @@ export default function Phone() {
             {phase === "waiting" && (signalOk ? "Caméra prête — en attente de la régie" : "Recherche de la régie…")}
           </div>
           {error && <div className="toast">{error}</div>}
+          {portrait && (
+            <div className="rotate">
+              <div className="rotate-icon">📱↻</div>
+              Tournez le téléphone à l'horizontale
+              <small>L'image est envoyée en vertical : elle aura des bandes noires sur l'écran de l'église.</small>
+            </div>
+          )}
+          {stats && <div className="stats">{stats}</div>}
           <div className="controls">
             <button onClick={switchCamera}>🔄 Caméra {facing === "environment" ? "arrière" : "avant"}</button>
             <button onClick={toggleMic} className={micOn ? "" : "off"}>

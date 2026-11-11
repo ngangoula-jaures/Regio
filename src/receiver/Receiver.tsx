@@ -8,6 +8,7 @@ export default function Receiver() {
   const cam = new URLSearchParams(location.search).get("cam") ?? "1";
   const videoRef = useRef<HTMLVideoElement>(null);
   const [live, setLive] = useState(false);
+  const [replaced, setReplaced] = useState(false);
 
   useEffect(() => {
     let pc: RTCPeerConnection | null = null;
@@ -62,7 +63,11 @@ export default function Receiver() {
       }
     };
 
-    const signal = new SignalClient("receiver", cam, onSignal, () => {});
+    const signal = new SignalClient("receiver", cam, onSignal, () => {}, () => {
+      pc?.close();
+      setLive(false);
+      setReplaced(true);
+    });
     signal.start();
     return () => {
       signal.stop();
@@ -73,7 +78,11 @@ export default function Receiver() {
   return (
     <div className="receiver">
       <video ref={videoRef} autoPlay playsInline className={live ? "on" : ""} />
-      {!live && <div className="waiting">📱 Caméra téléphone n° {cam} — en attente…</div>}
+      {!live && (
+        <div className="waiting">
+          {replaced ? `📱 Caméra n° ${cam} reçue ailleurs (source en double ?)` : `📱 Caméra téléphone n° ${cam} — en attente…`}
+        </div>
+      )}
     </div>
   );
 }

@@ -23,6 +23,7 @@ import { generate } from "selfsigned";
 export const PHONE_HTTPS_PORT = 8443;
 export const SIGNAL_PATH = "/diffchurch/signal";
 export const INFO_PATH = "/diffchurch/info";
+const CLOSE_REPLACED = 4000; // identique à src/shared/signal.ts
 
 type Role = "phone" | "receiver";
 
@@ -60,7 +61,7 @@ function handleSignalConnection(ws: WebSocket) {
       const room = rooms.get(cam) ?? {};
       rooms.set(cam, room);
       // Une seule connexion par rôle : la plus récente remplace l'ancienne.
-      if (room[role] && room[role] !== ws) room[role]!.close(4000, "remplacé");
+      if (room[role] && room[role] !== ws) room[role]!.close(CLOSE_REPLACED, "remplacé");
       room[role] = ws;
       send(ws, { type: "peer", present: Boolean(room[other(role)]) });
       send(room[other(role)], { type: "peer", present: true });

@@ -2,6 +2,9 @@
 
 export const SIGNAL_PATH = "/diffchurch/signal";
 
+/** Code de fermeture envoyé par le serveur quand une connexion plus récente prend la place. */
+export const CLOSE_REPLACED = 4000;
+
 export type SignalMessage =
   | { type: "peer"; present: boolean }
   | { type: "offer"; sdp: string }
@@ -18,6 +21,7 @@ export class SignalClient {
     private cam: string,
     private onMessage: (msg: SignalMessage) => void,
     private onStatus: (connected: boolean) => void,
+    private onReplaced?: () => void,
   ) {}
 
   start() {
@@ -50,9 +54,16 @@ export class SignalClient {
         /* ignore */
       }
     };
-    ws.onclose = () => {
+    ws.onclose = (e) => {
       if (this.ws !== ws) return;
       this.onStatus(false);
+      // Remplacé par une connexion plus récente (ex. source téléphone dupliquée dans OBS) :
+      // ne pas se reconnecter, sinon les deux se remplaceraient en boucle.
+      if (e.code === CLOSE_REPLACED) {
+        this.stopped = true;
+        this.onReplaced?.();
+        return;
+      }
       if (!this.stopped) this.retry = window.setTimeout(() => this.open(), 1500);
     };
   }
