@@ -1,0 +1,112 @@
+:root {
+  --bg: #14121a;
+  --panel: #1e1b26;
+  --panel2: #282433;
+  --line: #3a3447;
+  --text: #ece9f2;
+  --muted: #9a93a8;
+  --accent: #f2c86b;
+  --green: #4ccb7a;
+  --red: #ef5e5e;
+  --orange: #f0a43a;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+
+button, input, textarea {
+  font: inherit;
+  color: inherit;
+}
+button {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-align: left;
+}
+button:hover { border-color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: default; }
+input, textarea {
+  width: 100%;
+  background: #110f16;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 9px;
+  margin-bottom: 8px;
+}
+
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px; border-bottom: 1px solid var(--line); background: var(--panel);
+}
+.brand { font-size: 18px; font-weight: 700; }
+.brand span { font-weight: 400; color: var(--muted); font-size: 13px; margin-left: 6px; }
+.pill { padding: 4px 10px; border-radius: 99px; background: var(--panel2); font-size: 13px; }
+.pill.green { color: var(--green); }
+.pill.red { color: var(--red); }
+.pill.orange { color: var(--orange); }
+.pill.grey { color: var(--muted); }
+
+.notice {
+  margin: 10px 18px 0; padding: 10px 14px; border-radius: 8px;
+  background: #3a2320; border: 1px solid var(--red); cursor: pointer;
+}
+
+.grid {
+  flex: 1; display: grid; gap: 14px; padding: 14px 18px;
+  grid-template-columns: minmax(260px, 1fr) minmax(420px, 2fr) minmax(280px, 1.1fr);
+  align-items: start;
+}
+.col { display: flex; flex-direction: column; gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.card h2 { margin: 0 0 10px; font-size: 15px; }
+.list { display: flex; flex-direction: column; gap: 6px; }
+.list.sub { margin-top: 10px; }
+.row { width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.row.active { border-color: var(--green); background: #1f3326; }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.help { font-size: 13px; color: var(--muted); line-height: 1.5; margin-top: 10px; }
+.help code { display: inline-block; background: #110f16; padding: 1px 6px; border-radius: 4px; color: var(--accent); margin: 0 2px; }
+.error { color: var(--red); }
+
+.preview {
+  aspect-ratio: 16 / 9; background: #000; border-radius: 8px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; border: 2px solid var(--red);
+}
+.preview img { width: 100%; height: 100%; object-fit: contain; }
+.now { margin: 10px 0; color: var(--muted); }
+.now b { color: var(--text); }
+.big { width: 100%; padding: 14px; font-size: 16px; font-weight: 600; text-align: center; }
+.camera-only { background: #1f3326; border-color: var(--green); }
+
+.segmented { display: flex; gap: 6px; }
+.segmented button { flex: 1; text-align: center; }
+.segmented button.on { background: var(--accent); color: #1a1408; border-color: var(--accent); font-weight: 600; }
+
+.file {
+  display: block; text-align: center; padding: 10px; border: 1px dashed var(--line);
+  border-radius: 8px; cursor: pointer; color: var(--muted);
+}
+.file:hover { border-color: var(--accent); color: var(--text); }
+.file input { display: none; }
+.thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+.thumb { padding: 0; aspect-ratio: 16 / 9; overflow: hidden; background: #000; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.connect { max-width: 560px; margin: 40px auto; }
+.connect .form { display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 10px; margin: 14px 0 6px; }
+.connect label { font-size: 12px; color: var(--muted); }
+
+.render-status { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 6px 10px; margin-bottom: 10px; border-radius: 8px; font-size: 13px; }
+.render-status.ok { background: #1f3326; color: var(--green); }
+.render-status.ko { background: #3a2320; color: var(--orange); }
+.render-status button { padding: 4px 10px; }
