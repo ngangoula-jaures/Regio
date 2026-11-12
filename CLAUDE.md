@@ -71,12 +71,20 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 - **Scène OBS de sortie** gérée par l'app : `Regio - Sortie` = fond de secours + caméra(s) + contenu.
 - **Projecteur** = projecteur plein écran OBS (`OpenVideoMixProjector`) sur l'écran HDMI.
 - **Téléphone caméra « sans application » (QR code)** : le téléphone ouvre `phone.html` (HTTPS obligatoire
-  pour la caméra ; certificat auto-signé dans `.cert/`, non versionné) et envoie caméra + micro en **WebRTC**
-  directement à `receiver.html`, chargée dans OBS comme Browser Source (`Regio - Téléphone QR <n>`,
-  `reroute_audio` → le son arrive dans le mélangeur OBS). La signalisation passe par `/regio/signal`
-  (websocket), fournie en dev par le plugin Vite `server/phone-bridge.ts` (HTTPS sur le port 8443).
-  `/regio/info` donne l'adresse Wi-Fi du PC (pour le QR code) et l'état des connexions.
-  TODO Tauri : réimplémenter ce pont en Rust.
+  pour la caméra) et envoie caméra + micro en **WebRTC** directement à `receiver.html`, chargée dans OBS
+  comme Browser Source (`Regio - Téléphone QR <n>`, `reroute_audio` → le son arrive dans le mélangeur OBS).
+  La signalisation passe par `/regio/signal` (websocket).
+- **Serveur local intégré (Rust, `src-tauri/src/server/`)** — fait le 2026-11-12 :
+  - serveur LOCAL `127.0.0.1:47811` (HTTP) : pages pour OBS + signalisation rôle « récepteur » uniquement ;
+  - serveur TÉLÉPHONE `0.0.0.0:47812` (HTTPS, certificat rcgen dans le dossier de données de l'app) :
+    `phone.html` + signalisation rôle « téléphone » uniquement, avec **clé secrète** (`k=` dans le QR,
+    renouvelée à chaque lancement). `/regio/info` n'y est PAS exposé. Refus = fermeture code 4003.
+  - ports suivants pris si occupés ; l'interface obtient adresse, clé et état via la commande Tauri
+    `server_info` (`src/shared/server.ts`), jamais par HTTP (pas de fuite de la clé à une page web).
+  - pages lues dans l'exécutable (`asset_resolver`) ; en `tauri dev`, relayées depuis Vite (`tauri::is_dev()`).
+  - Mode navigateur (`npm run dev`) : le plugin Vite `server/phone-bridge.ts` joue ce rôle (HTTPS 8443,
+    certificat dans `.cert/`, sans clé) ; il est désactivé en `vite --mode tauri` (`npm run dev:tauri`).
+  - Test sous Windows, application lancée : `scripts/win.sh node tests/e2e/rust-server.test.mjs`.
 - **Stockage** : SQLite (Bible, médiathèque, déroulés) — à partir de la Phase 1.
 - Plus tard : affichage différent projecteur / direct (scène dédiée par sortie), relais multi-plateformes.
 
