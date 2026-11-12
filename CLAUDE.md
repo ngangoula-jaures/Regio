@@ -5,7 +5,11 @@ service communication d'une église de gérer un culte de bout en bout :
 projection locale (HDMI), diffusion en direct (Facebook, YouTube, TikTok…), Bible intégrée,
 affiches/annonces, diapos type PowerPoint (avec import .pptx), une ou plusieurs caméras.
 
-Le nom « DiffChurch » est provisoire.
+Le nom « DiffChurch » est provisoire (nom définitif à choisir avant le logo et la 1re version publique).
+
+**Plan complet (document partagé)** : https://claude.ai/artifact/QYmxdmBvA2TyWtn87FAJFi
+**Open source** : licence **Apache-2.0** ; interface en **français + anglais** dès la 1re version publique
+(tous les textes dans des fichiers de langue, aucune chaîne en dur dans les composants).
 
 ## Principes produit (non négociables)
 
@@ -21,6 +25,18 @@ Le nom « DiffChurch » est provisoire.
    (Restream ou relais auto-hébergé sur VPS). Qualité adaptative. Enregistrement local en pleine qualité toujours.
 5. **PC modestes.** Cible : Core i3/i5 (≥ 7e gen, QuickSync), 8 Go RAM. Encodage matériel obligatoire.
 6. **Hors ligne.** Tout fonctionne sans Internet sauf la diffusion vers les réseaux.
+
+## Design (exigence forte de l'utilisateur)
+- Interface **très belle, élégante, professionnelle**, adaptée au contexte du culte. Le prototype actuel
+  (emojis, mise en page brute) sera entièrement redessiné : maquette validée par l'utilisateur AVANT de coder un écran.
+- Régie : thème sombre calme (bleu nuit + accent or ; couleurs vives réservées aux états : rouge = direct,
+  vert = prêt, orange = attention), gros boutons, police **Inter**, icônes **Lucide** (jamais d'emojis).
+- Sortie (assemblée/direct) : lisible du fond de la salle (texte ≥ 5 % de la hauteur, contraste fort,
+  ajustement auto de la taille), police à empattements pour les Écritures (Source Serif / Lora), sans
+  empattement pour les annonces (Montserrat). Polices libres **embarquées** (hors ligne, pas de CDN).
+  Modèles « Classique », « Moderne », « Sobre », personnalisables (logo, couleurs de l'église). WCAG AA.
+- Identité visuelle conçue en parallèle : nom → logo (3 pistes, lisible en 16 px, monochrome possible,
+  non confessionnel) → charte (palette, typos, ton) → déclinaisons. Un seul système de design (tokens).
 
 ## Architecture
 
@@ -89,6 +105,12 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 - Tests de bout en bout (serveur de dev lancé) : `npm run test:e2e` = `test:regie` (régie ↔ faux OBS
   `tests/e2e/fake-obs.mjs`) + `test:phone` (caméra téléphone WebRTC avec caméra simulée). Le faux OBS
   doit reproduire le comportement RÉEL d'OBS (ex. CustomEvent sans enveloppe `eventData`).
+- **Smart App Control (Windows 11) est ACTIVÉ** sur le PC de dev (constaté le 2026-11-12) : il bloque les
+  exécutables non signés produits par la compilation Rust (« os error 4551 »). Il faut le désactiver pour
+  compiler, et **l'installeur distribué devra être signé** (sinon bloqué sur les PC des églises).
+- Sous PowerShell, `npm`/`npx` sont bloqués par la stratégie d'exécution : utiliser `npm.cmd`/`npx.cmd`
+  (ou `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`).
+- Compiler Tauri depuis un chemin WSL (\\wsl$) ne marche pas : le projet devra vivre sur le disque Windows.
 - Ne jamais lancer `pkill -f "<motif>"` dans une commande qui contient elle-même ce motif (elle se tue).
 
 ## Conventions
