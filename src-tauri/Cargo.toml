@@ -22,6 +22,18 @@ tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# Serveur local (pages pour OBS, page du téléphone en HTTPS, signalisation WebRTC)
+axum = { version = "0.8", features = ["ws"] }
+tokio = { version = "1", features = ["net", "sync", "time", "io-util", "macros", "rt-multi-thread"] }
+futures-util = "0.3"
+hyper = "1"
+hyper-util = { version = "0.1", features = ["server-auto", "service", "tokio"] }
+# TLS avec « ring » : compile sous Windows sans outils supplémentaires (pas d'aws-lc)
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
+rcgen = { version = "0.13", default-features = false, features = ["ring", "pem"] }
+local-ip-address = "0.6"
+getrandom = "0.2"
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration

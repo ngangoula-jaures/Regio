@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:wsl": "vite --host 0.0.0.0",
+    "dev:tauri": "vite --mode tauri",
     "build": "tsc && tsc -p tsconfig.node.json --noEmit && vite build",
     "preview": "vite preview",
     "test:phone": "node tests/e2e/phone-camera.test.mjs",

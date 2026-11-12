@@ -13,6 +13,7 @@ import { readCustomEvent, type Content, type Layout } from "../shared/content";
 import { SAMPLE_VERSES } from "../shared/bible-sample";
 import { loadImageAsDataUrl } from "./images";
 import { PhoneQr } from "./PhoneQr";
+import { getServerInfo } from "../shared/server";
 import "./App.css";
 
 const SETTINGS_KEY = "regio.obs";
@@ -85,6 +86,7 @@ export default function App() {
     setNotice(null);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     try {
+      obs.current.localBase = (await getServerInfo()).localBase;
       const label = await obs.current.connect(settings);
       await obs.current.ensureSetup();
       setStatus({ kind: "on", label });

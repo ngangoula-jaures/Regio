@@ -44,7 +44,9 @@ export class SignalClient {
     const ws = new WebSocket(`${proto}//${location.host}${SIGNAL_PATH}`);
     this.ws = ws;
     ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "join", role: this.role, cam: this.cam }));
+      // Clé secrète du QR code (exigée par le serveur de l'application pour un téléphone).
+      const key = new URLSearchParams(location.search).get("k") ?? undefined;
+      ws.send(JSON.stringify({ type: "join", role: this.role, cam: this.cam, key }));
       this.onStatus(true);
     };
     ws.onmessage = (e) => {

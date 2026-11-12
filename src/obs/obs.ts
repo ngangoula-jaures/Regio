@@ -52,6 +52,8 @@ const VIDEO_INPUT_KINDS = new Set([
 
 export class ObsController {
   readonly ws = new OBSWebSocket();
+  /** Adresse du serveur qui sert les pages à OBS (serveur Rust de l'application, ou Vite en développement). */
+  localBase = window.location.origin;
   private settings: ConnectionSettings | null = null;
 
   async connect(s: ConnectionSettings): Promise<string> {
@@ -72,10 +74,9 @@ export class ObsController {
   renderUrl(): string {
     const s = this.settings;
     if (!s) throw new Error("Non connecté");
-    // Phase 0 : servie par le serveur Vite. TODO Tauri : servir render.html via un petit
-    // serveur HTTP local côté Rust (OBS ne peut pas charger tauri://).
+    // OBS ne peut pas charger tauri:// : la page vient du serveur local (voir localBase).
     const params = new URLSearchParams({ port: String(s.port), password: s.password });
-    return `${window.location.origin}/render.html?${params}`;
+    return `${this.localBase}/render.html?${params}`;
   }
 
   // ---------- Installation de la scène de sortie ----------
@@ -257,7 +258,7 @@ export class ObsController {
   async usePhoneQr(cam = "1"): Promise<string> {
     const name = `${PHONE_QR_PREFIX} ${cam}`;
     const settings = {
-      url: `${window.location.origin}/receiver.html?cam=${encodeURIComponent(cam)}`,
+      url: `${this.localBase}/receiver.html?cam=${encodeURIComponent(cam)}`,
       width: CANVAS_W,
       height: CANVAS_H,
       fps_custom: false,

@@ -189,6 +189,8 @@ export function phoneBridge(): Plugin {
     name: "regio-phone-bridge",
     apply: "serve",
     async configureServer(server: ViteDevServer) {
+      // Dans l'application de bureau (`tauri dev`), c'est le serveur Rust qui fait ce travail.
+      if (server.config.mode === "tauri") return;
       const wss = new WebSocketServer({ noServer: true });
       if (server.httpServer) attachSignaling(server.httpServer, wss, false);
 

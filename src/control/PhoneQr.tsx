@@ -2,15 +2,10 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-
-interface BridgeInfo {
-  lanIps: string[];
-  phonePort: number;
-  rooms: Record<string, { phone: boolean; receiver: boolean }>;
-}
+import { getServerInfo, phoneUrl, type ServerInfo } from "../shared/server";
 
 export function PhoneQr({ cam }: { cam: string }) {
-  const [info, setInfo] = useState<BridgeInfo | null>(null);
+  const [info, setInfo] = useState<ServerInfo | null>(null);
   const [ip, setIp] = useState<string | null>(null);
   const [qr, setQr] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -20,9 +15,7 @@ export function PhoneQr({ cam }: { cam: string }) {
     let alive = true;
     const load = async () => {
       try {
-        const res = await fetch("/regio/info");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: BridgeInfo = await res.json();
+        const data = await getServerInfo();
         if (!alive) return;
         setInfo(data);
         setError(null);
@@ -39,7 +32,7 @@ export function PhoneQr({ cam }: { cam: string }) {
     };
   }, []);
 
-  const url = info && ip ? `https://${ip}:${info.phonePort}/phone.html?cam=${encodeURIComponent(cam)}` : null;
+  const url = info && ip && info.phonePort ? phoneUrl(info, ip, cam) : null;
 
   useEffect(() => {
     if (!url) return;
@@ -52,6 +45,7 @@ export function PhoneQr({ cam }: { cam: string }) {
 
   if (error) return <p className="error small">{error}</p>;
   if (!info) return <p className="muted small">Préparation du QR code…</p>;
+  if (!info.phonePort) return <p className="error small">Service téléphone indisponible{info.phoneError ? ` : ${info.phoneError}` : ""}.</p>;
   if (!url) return <p className="error small">Adresse Wi-Fi du PC introuvable. Le PC est-il connecté au Wi-Fi ?</p>;
 
   return (
