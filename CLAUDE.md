@@ -105,12 +105,16 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 - Tests de bout en bout (serveur de dev lancé) : `npm run test:e2e` = `test:regie` (régie ↔ faux OBS
   `tests/e2e/fake-obs.mjs`) + `test:phone` (caméra téléphone WebRTC avec caméra simulée). Le faux OBS
   doit reproduire le comportement RÉEL d'OBS (ex. CustomEvent sans enveloppe `eventData`).
-- **Smart App Control (Windows 11) est ACTIVÉ** sur le PC de dev (constaté le 2026-11-12) : il bloque les
-  exécutables non signés produits par la compilation Rust (« os error 4551 »). Il faut le désactiver pour
-  compiler, et **l'installeur distribué devra être signé** (sinon bloqué sur les PC des églises).
-- Sous PowerShell, `npm`/`npx` sont bloqués par la stratégie d'exécution : utiliser `npm.cmd`/`npx.cmd`
-  (ou `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`).
-- Compiler Tauri depuis un chemin WSL (\\wsl$) ne marche pas : le projet devra vivre sur le disque Windows.
+- **Compilation Windows (Tauri)** : le code reste dans WSL (source de vérité, git, tests). Windows ne sait
+  pas compiler depuis un chemin WSL → `scripts/win.sh` synchronise le code vers `C:\dev\diff-church`
+  (sans node_modules/target/.git) puis y lance la commande Windows : `scripts/win.sh npx.cmd tauri dev`,
+  `scripts/win.sh npx.cmd tauri build`. Ne jamais modifier la copie Windows à la main (écrasée à chaque synchro).
+  Validé le 2026-11-12 : `diffchurch.exe` compile (≈ 1 min 20 s en debug après le 1er build).
+- Outils Windows installés : Rust 1.99 (MSVC), Node 26, Git 2.56, Build Tools VS 2022, WebView2.
+- Smart App Control : DÉSACTIVÉ sur le PC de dev le 2026-11-12 (il bloquait les exécutables de compilation,
+  « os error 4551 »). Les PC des églises l'ont souvent actif → **l'installeur distribué doit être signé**
+  (cible : SignPath Foundation, gratuit pour l'open source, sur candidature).
+- PowerShell : stratégie `RemoteSigned` (CurrentUser) en place ; depuis WSL, utiliser `npm.cmd`/`npx.cmd`.
 - Ne jamais lancer `pkill -f "<motif>"` dans une commande qui contient elle-même ce motif (elle se tue).
 
 ## Conventions
