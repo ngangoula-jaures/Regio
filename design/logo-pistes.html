@@ -88,12 +88,20 @@ h3 { font-family: var(--font-display); font-weight: 600; font-size: 15px; margin
 .slide blockquote { margin: 0; font-family: "Source Serif 4", Georgia, serif; font-size: clamp(16px, 2.6vw, 30px); line-height: 1.4; color: var(--ivoire); text-wrap: balance; }
 .slide cite { display: block; margin-top: 1.1em; font-style: normal; font-family: "Montserrat", sans-serif; font-weight: 600; font-size: clamp(11px, 1.5vw, 17px); letter-spacing: .06em; color: var(--or); }
 .slide .bug { position: absolute; right: 3%; bottom: 5%; display: flex; align-items: center; gap: 6px; opacity: .75; }
-.slide .bug svg { width: 22px; height: 22px; }
+.slide .bug svg { width: 26px; height: 26px; }
+.in-situ { display: grid; gap: 10px; }
 .slide .bug b { font-family: var(--font-display); font-weight: 600; font-size: 13px; color: var(--ivoire); }
 
 .next { background: linear-gradient(0deg, rgba(232,180,76,.08), rgba(232,180,76,.08)), var(--nuit-2); border: 1px solid var(--or); border-radius: 16px; padding: 22px 24px; }
 .next p { margin: 6px 0 0; color: var(--ivoire); max-width: 70ch; }
 
+.overview { background: var(--nuit-2); border: 1px solid var(--nuit-3); border-radius: 20px; padding: 24px; }
+.ov-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.ov { display: grid; justify-items: center; gap: 10px; padding: 18px 10px; border-radius: 14px; background: var(--nuit); border: 1px solid var(--nuit-3); color: var(--ivoire); text-decoration: none; font-size: 13.5px; text-align: center; }
+.ov:hover, .ov:focus-visible { border-color: var(--or); outline: none; }
+.ov span svg { width: 72px; height: 72px; display: block; }
+.ov b { color: var(--or); font-family: var(--font-display); margin-right: 4px; }
+.serie { font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--or); margin-bottom: -32px; }
 section { display: grid; gap: 16px; }
 section > p { margin: 0; color: var(--ardoise); max-width: 70ch; }
 
@@ -111,12 +119,134 @@ section > p { margin: 0; color: var(--ardoise); max-width: 70ch; }
 <div class="wrap">
 
 <header>
-  <div class="kicker">Identité visuelle · étape 2</div>
-  <h1>Regio : trois nouvelles pistes</h1>
-  <p class="lead"><b>Gardé de la première série :</b> le point de lumière d'or, les formes nettes aux traits arrondis, l'écran. <b>Écarté :</b> les ondes « Wi-Fi », la lettre « r », les pictogrammes déjà vus. Chaque nouvelle idée raconte quelque chose de propre au culte.</p>
+  <div class="kicker">Identité visuelle · choix du logo</div>
+  <h1>Regio : les six pistes de logo</h1>
+  <p class="lead">Toutes les pistes réunies pour choisir. La <b>deuxième série</b> (4 à 6) tient compte de vos retours sur la première : garder le point de lumière d'or, l'écran et les traits arrondis, sans les ondes « Wi-Fi » ni la lettre « r ».</p>
   <p class="lead">Chaque piste est montrée sur fond sombre (la régie) et sur fond clair (documents, site), en icône jusqu'à <b>16 pixels</b> (barre des tâches Windows) et avec le nom. Choisissez-en une, ou dites ce qui vous plaît dans chacune : je finalise le logo retenu, puis je rédige la charte graphique.</p>
 </header>
 
+<section class="overview">
+  <h2>Les six pistes d'un coup d'œil</h2>
+  <div class="ov-grid">
+    <a href="#piste-onde" class="ov"><span data-ov="onde"></span><b>1</b> L'onde de lumière</a>
+    <a href="#piste-ecran" class="ov"><span data-ov="ecran"></span><b>2</b> Le r à l'écran</a>
+    <a href="#piste-croix" class="ov"><span data-ov="croix"></span><b>3</b> La croix dans la régie</a>
+    <a href="#piste-aube" class="ov"><span data-ov="aube"></span><b>4</b> L'aube du dimanche</a>
+    <a href="#piste-porte" class="ov"><span data-ov="porte"></span><b>5</b> La porte ouverte</a>
+    <a href="#piste-flamme" class="ov"><span data-ov="flamme"></span><b>6</b> La flamme à l'écran</a>
+  </div>
+</section>
+
+<h2 class="serie">Première série</h2>
+<!-- Piste 1 -->
+<article class="piste" id="piste-onde">
+  <div class="piste-head">
+    <div>
+      <h2>L'onde de lumière</h2>
+      <p>Un point d'or, la lumière ou le direct, d'où partent deux ondes. On y lit la diffusion, la parole qui porte loin, et une auréole discrète.</p>
+    </div>
+    <span class="num">Piste 1</span>
+  </div>
+  <div class="stage">
+    <div class="panel dark" data-mark="onde" data-tone="dark"></div>
+    <div class="panel light" data-mark="onde" data-tone="light"></div>
+  </div>
+  <div class="row">
+    <div class="lockups">
+      <div class="lockup dark" data-lock="onde" data-tone="dark"><span class="word">regio</span></div>
+      <div class="lockup light" data-lock="onde" data-tone="light"><span class="word">regio</span></div>
+    </div>
+    <div class="sizes" data-sizes="onde"></div>
+  </div>
+  <div class="notes">
+    <div><h3>Points forts</h3><ul><li>Lisible même en 16 pixels</li><li>Universel : parle à toutes les églises</li><li>Se décline en animation « en direct »</li></ul></div>
+    <div><h3>Limites</h3><ul><li>Proche des pictogrammes Wi-Fi et « diffusion »</li><li>Ne dit pas « projection » ni « écran »</li></ul></div>
+  </div>
+  <div class="in-situ">
+    <h3>En situation : un verset projeté</h3>
+    <div class="slide">
+      <div>
+        <blockquote>Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu'il ait la vie éternelle.</blockquote>
+        <cite>JEAN 3:16 · LOUIS SEGOND 1910</cite>
+      </div>
+      <div class="bug" data-bug="onde"><b>regio</b></div>
+    </div>
+  </div>
+</article>
+
+<!-- Piste 2 -->
+<article class="piste" id="piste-ecran">
+  <div class="piste-head">
+    <div>
+      <h2>Le r à l'écran</h2>
+      <p>Un écran de projection qui contient un « r » minuscule, dont l'extrémité devient un point de lumière. C'est le monogramme de Regio et la fonction de l'outil réunis.</p>
+    </div>
+    <span class="num">Piste 2</span>
+  </div>
+  <div class="stage">
+    <div class="panel dark" data-mark="ecran" data-tone="dark"></div>
+    <div class="panel light" data-mark="ecran" data-tone="light"></div>
+  </div>
+  <div class="row">
+    <div class="lockups">
+      <div class="lockup dark" data-lock="ecran" data-tone="dark"><span class="word">regio</span></div>
+      <div class="lockup light" data-lock="ecran" data-tone="light"><span class="word">regio</span></div>
+    </div>
+    <div class="sizes" data-sizes="ecran"></div>
+  </div>
+  <div class="notes">
+    <div><h3>Points forts</h3><ul><li>Dit immédiatement « écran » et « Regio »</li><li>Très propre, très « logiciel professionnel »</li><li>Le point d'or rappelle le voyant du direct</li></ul></div>
+    <div><h3>Limites</h3><ul><li>Le cadre s'affine en très petit</li><li>Plus technique que spirituel</li></ul></div>
+  </div>
+  <div class="in-situ">
+    <h3>En situation : un verset projeté</h3>
+    <div class="slide">
+      <div>
+        <blockquote>Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu'il ait la vie éternelle.</blockquote>
+        <cite>JEAN 3:16 · LOUIS SEGOND 1910</cite>
+      </div>
+      <div class="bug" data-bug="ecran"><b>regio</b></div>
+    </div>
+  </div>
+</article>
+
+<!-- Piste 3 -->
+<article class="piste" id="piste-croix">
+  <div class="piste-head">
+    <div>
+      <h2>La croix dans la régie</h2>
+      <p>Quatre écrans, comme le mur de contrôle d'une régie. Entre eux, l'espace vide dessine une croix. L'écran en or est la source à l'antenne.</p>
+    </div>
+    <span class="num">Piste 3</span>
+  </div>
+  <div class="stage">
+    <div class="panel dark" data-mark="croix" data-tone="dark"></div>
+    <div class="panel light" data-mark="croix" data-tone="light"></div>
+  </div>
+  <div class="row">
+    <div class="lockups">
+      <div class="lockup dark" data-lock="croix" data-tone="dark"><span class="word">regio</span></div>
+      <div class="lockup light" data-lock="croix" data-tone="light"><span class="word">regio</span></div>
+    </div>
+    <div class="sizes" data-sizes="croix"></div>
+  </div>
+  <div class="notes">
+    <div><h3>Points forts</h3><ul><li>Double lecture : la régie et la croix</li><li>Forme pleine, très solide en petit</li><li>Le carré d'or illustre « la source en direct »</li></ul></div>
+    <div><h3>Limites</h3><ul><li>Symbole chrétien explicite (sans être propre à une dénomination)</li><li>Rappelle les icônes « grille d'applications »</li></ul></div>
+  </div>
+  <div class="in-situ">
+    <h3>En situation : un verset projeté</h3>
+    <div class="slide">
+      <div>
+        <blockquote>Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu'il ait la vie éternelle.</blockquote>
+        <cite>JEAN 3:16 · LOUIS SEGOND 1910</cite>
+      </div>
+      <div class="bug" data-bug="croix"><b>regio</b></div>
+    </div>
+  </div>
+</article>
+
+<h2 class="serie">Deuxième série</h2>
 <article class="piste" id="piste-aube">
   <div class="piste-head">
     <div>
@@ -139,6 +269,16 @@ section > p { margin: 0; color: var(--ardoise); max-width: 70ch; }
   <div class="notes">
     <div><h3>Ce qu'il raconte</h3><ul><li>Le dimanche matin, jour et heure du culte</li><li>L'aube de Pâques, sans symbole confessionnel</li><li>Garde l'écran et l'or que vous aimiez</li></ul></div>
     <div><h3>Points d'attention</h3><ul><li>Forme très simple : sa force dépendra du dessin final</li><li>À distinguer des icônes « météo »</li></ul></div>
+  </div>
+  <div class="in-situ">
+    <h3>En situation : un verset projeté</h3>
+    <div class="slide">
+      <div>
+        <blockquote>Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu'il ait la vie éternelle.</blockquote>
+        <cite>JEAN 3:16 · LOUIS SEGOND 1910</cite>
+      </div>
+      <div class="bug" data-bug="aube"><b>regio</b></div>
+    </div>
   </div>
 </article>
 
@@ -165,6 +305,16 @@ section > p { margin: 0; color: var(--ardoise); max-width: 70ch; }
     <div><h3>Ce qu'il raconte</h3><ul><li>L'église ouverte au monde : la diffusion</li><li>L'accueil : tout le monde peut entrer</li><li>Silhouette unique, rare dans les logiciels</li></ul></div>
     <div><h3>Points d'attention</h3><ul><li>Un peu plus figuratif que les autres</li><li>Perspective de la porte à affiner en très petit</li></ul></div>
   </div>
+  <div class="in-situ">
+    <h3>En situation : un verset projeté</h3>
+    <div class="slide">
+      <div>
+        <blockquote>Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu'il ait la vie éternelle.</blockquote>
+        <cite>JEAN 3:16 · LOUIS SEGOND 1910</cite>
+      </div>
+      <div class="bug" data-bug="porte"><b>regio</b></div>
+    </div>
+  </div>
 </article>
 
 <article class="piste" id="piste-flamme">
@@ -189,6 +339,16 @@ section > p { margin: 0; color: var(--ardoise); max-width: 70ch; }
   <div class="notes">
     <div><h3>Ce qu'il raconte</h3><ul><li>La lumière et la vie au cœur de l'écran</li><li>Symbole partagé par toutes les églises</li><li>Très bonne lecture en petite taille</li></ul></div>
     <div><h3>Points d'attention</h3><ul><li>La flamme est un symbole assez répandu</li><li>Moins de lien avec l'idée de diffusion</li></ul></div>
+  </div>
+  <div class="in-situ">
+    <h3>En situation : un verset projeté</h3>
+    <div class="slide">
+      <div>
+        <blockquote>Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu'il ait la vie éternelle.</blockquote>
+        <cite>JEAN 3:16 · LOUIS SEGOND 1910</cite>
+      </div>
+      <div class="bug" data-bug="flamme"><b>regio</b></div>
+    </div>
   </div>
 </article>
 
@@ -220,21 +380,9 @@ section > p { margin: 0; color: var(--ardoise); max-width: 70ch; }
   </div>
 </section>
 
-<section>
-  <h2>Aperçu : un verset projeté</h2>
-  <p>Ce que verrait l'assemblée avec cette palette et ces polices, signé discrètement du logo (ici la piste 4).</p>
-  <div class="slide">
-    <div>
-      <blockquote>Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu'il ait la vie éternelle.</blockquote>
-      <cite>JEAN 3:16 · LOUIS SEGOND 1910</cite>
-    </div>
-    <div class="bug" data-bug="aube"><b>regio</b></div>
-  </div>
-</section>
-
 <div class="next">
   <h2>Et maintenant ?</h2>
-  <p>Dites-moi la piste retenue (4, 5 ou 6), ce que vous voulez changer (forme, couleur, épaisseur), ou un mélange, par exemple le soleil de la piste 4 derrière la porte de la piste 5. Je finalise alors le logo et je rédige la charte graphique complète.</p>
+  <p>Dites-moi la piste retenue (de 1 à 6), ce que vous voulez changer (forme, couleur, épaisseur), ou un mélange, par exemple le soleil de la piste 4 derrière la porte de la piste 5. Je finalise alors le logo et je rédige la charte graphique complète.</p>
 </div>
 
 </div>
@@ -246,6 +394,30 @@ const C = { nuit: "#0E1530", ivoire: "#F6F2E8", or: "#E8B44C", nuit2: "#18213F",
 function ink(tone) { return tone === "light" ? C.nuit : C.ivoire; }
 
 const MARKS = {
+  // Piste 1 : point d'or + deux ondes (quart de cercle)
+  onde(tone) {
+    const s = ink(tone);
+    return `<g transform="translate(-4 4)">
+      <path d="M36 40 A26 26 0 0 1 62 66" fill="none" stroke="${s}" stroke-width="9" stroke-linecap="round"/>
+      <path d="M36 20 A46 46 0 0 1 82 66" fill="none" stroke="${s}" stroke-width="9" stroke-linecap="round"/>
+      <circle cx="36" cy="66" r="10" fill="${C.or}"/></g>`;
+  },
+  // Piste 2 : écran 16:10 + « r » dont le bras se termine en point de lumière
+  ecran(tone) {
+    const s = ink(tone);
+    return `<rect x="9" y="19" width="82" height="62" rx="14" fill="none" stroke="${s}" stroke-width="7"/>
+      <path d="M38 66 V46" fill="none" stroke="${s}" stroke-width="9" stroke-linecap="round"/>
+      <path d="M38 54 C38 45 45 40 54 40" fill="none" stroke="${s}" stroke-width="9" stroke-linecap="round"/>
+      <circle cx="64" cy="40" r="6" fill="${C.or}"/>`;
+  },
+  // Piste 3 : quatre écrans, la croix (latine) dans l'espace entre eux ; l'écran d'or est à l'antenne
+  croix(tone) {
+    const s = tone === "light" ? C.nuit : C.ivoire;
+    return `<rect x="10" y="10" width="36" height="30" rx="8" fill="${s}"/>
+      <rect x="54" y="10" width="36" height="30" rx="8" fill="${C.or}"/>
+      <rect x="10" y="48" width="36" height="42" rx="8" fill="${s}"/>
+      <rect x="54" y="48" width="36" height="42" rx="8" fill="${s}"/>`;
+  },
   // Piste 4 : écran dont le bord bas est l'horizon ; soleil d'or qui se lève + deux rayons courts
   aube(tone) {
     const s = ink(tone);
@@ -269,7 +441,7 @@ const MARKS = {
     return `<rect x="9" y="19" width="82" height="62" rx="14" fill="none" stroke="${s}" stroke-width="7"/>
       <path d="M50 31 C57 40 63 46 63 56 A13 13 0 0 1 37 56 C37 50 40 46 44 42 C44 47 46 50 49 51 C48 44 47 38 50 31 Z" fill="${C.or}"/>
       <path d="M50 51 C53 54 55.5 57 55.5 60.5 A5.5 5.5 0 0 1 44.5 60.5 C44.5 57 47 54 50 51 Z" fill="${bg}"/>`;
-  },
+  }
 };
 
 function svg(name, tone, cls, size) {
@@ -292,6 +464,7 @@ document.querySelectorAll("[data-sizes]").forEach(el => {
     <div class="sizes-line">${[128, 64, 32, 16].map(s => `<figure>${appIcon(n, s)}<figcaption>${s} px</figcaption></figure>`).join("")}</div>
     <div class="taskbar">${appIcon(n, 16)} Regio · Régie du culte</div>`;
 });
+document.querySelectorAll("[data-ov]").forEach(el => { el.innerHTML = svg(el.dataset.ov, "dark"); });
 document.querySelectorAll("[data-bug]").forEach(el => { el.insertAdjacentHTML("afterbegin", svg(el.dataset.bug, "dark")); });
 </script>
 </body>
