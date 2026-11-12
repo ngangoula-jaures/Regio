@@ -32,6 +32,7 @@ export function startFakeObs(port = 4466) {
         case "GetVideoSettings": r = { baseWidth: 1280, baseHeight: 720, outputWidth: 1280, outputHeight: 720 }; break;
         case "GetSceneList": r = { scenes: state.scenes.map((n) => ({ sceneName: n })) }; break;
         case "CreateScene": state.scenes.push(d.sceneName); break;
+        case "RemoveScene": state.scenes = state.scenes.filter((n) => n !== d.sceneName); delete state.items[d.sceneName]; break;
         case "GetInputList": r = { inputs: state.inputs }; break;
         case "GetInputSettings": r = { inputSettings: state.inputs.find((i) => i.inputName === d.inputName)?.settings ?? {} }; break;
         case "SetInputSettings": { const i = state.inputs.find((x) => x.inputName === d.inputName); if (i) i.settings = { ...i.settings, ...d.inputSettings }; break; }

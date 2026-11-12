@@ -1,4 +1,4 @@
-# DiffChurch — développement sous WSL uniquement.
+# Regio — développement sous WSL uniquement.
 # Rend le serveur « caméra téléphone » (port 8443, dans WSL) joignable depuis le Wi-Fi.
 # À lancer dans PowerShell en ADMINISTRATEUR. À relancer si WSL a redémarré (son adresse change).
 # Inutile avec l'application Windows installée (Tauri).
@@ -20,7 +20,7 @@ netsh interface portproxy delete v4tov4 listenport=$port listenaddress=0.0.0.0 2
 netsh interface portproxy add v4tov4 listenport=$port listenaddress=0.0.0.0 connectport=$port connectaddress=$wslIp | Out-Null
 
 # Pare-feu : autoriser le port (tous profils : le Wi-Fi est souvent classé « Public »)
-$ruleName = "DiffChurch - Caméra téléphone ($port)"
+$ruleName = "Regio - Caméra téléphone ($port)"
 if (-not (Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue)) {
     New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Protocol TCP -LocalPort $port -Action Allow -Profile Any | Out-Null
 }

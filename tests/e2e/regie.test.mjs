@@ -2,10 +2,12 @@
 import { launch, BASE } from "./browser.mjs";
 import { startFakeObs } from "./fake-obs.mjs";
 
-const SCENE = "DiffChurch - Sortie";
+const SCENE = "Regio - Sortie";
 const obs = startFakeObs(4466);
-// Source laissée par une ancienne version (Larix/SRT, abandonné) : doit être supprimée à la connexion.
+// Scène et sources laissées par l'ancien nom « DiffChurch » : supprimées à la connexion.
+obs.state.scenes.push("DiffChurch - Sortie");
 obs.state.inputs.push({ inputName: "DiffChurch - Téléphone (Wi-Fi)", inputKind: "ffmpeg_source", settings: {} });
+obs.state.inputs.push({ inputName: "DiffChurch - Contenu", inputKind: "browser_source", settings: {} });
 const browser = await launch();
 const errors = [];
 const fail = async (msg) => {
@@ -25,11 +27,11 @@ try {
   await control.click("text=Se connecter et préparer OBS");
   await control.waitForSelector("text=Caméra seule");
   await check(obs.state.scenes.includes(SCENE), "scène de sortie créée");
-  await check(!obs.state.inputs.some((i) => i.inputName === "DiffChurch - Téléphone (Wi-Fi)"), "ancienne source Larix supprimée");
+  await check(!obs.state.scenes.some((n) => n.startsWith("DiffChurch")) && !obs.state.inputs.some((i) => i.inputName.startsWith("DiffChurch")), "anciennes scènes et sources « DiffChurch » supprimées");
   await check((await control.locator("text=Larix").count()) === 0, "plus aucune mention de Larix dans la régie");
 
   // Verset envoyé AVANT l'ouverture de la page d'affichage → récupéré via « hello ».
-  const overlay = obs.state.inputs.find((i) => i.inputName === "DiffChurch - Contenu");
+  const overlay = obs.state.inputs.find((i) => i.inputName === "Regio - Contenu");
   const render = await ctx.newPage();
   render.on("pageerror", (e) => errors.push("affichage : " + e.message));
   await render.setViewportSize({ width: 1920, height: 1080 });
@@ -51,14 +53,14 @@ try {
   await control.click("text=Cam Link 4K");
   await control.waitForSelector(".row.active");
   const order = obs.state.items[SCENE].map((i) => i.sourceName);
-  await check(order[0] === "DiffChurch - Fond" && order.at(-1) === "DiffChurch - Contenu", `ordre des calques : ${order.join(" | ")}`);
+  await check(order[0] === "Regio - Fond" && order.at(-1) === "Regio - Contenu", `ordre des calques : ${order.join(" | ")}`);
 
   await control.click("text=Téléphone (QR code)");
   await control.waitForSelector(".phone-qr img", { timeout: 8000 });
-  const qrInput = obs.state.inputs.find((i) => i.inputName === "DiffChurch - Téléphone QR 1");
+  const qrInput = obs.state.inputs.find((i) => i.inputName === "Regio - Téléphone QR 1");
   await check(qrInput?.inputKind === "browser_source" && qrInput.settings.reroute_audio === true, "source téléphone QR créée (son vers OBS)");
   const enabled = obs.state.items[SCENE].filter((i) => i.sceneItemEnabled).map((i) => i.sourceName);
-  await check(enabled.includes("DiffChurch - Téléphone QR 1") && !enabled.includes("DiffChurch - Caméra : Cam Link 4K"), "une seule caméra active (téléphone)");
+  await check(enabled.includes("Regio - Téléphone QR 1") && !enabled.includes("Regio - Caméra : Cam Link 4K"), "une seule caméra active (téléphone)");
   await check(/https:\/\/.+:8443\/phone\.html\?cam=1/.test(await control.textContent(".phone-qr .url")), "adresse du QR code correcte");
 
   await control.keyboard.press("Escape");

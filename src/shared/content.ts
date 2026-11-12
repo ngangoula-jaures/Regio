@@ -11,19 +11,19 @@ export type Content =
 
 /** Identifiant de chaque affichage : permet à la page render de lancer un fondu à chaque changement. */
 export interface ShowMessage {
-  type: "diffchurch.show";
+  type: "regio.show";
   id: number;
   content: Content;
 }
 
 /** Envoyé par la page render quand elle (re)démarre, pour récupérer l'état courant. */
 export interface HelloMessage {
-  type: "diffchurch.hello";
+  type: "regio.hello";
 }
 
 /** Envoyé par la régie pour savoir si la page de sortie est vivante (elle répond « hello »). */
 export interface PingMessage {
-  type: "diffchurch.ping";
+  type: "regio.ping";
 }
 
 export type BusMessage = ShowMessage | HelloMessage | PingMessage;
@@ -31,7 +31,7 @@ export type BusMessage = ShowMessage | HelloMessage | PingMessage;
 export function isBusMessage(data: unknown): data is BusMessage {
   if (typeof data !== "object" || data === null) return false;
   const t = (data as { type?: unknown }).type;
-  return t === "diffchurch.show" || t === "diffchurch.hello" || t === "diffchurch.ping";
+  return t === "regio.show" || t === "regio.hello" || t === "regio.ping";
 }
 
 /**

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# DiffChurch — lancer une commande Windows sur la copie de compilation.
+# Regio — lancer une commande Windows sur la copie de compilation.
 #
 # Le code vit dans WSL ; Windows ne sait pas compiler Tauri depuis un chemin WSL.
-# Ce script synchronise le code vers C:\dev\diff-church (sans node_modules ni target),
+# Ce script synchronise le code vers C:\dev\regio (sans node_modules ni target),
 # puis y exécute la commande avec PowerShell.
 #
 #   scripts/win.sh sync                       # synchroniser seulement
@@ -12,8 +12,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-WIN_DIR_WSL="/mnt/c/dev/diff-church"
-WIN_DIR='C:\dev\diff-church'
+WIN_DIR_WSL="/mnt/c/dev/regio"
+WIN_DIR='C:\dev\regio'
 
 mkdir -p "$WIN_DIR_WSL"
 rsync -a --delete \

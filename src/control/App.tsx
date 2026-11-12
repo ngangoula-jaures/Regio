@@ -15,11 +15,12 @@ import { loadImageAsDataUrl } from "./images";
 import { PhoneQr } from "./PhoneQr";
 import "./App.css";
 
-const SETTINGS_KEY = "diffchurch.obs";
+const SETTINGS_KEY = "regio.obs";
 
 function loadSettings(): ConnectionSettings {
   try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
+    // Reprend aussi les réglages enregistrés sous l'ancien nom du projet.
+    const raw = localStorage.getItem(SETTINGS_KEY) ?? localStorage.getItem("diffchurch.obs");
     if (raw) return { host: "localhost", port: 4455, password: "", ...JSON.parse(raw) };
   } catch {
     /* ignore */
@@ -65,7 +66,7 @@ export default function App() {
     currentRef.current = next;
     setCurrent(content);
     try {
-      await obs.current.broadcast({ type: "diffchurch.show", id: next.id, content });
+      await obs.current.broadcast({ type: "regio.show", id: next.id, content });
     } catch (e) {
       fail(e);
     }
@@ -90,7 +91,7 @@ export default function App() {
       await refreshSources();
       // La page de sortie répondra « hello » si elle est bien chargée dans OBS.
       setRenderOnline(false);
-      await obs.current.broadcast({ type: "diffchurch.ping" });
+      await obs.current.broadcast({ type: "regio.ping" });
     } catch (e) {
       setStatus({ kind: "error", message: e instanceof Error ? e.message : String(e) });
     }
@@ -100,10 +101,10 @@ export default function App() {
   useEffect(() => {
     const ws = obs.current.ws;
     const onEvent = (event: unknown) => {
-      if (readCustomEvent(event)?.type === "diffchurch.hello") {
+      if (readCustomEvent(event)?.type === "regio.hello") {
         setRenderOnline(true);
         const { id, content } = currentRef.current;
-        obs.current.broadcast({ type: "diffchurch.show", id, content }).catch(() => {});
+        obs.current.broadcast({ type: "regio.show", id, content }).catch(() => {});
       }
     };
     const onClose = () => setStatus((s) => (s.kind === "on" ? { kind: "error", message: "Connexion à OBS perdue." } : s));
@@ -195,7 +196,7 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          DiffChurch <span>Régie · prototype</span>
+          Regio <span>Régie · prototype</span>
         </div>
         <StatusPill status={status} />
       </header>
@@ -218,7 +219,7 @@ export default function App() {
               <div className="list">
                 {cameras.map((c) => (
                   <button key={c.name} className={`row ${activeCamera === c.name ? "active" : ""}`} onClick={() => useSource(c.name)}>
-                    {c.kind === "phone-qr" ? "📱" : "🎥"} {c.name.replace(/^DiffChurch - /, "")}
+                    {c.kind === "phone-qr" ? "📱" : "🎥"} {c.name.replace(/^Regio - /, "")}
                   </button>
                 ))}
               </div>
@@ -280,7 +281,7 @@ export default function App() {
                       await obs.current.ensureSetup();
                       await obs.current.reloadOverlay();
                       setNotice(null);
-                      window.setTimeout(() => obs.current.broadcast({ type: "diffchurch.ping" }).catch(() => {}), 3000);
+                      window.setTimeout(() => obs.current.broadcast({ type: "regio.ping" }).catch(() => {}), 3000);
                     })
                   }
                 >

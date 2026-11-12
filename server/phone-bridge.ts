@@ -21,8 +21,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import { generate } from "selfsigned";
 
 export const PHONE_HTTPS_PORT = 8443;
-export const SIGNAL_PATH = "/diffchurch/signal";
-export const INFO_PATH = "/diffchurch/info";
+export const SIGNAL_PATH = "/regio/signal";
+export const INFO_PATH = "/regio/info";
 const CLOSE_REPLACED = 4000; // identique à src/shared/signal.ts
 
 type Role = "phone" | "receiver";
@@ -120,19 +120,33 @@ function windowsLanIps(): Promise<string[]> {
   return new Promise((resolve) => {
     execFile(
       "powershell.exe",
-      ["-NoProfile", "-Command", "Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway } | ForEach-Object { $_.IPv4Address.IPAddress }"],
-      { timeout: 8000 },
+      [
+        "-NoProfile",
+        "-Command",
+        // ~1 s (Get-NetIPConfiguration en prend ~9) ; seulement les adresses actives attribuées par la box ou fixes.
+        "Get-NetIPAddress -AddressFamily IPv4 -AddressState Preferred -PrefixOrigin Dhcp,Manual -ErrorAction SilentlyContinue | Where-Object { $_.InterfaceAlias -notmatch 'vEthernet|Loopback' } | ForEach-Object { $_.IPAddress }",
+      ],
+      { timeout: 20000 },
       (err, stdout) => resolve(err ? [] : stdout.split(/\s+/).filter((s) => /^\d+\.\d+\.\d+\.\d+$/.test(s))),
     );
   });
 }
 
-let lanIpsCache: Promise<string[]> | null = null;
+/**
+ * Adresse(s) Wi-Fi du PC, pour le QR code. Elle peut changer (attribuée par la box) :
+ * mémorisée 30 s seulement, et un résultat vide n'est jamais gardé.
+ */
+let lanIpsCache: { at: number; ips: Promise<string[]> } | null = null;
 function lanIps(): Promise<string[]> {
-  const forced = process.env.DIFFCHURCH_LAN_IP;
+  const forced = process.env.REGIO_LAN_IP;
   if (forced) return Promise.resolve([forced]);
-  lanIpsCache ??= isWsl ? windowsLanIps() : Promise.resolve(localIps());
-  return lanIpsCache;
+  if (lanIpsCache && Date.now() - lanIpsCache.at < 30_000) return lanIpsCache.ips;
+  const ips = isWsl ? windowsLanIps() : Promise.resolve(localIps());
+  lanIpsCache = { at: Date.now(), ips };
+  ips.then((list) => {
+    if (list.length === 0) lanIpsCache = null;
+  });
+  return ips;
 }
 
 // ---------- Certificat ----------
@@ -147,7 +161,7 @@ async function loadOrCreateCert(root: string): Promise<{ key: string; cert: stri
   const ips = await lanIps();
   const notAfter = new Date();
   notAfter.setFullYear(notAfter.getFullYear() + 5);
-  const pems = await generate([{ name: "commonName", value: "DiffChurch" }], {
+  const pems = await generate([{ name: "commonName", value: "Regio" }], {
     keyType: "ec",
     algorithm: "sha256",
     notAfterDate: notAfter,
@@ -166,13 +180,13 @@ async function loadOrCreateCert(root: string): Promise<{ key: string; cert: stri
 // ---------- Plugin Vite ----------
 
 /** Survit aux rechargements du module (stocké sur globalThis). */
-const previous: { close?: () => Promise<void> } = ((globalThis as Record<string, unknown>).__diffchurchPhoneBridge ??= {}) as {
+const previous: { close?: () => Promise<void> } = ((globalThis as Record<string, unknown>).__regioPhoneBridge ??= {}) as {
   close?: () => Promise<void>;
 };
 
 export function phoneBridge(): Plugin {
   return {
-    name: "diffchurch-phone-bridge",
+    name: "regio-phone-bridge",
     apply: "serve",
     async configureServer(server: ViteDevServer) {
       const wss = new WebSocketServer({ noServer: true });

@@ -6,9 +6,11 @@ projection locale (HDMI), diffusion en direct (Facebook, YouTube, TikTok…), Bi
 affiches/annonces, diapos type PowerPoint (avec import .pptx), une ou plusieurs caméras.
 
 **Nom définitif : Regio** (choisi le 2026-11-12). « Regi » écarté : trop proche de **Resi** (resi.io), entreprise
-américaine de diffusion de cultes. GitHub `regio-app` libre ; `regio.app` pris ; `getregio.app` et `regio.church`
-semblent libres (à confirmer). Le code et les sources OBS portent encore « DiffChurch » : renommage à faire
-au début du développement (préfixe OBS `Regio - `, nettoyage des anciennes sources `DiffChurch - …`).
+américaine de diffusion de cultes. `regio.app` pris ; `getregio.app` et `regio.church` semblent libres (à confirmer).
+**Dépôt GitHub : https://github.com/ngangoula-jaures/Regio** (branche `main`, SSH). **Privé** depuis le 2026-11-12 ;
+à repasser en public avant la candidature SignPath (réservée aux projets open source publics).
+Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app supprime les anciennes scènes/sources
+`DiffChurch - …` d'OBS (après avoir créé les siennes).
 
 **Plan complet (document partagé)** : https://claude.ai/artifact/QYmxdmBvA2TyWtn87FAJFi
 **Open source** : licence **Apache-2.0** ; interface en **français + anglais** dès la 1re version publique
@@ -66,14 +68,14 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 - **Tout le contenu (versets, affiches, textes, diapos) est rendu en HTML/CSS** dans `render.html`,
   chargé par OBS comme Browser Source au-dessus de la caméra. Les transitions sont faites en CSS.
   Le contrôle envoie le contenu via `BroadcastCustomEvent` ; la page render écoute `CustomEvent`.
-- **Scène OBS de sortie** gérée par l'app : `DiffChurch - Sortie` = fond de secours + caméra(s) + contenu.
+- **Scène OBS de sortie** gérée par l'app : `Regio - Sortie` = fond de secours + caméra(s) + contenu.
 - **Projecteur** = projecteur plein écran OBS (`OpenVideoMixProjector`) sur l'écran HDMI.
 - **Téléphone caméra « sans application » (QR code)** : le téléphone ouvre `phone.html` (HTTPS obligatoire
   pour la caméra ; certificat auto-signé dans `.cert/`, non versionné) et envoie caméra + micro en **WebRTC**
-  directement à `receiver.html`, chargée dans OBS comme Browser Source (`DiffChurch - Téléphone QR <n>`,
-  `reroute_audio` → le son arrive dans le mélangeur OBS). La signalisation passe par `/diffchurch/signal`
+  directement à `receiver.html`, chargée dans OBS comme Browser Source (`Regio - Téléphone QR <n>`,
+  `reroute_audio` → le son arrive dans le mélangeur OBS). La signalisation passe par `/regio/signal`
   (websocket), fournie en dev par le plugin Vite `server/phone-bridge.ts` (HTTPS sur le port 8443).
-  `/diffchurch/info` donne l'adresse Wi-Fi du PC (pour le QR code) et l'état des connexions.
+  `/regio/info` donne l'adresse Wi-Fi du PC (pour le QR code) et l'état des connexions.
   TODO Tauri : réimplémenter ce pont en Rust.
 - **Stockage** : SQLite (Bible, médiathèque, déroulés) — à partir de la Phase 1.
 - Plus tard : affichage différent projecteur / direct (scène dédiée par sortie), relais multi-plateformes.
@@ -107,9 +109,9 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 - **Phase 4** : modèles, raccourcis, télécommande, Stream Deck, mode bénévole.
 
 ## Environnement de développement
-- Le code est édité dans WSL (`/home/vedem_worker/diff-church`). L'utilisateur teste sous Windows
+- Le code est édité dans WSL (`/home/vedem_worker/diff-church`, nom de dossier historique). L'utilisateur teste sous Windows
   (OBS Studio installé sous Windows).
-- Phase 0 : `npm run dev` dans WSL → ouvrir `http://localhost:1420` dans un navigateur Windows.
+- Navigateur : `npm run dev` dans WSL → ouvrir `http://localhost:1420` dans un navigateur Windows.
   OBS (Windows) charge `http://localhost:1420/render.html` (redirection localhost WSL2 → Windows).
 - Caméra téléphone en dev : le serveur tourne dans WSL → lancer une fois (et après chaque redémarrage
   de WSL) `scripts/telephone-wsl.ps1` dans PowerShell **administrateur** (redirection du port 8443 + pare-feu).
@@ -120,10 +122,10 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   `tests/e2e/fake-obs.mjs`) + `test:phone` (caméra téléphone WebRTC avec caméra simulée). Le faux OBS
   doit reproduire le comportement RÉEL d'OBS (ex. CustomEvent sans enveloppe `eventData`).
 - **Compilation Windows (Tauri)** : le code reste dans WSL (source de vérité, git, tests). Windows ne sait
-  pas compiler depuis un chemin WSL → `scripts/win.sh` synchronise le code vers `C:\dev\diff-church`
+  pas compiler depuis un chemin WSL → `scripts/win.sh` synchronise le code vers `C:\dev\regio`
   (sans node_modules/target/.git) puis y lance la commande Windows : `scripts/win.sh npx.cmd tauri dev`,
   `scripts/win.sh npx.cmd tauri build`. Ne jamais modifier la copie Windows à la main (écrasée à chaque synchro).
-  Validé le 2026-11-12 : `diffchurch.exe` compile (≈ 1 min 20 s en debug après le 1er build).
+  Validé le 2026-11-12 : `regio.exe` compile (≈ 1 min 20 s en debug après le 1er build).
 - Outils Windows installés : Rust 1.99 (MSVC), Node 26, Git 2.56, Build Tools VS 2022, WebView2.
 - Smart App Control : DÉSACTIVÉ sur le PC de dev le 2026-11-12 (il bloquait les exécutables de compilation,
   « os error 4551 »). Les PC des églises l'ont souvent actif → **l'installeur distribué doit être signé**
@@ -134,4 +136,4 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 ## Conventions
 - Interface utilisateur en **français** ; identifiants de code en anglais ; commentaires en français ou anglais, courts.
 - TypeScript strict. React fonctionnel. Pas de dépendance lourde sans raison.
-- Noms OBS créés par l'app préfixés `DiffChurch - ` pour ne jamais toucher aux scènes de l'utilisateur.
+- Noms OBS créés par l'app préfixés `Regio - ` pour ne jamais toucher aux scènes de l'utilisateur.

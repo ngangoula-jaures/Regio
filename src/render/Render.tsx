@@ -49,8 +49,8 @@ export default function Render() {
     ws.on("CustomEvent", (event) => {
       const msg = readCustomEvent(event);
       if (!msg) return;
-      if (msg.type === "diffchurch.show") show(msg.id, msg.content);
-      if (msg.type === "diffchurch.ping") ws.call("BroadcastCustomEvent", { eventData: { type: "diffchurch.hello" } }).catch(() => {});
+      if (msg.type === "regio.show") show(msg.id, msg.content);
+      if (msg.type === "regio.ping") ws.call("BroadcastCustomEvent", { eventData: { type: "regio.hello" } }).catch(() => {});
     });
 
     const connect = async () => {
@@ -58,9 +58,9 @@ export default function Render() {
         await ws.connect(`ws://127.0.0.1:${port}`, password || undefined);
         setProblem(null);
         // Demander l'état courant à la régie (utile si OBS recharge la page).
-        await ws.call("BroadcastCustomEvent", { eventData: { type: "diffchurch.hello" } });
+        await ws.call("BroadcastCustomEvent", { eventData: { type: "regio.hello" } });
       } catch (e) {
-        setProblem(`DiffChurch : connexion à OBS impossible (ws://127.0.0.1:${port}) — ${e instanceof Error ? e.message : String(e)}`);
+        setProblem(`Regio : connexion à OBS impossible (ws://127.0.0.1:${port}) — ${e instanceof Error ? e.message : String(e)}`);
         if (!stopped) retry = window.setTimeout(connect, 2000);
       }
     };

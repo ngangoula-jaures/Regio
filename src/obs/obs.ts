@@ -1,22 +1,25 @@
 // Pilotage d'OBS Studio via obs-websocket v5.
-// Toutes les scènes/sources créées ici sont préfixées « DiffChurch - » pour ne pas toucher
+// Toutes les scènes/sources créées ici sont préfixées « Regio - » pour ne pas toucher
 // à la configuration personnelle de l'utilisateur.
 
 import OBSWebSocket, { type OBSRequestTypes } from "obs-websocket-js";
 import type { BusMessage } from "../shared/content";
 
-export const SCENE = "DiffChurch - Sortie";
-export const BACKGROUND = "DiffChurch - Fond";
-export const OVERLAY = "DiffChurch - Contenu";
-export const CAMERA_PREFIX = "DiffChurch - Caméra";
+export const SCENE = "Regio - Sortie";
+export const BACKGROUND = "Regio - Fond";
+export const OVERLAY = "Regio - Contenu";
+export const CAMERA_PREFIX = "Regio - Caméra";
 /** Préfixe des caméras téléphone « sans application » (QR code + WebRTC). */
-export const PHONE_QR_PREFIX = "DiffChurch - Téléphone QR";
+export const PHONE_QR_PREFIX = "Regio - Téléphone QR";
 
 export const CANVAS_W = 1920;
 export const CANVAS_H = 1080;
 
-/** Anciennes sources créées par des versions précédentes de DiffChurch, à supprimer. */
-const OBSOLETE_INPUTS = ["DiffChurch - Téléphone (Wi-Fi)"]; // téléphone via Larix (SRT), abandonné
+/**
+ * Préfixe de l'ancien nom du projet (« DiffChurch »). Les scènes et sources qui le portent
+ * sont supprimées à la connexion, APRÈS la mise en place de la scène Regio (jamais d'écran vide).
+ */
+const LEGACY_PREFIX = "DiffChurch - ";
 
 export interface ConnectionSettings {
   host: string;
@@ -39,7 +42,7 @@ export interface CameraSource {
   kind: "device" | "phone-qr" | "other";
 }
 
-/** Une source vidéo de l'utilisateur, déjà présente dans OBS (hors DiffChurch). */
+/** Une source vidéo de l'utilisateur, déjà présente dans OBS (hors Regio). */
 const VIDEO_INPUT_KINDS = new Set([
   "dshow_input", // Windows : webcams, boîtiers de capture HDMI, webcam USB des téléphones
   "av_capture_input", // macOS
@@ -128,15 +131,24 @@ export class ObsController {
       await this.ensureInScene(OVERLAY);
     }
 
-    for (const name of OBSOLETE_INPUTS) {
-      if (await this.inputExists(name)) await this.ws.call("RemoveInput", { inputName: name });
-    }
-
     await this.reorder();
     await this.ws.call("SetCurrentProgramScene", { sceneName: SCENE });
+    await this.removeLegacy();
   }
 
   /** Passe OBS en 1920×1080 seulement si nécessaire : chaque changement recharge les sources. */
+  /** Supprime les scènes et sources laissées par les versions « DiffChurch ». */
+  private async removeLegacy() {
+    const { scenes } = await this.ws.call("GetSceneList");
+    for (const sc of scenes as Array<{ sceneName: string }>) {
+      if (sc.sceneName.startsWith(LEGACY_PREFIX)) await this.ws.call("RemoveScene", { sceneName: sc.sceneName }).catch(() => {});
+    }
+    const { inputs } = await this.ws.call("GetInputList");
+    for (const i of inputs as Array<{ inputName: string }>) {
+      if (i.inputName.startsWith(LEGACY_PREFIX)) await this.ws.call("RemoveInput", { inputName: i.inputName }).catch(() => {});
+    }
+  }
+
   private async trySetCanvas1080p() {
     const v = await this.ws.call("GetVideoSettings");
     if (v.baseWidth === CANVAS_W && v.baseHeight === CANVAS_H && v.outputWidth === CANVAS_W && v.outputHeight === CANVAS_H) return;

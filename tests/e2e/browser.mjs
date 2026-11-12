@@ -20,5 +20,5 @@ export function launch(extraArgs = []) {
   return chromium.launch({ executablePath: findChromium(), args: extraArgs });
 }
 
-export const BASE = process.env.DIFFCHURCH_URL ?? "http://localhost:1420";
-export const PHONE_BASE = process.env.DIFFCHURCH_PHONE_URL ?? "https://127.0.0.1:8443";
+export const BASE = process.env.REGIO_URL ?? "http://localhost:1420";
+export const PHONE_BASE = process.env.REGIO_PHONE_URL ?? "https://127.0.0.1:8443";

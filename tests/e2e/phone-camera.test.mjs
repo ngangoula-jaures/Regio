@@ -30,7 +30,7 @@ try {
   await recv.waitForFunction(videoPlaying, null, { timeout: 15000 });
   console.log("✓ vidéo reçue :", await recv.evaluate(() => `${document.querySelector("video").videoWidth}×${document.querySelector("video").videoHeight}`));
 
-  const info = await (await fetch(`${BASE}/diffchurch/info`)).json();
+  const info = await (await fetch(`${BASE}/regio/info`)).json();
   if (!info.rooms["e2e"]?.phone || !info.rooms["e2e"]?.receiver) await fail(`état du pont incorrect : ${JSON.stringify(info.rooms)}`);
   console.log("✓ état du pont :", JSON.stringify(info.rooms["e2e"]));
 
@@ -49,7 +49,7 @@ try {
   await recv2.goto(`${BASE}/receiver.html?cam=e2e`);
   await recv2.waitForFunction(videoPlaying, null, { timeout: 15000 });
   await recv.waitForSelector("text=reçue ailleurs", { timeout: 5000 });
-  const before = (await (await fetch(`${BASE}/diffchurch/info`)).json()).rooms["e2e"];
+  const before = (await (await fetch(`${BASE}/regio/info`)).json()).rooms["e2e"];
   await phone.waitForTimeout(4000);
   if (!(await recv2.evaluate(videoPlaying))) await fail("le 2e récepteur a perdu la vidéo (boucle de reconnexion ?)");
   if (!(await phone.isVisible(".status.live"))) await fail("le téléphone n'est plus en direct");

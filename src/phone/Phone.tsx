@@ -264,7 +264,7 @@ export default function Phone() {
 
       {!running && (
         <div className="start">
-          <h1>Caméra DiffChurch</h1>
+          <h1>Caméra Regio</h1>
           {!secure ? (
             <p className="error">
               La caméra est bloquée : la page doit être ouverte en <b>https://</b>. Scannez à nouveau le QR code affiché dans la régie.

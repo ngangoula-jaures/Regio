@@ -20,7 +20,7 @@ export function PhoneQr({ cam }: { cam: string }) {
     let alive = true;
     const load = async () => {
       try {
-        const res = await fetch("/diffchurch/info");
+        const res = await fetch("/regio/info");
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: BridgeInfo = await res.json();
         if (!alive) return;

@@ -1,6 +1,6 @@
 // Client de signalisation WebRTC (téléphone ↔ page réceptrice dans OBS), avec reconnexion auto.
 
-export const SIGNAL_PATH = "/diffchurch/signal";
+export const SIGNAL_PATH = "/regio/signal";
 
 /** Code de fermeture envoyé par le serveur quand une connexion plus récente prend la place. */
 export const CLOSE_REPLACED = 4000;
