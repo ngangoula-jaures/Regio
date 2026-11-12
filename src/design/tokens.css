@@ -1,0 +1,59 @@
+/* Regio — jetons de design (source unique, voir la charte graphique).
+ * Toute couleur, police, taille ou rayon de l'interface vient d'ici.
+ * Contrastes vérifiés (WCAG AA) : texte ≥ 4,5:1 sur son fond prévu.
+ */
+:root {
+  /* --- Couleurs de marque --- */
+  --regio-nuit: #0e1530;          /* fond de la régie */
+  --regio-nuit-2: #18213f;        /* panneaux, cartes */
+  --regio-nuit-3: #253055;        /* bordures, séparations */
+  --regio-or: #e8b44c;            /* accent unique : lumière, sélection, action principale */
+  --regio-ivoire: #f6f2e8;        /* texte sur fond sombre, fonds clairs */
+  --regio-ardoise: #9aa3bf;       /* texte secondaire sur fond sombre (7,2:1) */
+
+  /* Variantes pour fonds clairs (ivoire) */
+  --regio-or-profond: #8f6210;    /* or lisible sur ivoire (4,8:1) */
+  --regio-ardoise-foncee: #535b78;/* texte secondaire sur ivoire (6,0:1) */
+
+  /* --- États (jamais décoratifs) --- */
+  --regio-direct: #ff6b6b;        /* en direct — sur nuit 6,5:1 */
+  --regio-pret: #4cc38a;          /* prêt — sur nuit 8,1:1 */
+  --regio-attention: #f5b451;     /* attention — sur nuit 9,9:1 */
+  --regio-direct-clair: #b4232c;  /* variantes sur ivoire */
+  --regio-pret-clair: #1f7a4f;
+  --regio-attention-clair: #a35a00;
+
+  /* --- Typographies (polices embarquées, hors ligne) --- */
+  --regio-font-titre: "Sora", "Segoe UI", system-ui, sans-serif;
+  --regio-font-ui: "Inter", "Segoe UI", system-ui, sans-serif;
+  --regio-font-ecritures: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --regio-font-annonces: "Montserrat", "Segoe UI", system-ui, sans-serif;
+
+  /* Échelle de l'interface (px) */
+  --regio-texte-xs: 12px;
+  --regio-texte-sm: 13px;
+  --regio-texte-md: 14px;
+  --regio-texte-lg: 16px;
+  --regio-titre-sm: 20px;
+  --regio-titre-md: 24px;
+  --regio-titre-lg: 32px;
+
+  /* Échelle de la sortie projetée (en % de la hauteur de l'écran) */
+  --regio-sortie-verset: 6vh;
+  --regio-sortie-reference: 3.5vh;
+  --regio-sortie-titre: 9vh;
+  --regio-sortie-bandeau: 4vh;
+
+  /* --- Formes et espacements (grille de 8 px) --- */
+  --regio-espace-1: 4px;
+  --regio-espace-2: 8px;
+  --regio-espace-3: 16px;
+  --regio-espace-4: 24px;
+  --regio-espace-5: 32px;
+  --regio-espace-6: 48px;
+  --regio-rayon-sm: 8px;          /* boutons, champs */
+  --regio-rayon-md: 12px;         /* cartes */
+  --regio-rayon-lg: 16px;         /* panneaux */
+  --regio-trait: 1px;             /* bordures */
+  --regio-icone-trait: 1.75;      /* épaisseur des icônes (Lucide) */
+}

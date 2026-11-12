@@ -44,6 +44,11 @@ au début du développement (préfixe OBS `Regio - `, nettoyage des anciennes so
   « grand » et « petit » (≤ 32 px, traits renforcés). Nom « regio » en minuscules, Sora SemiBold vectorisé.
   Pistes explorées : `design/logo-pistes.html` (artefact https://claude.ai/artifact/EinHp9otDsRbBiEzwCHM4g).
   Retours de l'utilisateur : ondes « Wi-Fi » = trop commun ; il veut du neuf, de l'original.
+- **Charte graphique v1.0** : https://claude.ai/artifact/7nK1xEwZsdS7hLR7Qv88uq — source
+  `design/charte-graphique.template.html`, assemblée par `design/build_charte.py`. **Jetons de design :
+  `src/design/tokens.css`** (source unique des couleurs/polices/tailles/rayons ; l'interface DOIT les utiliser).
+  Règles clés : l'or = un seul élément par écran ; rouge = uniquement « en direct » ; sur fond ivoire utiliser
+  « or profond » #8F6210 et « ardoise foncée » #535B78 (contrastes vérifiés) ; nom en minuscules dans le logo.
 - Identité visuelle conçue en parallèle : nom → logo (3 pistes, lisible en 16 px, monochrome possible,
   non confessionnel) → charte (palette, typos, ton) → déclinaisons. Un seul système de design (tokens).
 
