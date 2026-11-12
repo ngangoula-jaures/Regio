@@ -1,11 +1,14 @@
-# DiffChurch — Régie de culte
+# Regio — Régie de culte (anciennement « DiffChurch »)
 
 Logiciel desktop (Windows d'abord, fonctionne hors ligne) qui permet à n'importe quel membre du
 service communication d'une église de gérer un culte de bout en bout :
 projection locale (HDMI), diffusion en direct (Facebook, YouTube, TikTok…), Bible intégrée,
 affiches/annonces, diapos type PowerPoint (avec import .pptx), une ou plusieurs caméras.
 
-Le nom « DiffChurch » est provisoire (nom définitif à choisir avant le logo et la 1re version publique).
+**Nom définitif : Regio** (choisi le 2026-11-12). « Regi » écarté : trop proche de **Resi** (resi.io), entreprise
+américaine de diffusion de cultes. GitHub `regio-app` libre ; `regio.app` pris ; `getregio.app` et `regio.church`
+semblent libres (à confirmer). Le code et les sources OBS portent encore « DiffChurch » : renommage à faire
+au début du développement (préfixe OBS `Regio - `, nettoyage des anciennes sources `DiffChurch - …`).
 
 **Plan complet (document partagé)** : https://claude.ai/artifact/QYmxdmBvA2TyWtn87FAJFi
 **Open source** : licence **Apache-2.0** ; interface en **français + anglais** dès la 1re version publique
