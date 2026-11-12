@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regio · Pistes de logo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Montserrat:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Un seul univers visuel : la nuit d'une régie, éclairée d'or. */
+  --nuit: #0E1530;        /* fond principal, bleu nuit profond */
+  --nuit-2: #18213F;      /* surfaces, cartes */
+  --nuit-3: #253055;      /* bordures, séparations */
+  --or: #E8B44C;          /* accent : la lumière, le direct */
+  --ivoire: #F6F2E8;      /* texte principal, fonds clairs */
+  --ardoise: #9AA3BF;     /* texte secondaire */
+  --font-display: "Sora", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Manrope", "Segoe UI", system-ui, sans-serif;
+  /* Mise en page : une colonne de pistes, chacune montrée en grand, en petit, sur sombre et sur clair. */
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--nuit); color: var(--ivoire); font-family: var(--font-body); }
+body { line-height: 1.55; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 48px 24px 80px; display: grid; gap: 56px; }
+
+header { display: grid; gap: 12px; }
+.kicker { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--or); font-weight: 600; }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 5vw, 48px); line-height: 1.1; margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
+.lead { max-width: 64ch; color: var(--ardoise); font-size: 17px; margin: 0; }
+.lead b { color: var(--ivoire); font-weight: 600; }
+
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 26px; margin: 0; letter-spacing: -0.01em; }
+h3 { font-family: var(--font-display); font-weight: 600; font-size: 15px; margin: 0; color: var(--ardoise); letter-spacing: .02em; }
+
+.piste { background: var(--nuit-2); border: 1px solid var(--nuit-3); border-radius: 20px; padding: 28px; display: grid; gap: 24px; }
+.piste-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 20px; justify-content: space-between; }
+.piste-head p { margin: 4px 0 0; color: var(--ardoise); max-width: 60ch; }
+.num { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--or); border: 1px solid var(--or); border-radius: 99px; padding: 4px 12px; white-space: nowrap; }
+
+.stage { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.panel { border-radius: 14px; aspect-ratio: 16 / 10; display: grid; place-items: center; }
+.panel.dark { background: var(--nuit); border: 1px solid var(--nuit-3); }
+.panel.light { background: var(--ivoire); }
+.panel svg.mark { width: 34%; height: auto; }
+
+.row { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
+.lockups { display: grid; gap: 12px; }
+.lockup { border-radius: 14px; padding: 22px 26px; display: flex; align-items: center; gap: 14px; }
+.lockup.dark { background: var(--nuit); border: 1px solid var(--nuit-3); }
+.lockup.light { background: var(--ivoire); }
+.lockup svg { width: 52px; height: 52px; flex: none; }
+.word { font-family: var(--font-display); font-weight: 600; font-size: 40px; letter-spacing: -0.03em; line-height: 1; }
+.lockup.dark .word { color: var(--ivoire); }
+.lockup.light .word { color: var(--nuit); }
+
+.sizes { border-radius: 14px; background: var(--nuit); border: 1px solid var(--nuit-3); padding: 20px; display: grid; gap: 14px; align-content: center; }
+.sizes-line { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; }
+.sizes figure { margin: 0; display: grid; justify-items: center; gap: 6px; }
+.sizes figcaption { font-size: 11px; color: var(--ardoise); font-variant-numeric: tabular-nums; }
+.taskbar { display: flex; align-items: center; gap: 10px; background: #1b1d22; border-radius: 8px; padding: 8px 12px; color: #c9ccd3; font: 12px "Segoe UI", system-ui, sans-serif; }
+
+.notes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.notes ul { margin: 8px 0 0; padding-left: 18px; color: var(--ivoire); }
+.notes li { margin: 4px 0; }
+.notes li::marker { color: var(--or); }
+
+.palette { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.swatch { border-radius: 14px; overflow: hidden; border: 1px solid var(--nuit-3); background: var(--nuit-2); }
+.swatch .chip { height: 84px; }
+.swatch div.t { padding: 10px 12px 12px; display: grid; gap: 2px; }
+.swatch b { font-family: var(--font-display); font-weight: 600; }
+.swatch span { font-size: 12.5px; color: var(--ardoise); }
+.swatch code { font-size: 12px; color: var(--ivoire); font-variant-numeric: tabular-nums; }
+.states { display: flex; flex-wrap: wrap; gap: 10px; }
+.pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 99px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+.types { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.type { background: var(--nuit-2); border: 1px solid var(--nuit-3); border-radius: 14px; padding: 18px; display: grid; gap: 8px; }
+.type .sample { font-size: 26px; line-height: 1.25; color: var(--ivoire); }
+.type span { font-size: 12.5px; color: var(--ardoise); }
+
+.slide { aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden; position: relative; display: grid; place-items: center; text-align: center; padding: 6% 12%;
+  background: radial-gradient(ellipse at 50% 40%, #1E2A52 0%, var(--nuit) 72%); border: 1px solid var(--nuit-3); }
+.slide blockquote { margin: 0; font-family: "Source Serif 4", Georgia, serif; font-size: clamp(16px, 2.6vw, 30px); line-height: 1.4; color: var(--ivoire); text-wrap: balance; }
+.slide cite { display: block; margin-top: 1.1em; font-style: normal; font-family: "Montserrat", sans-serif; font-weight: 600; font-size: clamp(11px, 1.5vw, 17px); letter-spacing: .06em; color: var(--or); }
+.slide .bug { position: absolute; right: 3%; bottom: 5%; display: flex; align-items: center; gap: 6px; opacity: .75; }
+.slide .bug svg { width: 22px; height: 22px; }
+.slide .bug b { font-family: var(--font-display); font-weight: 600; font-size: 13px; color: var(--ivoire); }
+
+.next { background: linear-gradient(0deg, rgba(232,180,76,.08), rgba(232,180,76,.08)), var(--nuit-2); border: 1px solid var(--or); border-radius: 16px; padding: 22px 24px; }
+.next p { margin: 6px 0 0; color: var(--ivoire); max-width: 70ch; }
+
+section { display: grid; gap: 16px; }
+section > p { margin: 0; color: var(--ardoise); max-width: 70ch; }
+
+@media (max-width: 760px) {
+  .stage, .row, .notes { grid-template-columns: 1fr; }
+  .word { font-size: 32px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .piste { transition: border-color .2s; }
+  .piste:hover { border-color: #3a4775; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Identité visuelle · étape 1</div>
+  <h1>Regio : trois pistes de logo</h1>
+  <p class="lead">Chaque piste est montrée sur fond sombre (la régie) et sur fond clair (documents, site), en icône jusqu'à <b>16 pixels</b> (barre des tâches Windows) et avec le nom. Choisissez-en une, ou dites ce qui vous plaît dans chacune : je finalise le logo retenu, puis je rédige la charte graphique.</p>
+</header>
+
+<!-- Piste 1 -->
+<article class="piste" id="piste-onde">
+  <div class="piste-head">
+    <div>
+      <h2>L'onde de lumière</h2>
+      <p>Un point d'or, la lumière ou le direct, d'où partent deux ondes. On y lit la diffusion, la parole qui porte loin, et une auréole discrète.</p>
+    </div>
+    <span class="num">Piste 1</span>
+  </div>
+  <div class="stage">
+    <div class="panel dark" data-mark="onde" data-tone="dark"></div>
+    <div class="panel light" data-mark="onde" data-tone="light"></div>
+  </div>
+  <div class="row">
+    <div class="lockups">
+      <div class="lockup dark" data-lock="onde" data-tone="dark"><span class="word">regio</span></div>
+      <div class="lockup light" data-lock="onde" data-tone="light"><span class="word">regio</span></div>
+    </div>
+    <div class="sizes" data-sizes="onde"></div>
+  </div>
+  <div class="notes">
+    <div><h3>Points forts</h3><ul><li>Lisible même en 16 pixels</li><li>Universel : parle à toutes les églises</li><li>Se décline en animation « en direct »</li></ul></div>
+    <div><h3>Limites</h3><ul><li>Proche des pictogrammes Wi-Fi et « diffusion »</li><li>Ne dit pas « projection » ni « écran »</li></ul></div>
+  </div>
+</article>
+
+<!-- Piste 2 -->
+<article class="piste" id="piste-ecran">
+  <div class="piste-head">
+    <div>
+      <h2>Le r à l'écran</h2>
+      <p>Un écran de projection qui contient un « r » minuscule, dont l'extrémité devient un point de lumière. C'est le monogramme de Regio et la fonction de l'outil réunis.</p>
+    </div>
+    <span class="num">Piste 2</span>
+  </div>
+  <div class="stage">
+    <div class="panel dark" data-mark="ecran" data-tone="dark"></div>
+    <div class="panel light" data-mark="ecran" data-tone="light"></div>
+  </div>
+  <div class="row">
+    <div class="lockups">
+      <div class="lockup dark" data-lock="ecran" data-tone="dark"><span class="word">regio</span></div>
+      <div class="lockup light" data-lock="ecran" data-tone="light"><span class="word">regio</span></div>
+    </div>
+    <div class="sizes" data-sizes="ecran"></div>
+  </div>
+  <div class="notes">
+    <div><h3>Points forts</h3><ul><li>Dit immédiatement « écran » et « Regio »</li><li>Très propre, très « logiciel professionnel »</li><li>Le point d'or rappelle le voyant du direct</li></ul></div>
+    <div><h3>Limites</h3><ul><li>Le cadre s'affine en très petit</li><li>Plus technique que spirituel</li></ul></div>
+  </div>
+</article>
+
+<!-- Piste 3 -->
+<article class="piste" id="piste-croix">
+  <div class="piste-head">
+    <div>
+      <h2>La croix dans la régie</h2>
+      <p>Quatre écrans, comme le mur de contrôle d'une régie. Entre eux, l'espace vide dessine une croix. L'écran en or est la source à l'antenne.</p>
+    </div>
+    <span class="num">Piste 3</span>
+  </div>
+  <div class="stage">
+    <div class="panel dark" data-mark="croix" data-tone="dark"></div>
+    <div class="panel light" data-mark="croix" data-tone="light"></div>
+  </div>
+  <div class="row">
+    <div class="lockups">
+      <div class="lockup dark" data-lock="croix" data-tone="dark"><span class="word">regio</span></div>
+      <div class="lockup light" data-lock="croix" data-tone="light"><span class="word">regio</span></div>
+    </div>
+    <div class="sizes" data-sizes="croix"></div>
+  </div>
+  <div class="notes">
+    <div><h3>Points forts</h3><ul><li>Double lecture : la régie et la croix</li><li>Forme pleine, très solide en petit</li><li>Le carré d'or illustre « la source en direct »</li></ul></div>
+    <div><h3>Limites</h3><ul><li>Symbole chrétien explicite (sans être propre à une dénomination)</li><li>Rappelle les icônes « grille d'applications »</li></ul></div>
+  </div>
+</article>
+
+<section>
+  <h2>Palette proposée</h2>
+  <p>Commune aux trois pistes. La nuit d'une régie, éclairée par une seule couleur chaude. Les couleurs d'état ne servent qu'aux voyants.</p>
+  <div class="palette">
+    <div class="swatch"><div class="chip" style="background:#0E1530"></div><div class="t"><b>Nuit</b><span>Fond de la régie</span><code>#0E1530</code></div></div>
+    <div class="swatch"><div class="chip" style="background:#18213F"></div><div class="t"><b>Nuit claire</b><span>Panneaux, cartes</span><code>#18213F</code></div></div>
+    <div class="swatch"><div class="chip" style="background:#E8B44C"></div><div class="t"><b>Or</b><span>Accent, lumière, sélection</span><code>#E8B44C</code></div></div>
+    <div class="swatch"><div class="chip" style="background:#F6F2E8"></div><div class="t"><b>Ivoire</b><span>Texte, fonds clairs</span><code>#F6F2E8</code></div></div>
+    <div class="swatch"><div class="chip" style="background:#9AA3BF"></div><div class="t"><b>Ardoise</b><span>Texte secondaire</span><code>#9AA3BF</code></div></div>
+  </div>
+  <div class="states">
+    <span class="pill" style="color:#FF6B6B;background:rgba(229,72,77,.16)">En direct</span>
+    <span class="pill" style="color:#4CC38A;background:rgba(63,178,127,.16)">Prêt</span>
+    <span class="pill" style="color:#F5B451;background:rgba(240,164,58,.16)">Attention</span>
+  </div>
+</section>
+
+<section>
+  <h2>Polices proposées</h2>
+  <p>Toutes libres de droits et intégrées à l'application pour fonctionner hors ligne.</p>
+  <div class="types">
+    <div class="type"><h3>Nom et titres</h3><div class="sample" style="font-family:'Sora',sans-serif;font-weight:600">Regio</div><span>Sora : géométrique, moderne, chaleureuse</span></div>
+    <div class="type"><h3>Interface de la régie</h3><div class="sample" style="font-family:'Inter',sans-serif;font-weight:500;font-size:22px">Passer en direct</div><span>Inter : très lisible en petit</span></div>
+    <div class="type"><h3>Les Écritures</h3><div class="sample" style="font-family:'Source Serif 4',serif">Jean 3:16</div><span>Source Serif : dignité et lisibilité à distance</span></div>
+    <div class="type"><h3>Annonces</h3><div class="sample" style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:22px">CULTE DE NOËL</div><span>Montserrat : affiches et titres projetés</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>Aperçu : un verset projeté</h2>
+  <p>Ce que verrait l'assemblée avec cette palette et ces polices, signé discrètement du logo (ici la piste 1).</p>
+  <div class="slide">
+    <div>
+      <blockquote>Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu'il ait la vie éternelle.</blockquote>
+      <cite>JEAN 3:16 · LOUIS SEGOND 1910</cite>
+    </div>
+    <div class="bug" data-bug="onde"><b>regio</b></div>
+  </div>
+</section>
+
+<div class="next">
+  <h2>Et maintenant ?</h2>
+  <p>Dites-moi la piste retenue (1, 2 ou 3), ce que vous voulez changer (forme, couleur, épaisseur), ou si vous préférez un mélange, par exemple l'onde de la piste 1 dans l'écran de la piste 2. Je finalise alors le logo et je rédige la charte graphique complète.</p>
+</div>
+
+</div>
+
+<script>
+// Les logos sont dessinés ici, une fois, puis réutilisés à toutes les tailles.
+const C = { nuit: "#0E1530", ivoire: "#F6F2E8", or: "#E8B44C", nuit2: "#18213F", gris: "#C9CEDD", grisFonce: "#3A4568" };
+
+function ink(tone) { return tone === "light" ? C.nuit : C.ivoire; }
+
+const MARKS = {
+  // Piste 1 : point d'or + deux ondes (quart de cercle)
+  onde(tone) {
+    const s = ink(tone);
+    return `<g transform="translate(-4 4)">
+      <path d="M36 40 A26 26 0 0 1 62 66" fill="none" stroke="${s}" stroke-width="9" stroke-linecap="round"/>
+      <path d="M36 20 A46 46 0 0 1 82 66" fill="none" stroke="${s}" stroke-width="9" stroke-linecap="round"/>
+      <circle cx="36" cy="66" r="10" fill="${C.or}"/></g>`;
+  },
+  // Piste 2 : écran 16:10 + « r » dont le bras se termine en point de lumière
+  ecran(tone) {
+    const s = ink(tone);
+    return `<rect x="9" y="19" width="82" height="62" rx="14" fill="none" stroke="${s}" stroke-width="7"/>
+      <path d="M38 66 V46" fill="none" stroke="${s}" stroke-width="9" stroke-linecap="round"/>
+      <path d="M38 54 C38 45 45 40 54 40" fill="none" stroke="${s}" stroke-width="9" stroke-linecap="round"/>
+      <circle cx="64" cy="40" r="6" fill="${C.or}"/>`;
+  },
+  // Piste 3 : quatre écrans, la croix (latine) dans l'espace entre eux ; l'écran d'or est à l'antenne
+  croix(tone) {
+    const s = tone === "light" ? C.nuit : C.ivoire;
+    return `<rect x="10" y="10" width="36" height="30" rx="8" fill="${s}"/>
+      <rect x="54" y="10" width="36" height="30" rx="8" fill="${C.or}"/>
+      <rect x="10" y="48" width="36" height="42" rx="8" fill="${s}"/>
+      <rect x="54" y="48" width="36" height="42" rx="8" fill="${s}"/>`;
+  },
+};
+
+function svg(name, tone, cls, size) {
+  const dim = size ? `width="${size}" height="${size}"` : "";
+  return `<svg class="${cls || ""}" ${dim} viewBox="0 0 100 100" role="img" aria-label="Logo Regio, ${name}">${MARKS[name](tone)}</svg>`;
+}
+
+// Icône d'application : carré arrondi nuit, logo clair
+function appIcon(name, size) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="Icône Regio ${size} pixels">
+    <rect width="100" height="100" rx="22" fill="${C.nuit}" stroke="${C.grisFonce}" stroke-width="${size < 40 ? 0 : 1.5}"/>
+    <g transform="translate(14 14) scale(.72)">${MARKS[name]("dark")}</g></svg>`;
+}
+
+document.querySelectorAll("[data-mark]").forEach(el => { el.innerHTML = svg(el.dataset.mark, el.dataset.tone, "mark"); });
+document.querySelectorAll("[data-lock]").forEach(el => { el.insertAdjacentHTML("afterbegin", svg(el.dataset.lock, el.dataset.tone)); });
+document.querySelectorAll("[data-sizes]").forEach(el => {
+  const n = el.dataset.sizes;
+  el.innerHTML = `<h3>Icône de l'application</h3>
+    <div class="sizes-line">${[128, 64, 32, 16].map(s => `<figure>${appIcon(n, s)}<figcaption>${s} px</figcaption></figure>`).join("")}</div>
+    <div class="taskbar">${appIcon(n, 16)} Regio · Régie du culte</div>`;
+});
+document.querySelectorAll("[data-bug]").forEach(el => { el.insertAdjacentHTML("afterbegin", svg(el.dataset.bug, "dark")); });
+</script>
+</body>
+</html>
