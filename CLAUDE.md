@@ -38,6 +38,12 @@ au début du développement (préfixe OBS `Regio - `, nettoyage des anciennes so
   ajustement auto de la taille), police à empattements pour les Écritures (Source Serif / Lora), sans
   empattement pour les annonces (Montserrat). Polices libres **embarquées** (hors ligne, pas de CDN).
   Modèles « Classique », « Moderne », « Sobre », personnalisables (logo, couleurs de l'église). WCAG AA.
+- **Logo choisi (2026-11-12) : piste 2 « le r à l'écran »** — un écran (cadre arrondi) contenant un « r »
+  minuscule dont le bras se termine par un point de lumière or. Fichiers dans `design/brand/` (générés par
+  `build_brand.py` + `render_png.mjs` + `make_ico.py` : ne pas éditer les SVG/PNG à la main). Deux dessins :
+  « grand » et « petit » (≤ 32 px, traits renforcés). Nom « regio » en minuscules, Sora SemiBold vectorisé.
+  Pistes explorées : `design/logo-pistes.html` (artefact https://claude.ai/artifact/EinHp9otDsRbBiEzwCHM4g).
+  Retours de l'utilisateur : ondes « Wi-Fi » = trop commun ; il veut du neuf, de l'original.
 - Identité visuelle conçue en parallèle : nom → logo (3 pistes, lisible en 16 px, monochrome possible,
   non confessionnel) → charte (palette, typos, ton) → déclinaisons. Un seul système de design (tokens).
 
