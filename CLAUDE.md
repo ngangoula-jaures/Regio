@@ -191,7 +191,8 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
     désinstallation propre (données gardées).
     **Testé sur un AUTRE PC le 2026-11-13** (portable Dell d'un ami, Windows 11) : avertissement SmartScreen attendu
     (« Informations complémentaires › Exécuter quand même »), installation et lancement OK (écran « Préparation du
-    culte »). Non vérifié : PC sans Visual C++, installation sans Internet.
+    culte » → moteur vidéo « Prêt »), PC connecté à Internet. Toujours non vérifié : PC sans Visual C++ (inconnu chez
+    l'ami), installation hors ligne.
     Windows Sandbox inutilisable sur ce PC : « Exception of type System.Exception » (le port 80 était pris par un
     Apache dans WSL — désactivé par l'utilisateur — mais l'erreur persiste : bug du composant Sandbox 0.8.114).
   - Configuré AVANT lancement : `portable_mode.txt`, WebSocket sur **4466** (≠ 4455 d'un OBS installé),
