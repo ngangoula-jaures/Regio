@@ -72,30 +72,29 @@ try {
   await app.keyboard.press("ArrowDown");
   await app.keyboard.press("ArrowDown");
   await app.waitForSelector(".moment.is-selected:has-text('Adoration')");
-  await app.waitForSelector("role=tab[name='Adoration'][selected]");
+  await app.waitForSelector(".view-title h1:text-is('Adoration')");
   await render.waitForTimeout(500);
   await check((await app.locator(".moment.is-live:has-text('Écran d')").count()) === 1 && (await render.locator(".layer.in .standby-title").count()) === 1,
-    "↓ ↓ : on choisit « Adoration » (ses contenus à droite) sans rien changer à l'écran");
+    "↓ ↓ : on choisit « Adoration » (ses contenus au centre) sans rien changer à l'écran");
   await app.keyboard.press("ArrowUp");
   await app.waitForSelector(".moment.is-selected:has-text('Louange')");
   await check((await app.textContent(".next-btn")).includes("Afficher « Louange »"), "↑ : retour sur « Louange » ; le bouton annonce « Afficher « Louange » »");
 
   await app.click(".moment:has-text('Prédication')");
-  await app.waitForSelector("role=tab[name='Prédication'][selected]");
+  await app.waitForSelector(".view-title h1:text-is('Prédication')");
   await render.waitForTimeout(500);
-  await check((await render.locator(".layer.in .standby-title").count()) === 1, "clic sur « Prédication » : son onglet s'ouvre, l'écran ne change pas");
+  await check((await render.locator(".layer.in .standby-title").count()) === 1, "clic sur « Prédication » : ses contenus s'ouvrent au centre, l'écran ne change pas");
   await app.keyboard.press("Space");
   await waitRender(".lower-ref");
   await app.waitForSelector(".moment.is-live:has-text('Prédication')");
   await check(true, "espace : le 1er contenu du moment choisi s'affiche");
 
-  await app.click("role=tab[name='Texte']");
+  await app.click(".add-btn:has-text('Texte')");
   await app.fill("#ttitle", "Culte de Noël");
   await app.fill("#tbody", "Mercredi 24 décembre à 19 h");
-  await app.selectOption("#ttarget", { label: "Prédication" });
-  await app.click(".tab-body >> role=button[name='Ajouter']");
+  await app.click("role=button[name='Ajouter à Prédication']");
   await app.waitForSelector("text=Ajouté à Prédication");
-  await app.click("role=tab[name='Prédication']");
+  await app.click(".back-btn:has-text('Retour à « Prédication »')");
   await check((await app.locator(".item-card").count()) === 2, "texte créé et rattaché au moment « Prédication »");
 
   await app.click(".item-card >> nth=0 >> .item-main");
@@ -107,7 +106,7 @@ try {
   await app.waitForSelector(".moment.is-live:has-text('Offrandes')");
   await check(true, "fin du moment : on enchaîne sur le 1er contenu du moment suivant");
 
-  await app.click("role=tab[name='Bible']");
+  await app.click(".add-btn:has-text('Verset')");
   await app.fill("#bible-q", "ps 23 1");
   await app.press("#bible-q", "Enter");
   await waitRender(".verse-text:has-text('mon berger')");
@@ -118,7 +117,7 @@ try {
   await app.keyboard.press("ArrowLeft");
   await waitRender(".verse-text:has-text('mon berger')");
   await check(true, "lecture suivie : espace = verset 2, ← = retour au verset 1");
-  await app.click(".screens >> text=Sur la caméra");
+  await app.click(".layout-toggle >> text=Sur la caméra");
   await waitRender(".lower-ref:has-text('PSAUMES 23:1')");
   await check(true, "verset passé « Sur la caméra » (bandeau)");
 
@@ -129,16 +128,19 @@ try {
   await app.waitForSelector(".verse-row[data-verse='16']:has-text('tant aimé le monde')");
   await check(true, "Bible complète : Livres › Jean › 3 → Jean 3:16 (Louis Segond 1910)");
   await app.click(".moment:has-text('Prédication')");
-  await app.click("role=tab[name='Bible']");
+  await app.click(".add-btn:has-text('Verset')");
   await app.click(".verse-row[data-verse='16'] .icon-btn");
   await app.waitForSelector("text=Ajouté à Prédication");
   await check(true, "« + » sur Jean 3:16 : verset rattaché au moment sélectionné (Prédication)");
 
   // Réordonner les contenus d'un moment : glisser-déposer, puis clavier sur la poignée.
-  await app.click("role=tab[name='Prédication']");
+  await app.click(".back-btn");
   const labels = () => app.locator(".item-card .item-label").allInnerTexts();
   const before = await labels();
-  await app.locator(".item-card >> nth=2").dragTo(app.locator(".item-card >> nth=0"), { targetPosition: { x: 40, y: 4 } });
+  // Les deux cartes doivent être visibles (le défilement automatique pendant un glisser fausse le test).
+  await app.setViewportSize({ width: 1366, height: 1400 });
+  await app.locator(".item-card >> nth=2 >> .item-grip").dragTo(app.locator(".item-card >> nth=0"), { targetPosition: { x: 40, y: 4 } });
+  await app.setViewportSize({ width: 1366, height: 820 });
   const afterDrag = await labels();
   await check(afterDrag[0] === before[2] && afterDrag.length === 3, `glisser-déposer : le dernier contenu passe en premier (${afterDrag.join(" | ")})`);
   await app.click(".item-card:has-text('Culte de Noël') .item-main");
@@ -156,7 +158,7 @@ try {
   await app.click("text=+ Ajouter un moment");
   await app.fill("#new-moment", "Témoignages");
   await app.press("#new-moment", "Enter");
-  await app.waitForSelector("role=tab[name='Témoignages'][selected]");
+  await app.waitForSelector(".view-title h1:text-is('Témoignages')");
   const names = await app.locator(".moment .plan-label").allInnerTexts();
   await check(names.at(-2) === "Témoignages" && names.at(-1) === "Bénédiction", `nouveau moment « Témoignages » avant la bénédiction (${names.join(", ")})`);
 
@@ -172,6 +174,17 @@ try {
       return r.left < q.right - 1 && q.left < r.right - 1 && r.top < q.bottom - 1 && q.top < r.bottom - 1;
     })));
   await check(!overlap, "rangée des caméras : aucune vignette ne déborde sur sa voisine (nom de caméra long)");
+  // Un plein écran est affiché : un clic (ou une touche 1–6) sur une caméra la remet à l'écran.
+  await app.click(".moment:has-text('Prédication')");
+  await app.click(".item-card:has-text('Culte de Noël') .item-main");
+  await waitRender(".text-title:has-text('Culte de Noël')");
+  await app.waitForSelector(".cam-tile.is-ready");
+  await check((await app.textContent(".cam-tile.is-ready")).includes("PRÊTE"), "plein écran : la caméra choisie est « PRÊTE · sous le plein écran »");
+  await app.locator("body").click({ position: { x: 700, y: 30 } });
+  await app.keyboard.press("1");
+  await app.waitForSelector(".cam-tile.is-on:has-text('Cam Link 4K')");
+  await render.waitForTimeout(700);
+  await check((await render.locator(".layer.in > *").count()) === 0, "touche 1 : la caméra 1 revient à l'écran, le plein écran s'efface");
   await app.click(".cam-tile:has-text('Cam Link 4K')");
   await app.waitForSelector(".cam-tile.is-on:has-text('Cam Link 4K')");
 

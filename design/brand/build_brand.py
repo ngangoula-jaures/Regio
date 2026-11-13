@@ -34,10 +34,18 @@ def svg(body: str, w: float, h: float, label: str) -> str:
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w:g} {h:g}" role="img" aria-label="{label}">'
             f'<title>{label}</title>{body}</svg>\n')
 
+# Tuile d'application « Nuit lumineuse » (choisie le 2026-11-13) : dégradé du bleu saphir (en haut à gauche)
+# au bleu nuit, avec un léger reflet en haut. Le bleu nuit seul paraissait noir dans la barre des tâches.
+SAPHIR = "#3A5CCC"
+
 def icon(size: str = "large") -> str:
-    # Tuile d'application : carré arrondi bleu nuit, symbole ivoire et or.
     scale, off = (0.72, 14) if size == "large" else (0.86, 7)
-    return (f'<rect width="100" height="100" rx="22" fill="{NUIT}"/>'
+    return (f'<defs><linearGradient id="regio-tile" x1="0" y1="0" x2="1" y2="1">'
+            f'<stop offset="0" stop-color="{SAPHIR}"/><stop offset="1" stop-color="{NUIT}"/></linearGradient>'
+            f'<linearGradient id="regio-shine" x1="0" y1="0" x2="0" y2="1">'
+            f'<stop offset="0" stop-color="#FFFFFF" stop-opacity=".16"/><stop offset=".5" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient></defs>'
+            f'<rect width="100" height="100" rx="22" fill="url(#regio-tile)"/>'
+            f'<rect width="100" height="100" rx="22" fill="url(#regio-shine)"/>'
             f'<g transform="translate({off} {off}) scale({scale})">{mark(IVOIRE, size=size)}</g>')
 
 # --- Le nom « regio » vectorisé en Sora SemiBold, approche resserrée ---

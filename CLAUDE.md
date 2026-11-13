@@ -69,7 +69,7 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   espace = verset suivant, bandeau « Lecture suivie »). Rangée de caméras approuvée par l'utilisateur.
   La maquette v1 est devenue PUBLIQUE (partagée par l'utilisateur) : ne plus la modifier sans son accord.
 
-- **Maquette v5 (2026-11-13, EN ATTENTE de validation)** : https://claude.ai/artifact/VZqi6ZT9uSGycUEZsc2hcA (copie
+- **Maquette v5 (2026-11-13) — VALIDÉE et CODÉE le jour même** : https://claude.ai/artifact/VZqi6ZT9uSGycUEZsc2hcA (copie
   `design/maquettes/v5/`). La v4 « façon Spotify » a été REJETÉE : « un clone de Spotify, une app de musique, pas une
   régie » ; fond trop sombre ; boutons principaux pas assez visibles. Gardé de la v4 : l'espace. Leçon : s'inspirer de
   la *qualité* de Spotify (fluidité, finitions), JAMAIS de sa mise en page ni de ses codes (pochettes, ▶ au survol,
@@ -79,9 +79,13 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   Caméra seule, mise en page, Ensuite). **Caméras EN GRAND en haut du centre, toujours visibles** (retour de
   l'utilisateur : on regarde les caméras avant de choisir) ; un clic met la caméra à l'écran (un bandeau reste, un plein
   écran s'efface) ; touches 1 à 6. Jusqu'à 6 caméras visibles d'un coup : 1–3 = une rangée, nom dessous ;
-  4 = une rangée de 4 ; 5–6 = deux rangées de 3, nom sur l'image. + 3 propositions d'icône (le bleu nuit paraît noir dans la barre des tâches).
+  4 = une rangée de 4 ; 5–6 = deux rangées de 3, nom sur l'image.
+- **Icône de l'application : « Nuit lumineuse »** (proposition C, 2026-11-13) : dégradé saphir #3A5CCC → bleu nuit + léger
+  reflet (`icon()` dans `design/brand/build_brand.py`). Le bleu nuit seul paraissait noir dans la barre des tâches.
+  Régénérer : build_brand.py (fonttools) → render_png.mjs → `npx tauri icon design/brand/png/regio-icon-1024.png -o src-tauri/icons`
+  (supprimer android/ et ios/) → `make_ico.py src-tauri/icons/icon.ico` → copier regio-icon-32.png en 32x32.png.
 
-## Interface (régie v3 codée le 2026-11-13, d'après la maquette v3 validée)
+## Interface (régie v5 codée le 2026-11-13, d'après la maquette v5 validée)
 - `src/app/App.tsx` : Démarrage → Sources du jour → Régie. Une fois le culte commencé, la Régie reste montée ;
   « Ajouter une caméra » ouvre les Sources PAR-DESSUS (`.overlay`, raccourcis de la régie désactivés).
   Mode navigateur : `ConnectScreen` d'abord.
@@ -90,13 +94,18 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   propre à chaque église (ajouter / renommer / supprimer un moment, retirer un contenu, **réordonner les contenus** : poignée à glisser, ou poignée + ↑/↓ ; le contenu à l'écran reste repéré), enregistré
   automatiquement (`src/shared/storage.ts` → commandes Rust `load_data`/`save_data`, fichier
   `%APPDATA%\org.regio.app\data\library.json`, écriture atomique ; navigateur : localStorage).
-- **Navigation** (`src/screens/RegieScreen.tsx`) — DEUX navigations séparées (exigence de l'utilisateur) :
+- **Trois zones** (`src/screens/RegieScreen.tsx`) : CHOISIR (déroulé) · VOIR (`CameraStrip.tsx` = caméras EN GRAND, fixes,
+  un clic / touches 1–6 = caméra à l'écran, « PRÊTE · sous le plein écran » si un plein écran la cache ; puis
+  `ContentArea.tsx` = le moment en grand, présentations en grille de diapos, taille Normal/Grand ; « Ajouter : Verset ·
+  PowerPoint · Image · Texte » ouvre la Bible / les images / le texte AU CENTRE avec « Retour à … » — plus d'onglets)
+  · DIFFUSER (`aside.output` : À l'écran, Suivant or très grand, Précédent, Caméra seule, mise en page, Ensuite).
+  Réordonner : SEULE la poignée se saisit (un clic tremblé sur une carte doit l'afficher, pas la déplacer).
+- **Navigation** — DEUX navigations séparées (exigence de l'utilisateur) :
   CHOISIR un moment (clic dans le déroulé, ↑ / ↓) n'affiche RIEN, ses contenus s'ouvrent à droite ;
   AFFICHER = clic sur un contenu, ou Suivant / espace / → (contenu suivant ; si un autre moment est choisi :
   son 1er contenu, bouton « Afficher « <moment> » ») et Précédent / ←. Lecture biblique : Suivant / ← = versets.
   Échap = caméra. Les moments vides sont sautés en fin de moment.
-- Panneau de droite (`src/screens/RightPanel.tsx`) : onglet AU NOM du moment sélectionné + Bible + Médias + Texte
-  (onglets gardés montés : la Bible garde son chapitre). « Ajouter à <moment> » partout ; toast de confirmation.
+- Bible / Images / Texte gardés montés (la Bible garde son chapitre). « Ajouter à <moment> » partout ; toast de confirmation.
 - **Bible LSG 1910 complète** (domaine public, eBible.org) : `public/bible/lsg1910.json` (4,2 Mo, construit par
   `scripts/build_bible.py`) ; `src/bible/bible.ts` = chargement, références (« jn 3:16 », « 1jn 4 8 », « ps 23 »,
   abréviations), recherche par mots. Livres › Chapitres › chapitre entier.
@@ -113,7 +122,6 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   (`SlideStrip`). Diapo suivante préchargée par la page d'affichage. Test : `npm run test:slides` ; export réel :
   `scripts/win.sh cargo test --manifest-path src-tauri\Cargo.toml --lib pptx -- --include-ignored`
   (présentation de test `C:\dev\regio-test\Chants test.pptx`). Reste : mode « modifiable » (sans PowerPoint).
-- Caméras pendant le culte : `src/screens/CameraRow.tsx` (vignettes, un clic = caméra à l'écran).
 - **Plusieurs téléphones** (max `MAX_PHONES` = 4) : numéros « 1 », « 2 »… (salle de signalisation + source OBS
   `Regio - Téléphone QR <n>` chacun) ; il y a toujours UN numéro libre avec son QR code (« Ajouter un téléphone (n) »).
   `useStudio.preparePhones` (un seul passage à la fois), `phoneCams`, `freePhone`. Test : `npm run test:multiphone`.

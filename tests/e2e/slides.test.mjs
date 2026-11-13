@@ -59,17 +59,17 @@ try {
 
   await app.click(".moment:has-text('Louange')");
   await check((await app.textContent(".item-card:has-text('Chants du dimanche') .item-kind")).includes("Présentation · 3 diapos"), "la présentation est UN contenu « Présentation · 3 diapos »");
-  await check((await app.locator(".slide-strip button").count()) === 3, "ses 3 diapos sont visibles en vignettes");
+  await check((await app.locator(".slide-card").count()) === 3, "ses 3 diapos sont visibles en vignettes");
 
   await app.click(".item-card:has-text('Chants du dimanche') .item-main");
   await shown(1);
   await check((await app.textContent(".next-btn")).includes("Diapo suivante"), "clic : diapo 1 à l'écran ; le bouton dit « Diapo suivante »");
-  await check((await app.textContent(".screens")).includes("Chants du dimanche · 1/3"), "à l'écran : « Louange · Chants du dimanche · 1/3 »");
+  await check((await app.textContent(".output")).includes("Chants du dimanche · 1/3"), "à l'écran : « Louange · Chants du dimanche · 1/3 »");
   await app.keyboard.press("Space");
   await shown(2);
   await app.keyboard.press("ArrowRight");
   await shown(3);
-  await check((await app.locator(".slide-strip button.is-live[data-slide='2']").count()) === 1, "espace / → : diapos 2 puis 3 ; la vignette à l'écran est repérée");
+  await check((await app.locator(".slide-card.is-live[data-slide='2']").count()) === 1, "espace / → : diapos 2 puis 3 ; la vignette à l'écran est repérée");
   await check((await app.textContent(".next-btn")).includes("Contenu suivant"), "dernière diapo : le bouton redevient « Contenu suivant »");
   await app.keyboard.press("Space");
   await render.waitForSelector(".layer.in .text-title:has-text('Après la louange')");
@@ -77,7 +77,7 @@ try {
   await app.keyboard.press("ArrowLeft");
   await shown(3);
   await check(true, "← depuis le contenu suivant : retour sur la DERNIÈRE diapo");
-  await app.click(".slide-strip button[data-slide='0']");
+  await app.click(".slide-card[data-slide='0']");
   await shown(1);
   await app.keyboard.press("ArrowLeft");
   await render.waitForSelector(".layer.in .standby-title:has-text('Bienvenue')");

@@ -1,5 +1,6 @@
-// Écran 3 — La régie pendant le culte (maquette v3) :
-// déroulé en moments à gauche ; à l'écran + ensuite au centre ; caméras ; onglets à droite.
+// Écran 3 — La régie pendant le culte (maquette v5), trois zones de gauche à droite :
+// CHOISIR (déroulé des moments) · VOIR (caméras en grand, toujours visibles, puis les contenus du moment en grand ;
+// Bible / Images / Texte s'ouvrent au centre) · DIFFUSER (à l'écran + commandes, toujours au même endroit).
 //
 // Deux navigations bien séparées (retours de l'utilisateur du 13 novembre) :
 // - CHOISIR un moment (clic dans le déroulé, ↑ / ↓) : ses contenus s'ouvrent à droite, RIEN ne change à l'écran ;
@@ -9,18 +10,22 @@
 // - une présentation (PowerPoint importé) est UN contenu : Suivant / Précédent passent de diapo en diapo.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, ChevronUp, RefreshCw, Video } from "lucide-react";
 import { RegioLockup } from "../components/Logo";
 import { MiniScreen } from "../components/MiniScreen";
 import { longDate, t } from "../i18n";
 import type { Content } from "../shared/content";
 import { loadBible, refLabel, type Bible } from "../bible/bible";
 import { uid, useLibrary } from "../app/library";
-import { usePolledImage, type Studio } from "../app/useStudio";
+import { usePolledImage, type Camera, type Studio } from "../app/useStudio";
 import { storeImage } from "../shared/storage";
-import { CameraRow } from "./CameraRow";
+import { CameraStrip } from "./CameraStrip";
 import { RoomButton } from "./RoomDialog";
-import { RightPanel, verseContent, type Reading, type Tab } from "./RightPanel";
+import { ContentArea, verseContent, type Reading, type View } from "./ContentArea";
+
+/** Le contenu couvre-t-il tout l'écran (la caméra n'est plus visible dessous) ? */
+const covers = (c: Content) =>
+  c.kind === "image" || c.kind === "slides" || c.kind === "standby" || ((c.kind === "verse" || c.kind === "text") && c.layout === "full");
 
 type Mode = "items" | "reading";
 interface Pos {
@@ -38,7 +43,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   }, []);
 
   const [sel, setSel] = useState(0);
-  const [tab, setTab] = useState<Tab>("moment");
+  const [view, setView] = useState<View>("moment");
   const [live, setLive] = useState<Pos | null>(null);
   const [offPlan, setOffPlan] = useState(false);
   const [mode, setMode] = useState<Mode>("items");
@@ -69,7 +74,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
       const content = contentAt(p);
       setLive(p);
       setSel(p.m);
-      setTab("moment");
+      setView("moment");
       setReading(null);
       setOffPlan(false);
       setMode(m);
@@ -143,13 +148,22 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   /** Choisir un moment sans rien afficher (↑ / ↓ ou clic dans le déroulé). */
   const moveSel = (dir: 1 | -1) => {
     setSel((v) => Math.min(Math.max(0, v + dir), Math.max(0, moments.length - 1)));
-    setTab("moment");
+    setView("moment");
   };
   const cameraOnly = () => showOther({ kind: "none" });
 
+  // ---------- Caméras ----------
+  const cams: Camera[] = [...(studio.cameras ?? []), ...studio.phoneCams];
+  const covered = covers(studio.current);
+  /** Un clic (ou touche 1 à 6) met la caméra à l'écran : un bandeau reste par-dessus, un plein écran s'efface. */
+  const pickCamera = (cam: Camera) => {
+    studio.chooseMain(cam.source).catch(() => {});
+    if (covers(studio.current)) cameraOnly();
+  };
+
   // Clavier : espace / → = suivant ; ← = précédent ; ↑ / ↓ = choisir le moment ; Échap = caméra.
-  const keys = useRef({ go, moveSel, cameraOnly, active });
-  keys.current = { go, moveSel, cameraOnly, active };
+  const keys = useRef({ go, moveSel, cameraOnly, active, cams, pickCamera });
+  keys.current = { go, moveSel, cameraOnly, active, cams, pickCamera };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!keys.current.active) return;
@@ -163,6 +177,12 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
       } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
         keys.current.moveSel(e.key === "ArrowDown" ? 1 : -1);
+      } else if (/^[1-6]$/.test(e.key) && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        const cam = keys.current.cams[Number(e.key) - 1];
+        if (cam) {
+          e.preventDefault();
+          keys.current.pickCamera(cam);
+        }
       } else if (e.key === "Escape") {
         e.preventDefault();
         keys.current.cameraOnly();
@@ -226,7 +246,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
     setAdding(false);
     setNewName("");
     setSel(at);
-    setTab("moment");
+    setView("moment");
     if (live && live.m >= at) setLive({ ...live, m: live.m + 1 });
   };
 
@@ -274,8 +294,9 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
       </header>
 
       <div className="regie-body">
+        {/* ============ 1. CHOISIR : le déroulé ============ */}
         <nav className="plan" aria-label={t("regie.plan")}>
-          <div className="plan-head" style={{ display: "block" }}>
+          <div className="plan-head">
             <div className="plan-title">
               <h2>{t("regie.plan")}</h2>
               <button type="button" className="icon-btn" aria-label={t("regie.prevMoment")} title={t("regie.prevMoment")} onClick={() => moveSel(-1)}>
@@ -295,7 +316,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
               aria-current={i === liveMoment ? "step" : undefined}
               onClick={() => {
                 setSel(i);
-                setTab("moment");
+                setView("moment");
               }}
             >
               <span className="moment-num">{i + 1}</span>
@@ -334,32 +355,39 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
           )}
         </nav>
 
-        <main className="stage">
-          <div className="screens">
-            <div className="screen-col screen-col-live">
-              <div className="screen-cap">
-                <strong>{t("regie.output")}</strong>
-                <span>{curLabel}</span>
-              </div>
-              <div className="screen screen-live">{preview ? <img src={preview} alt={t("regie.previewAlt")} /> : <div className="screen-wait">…</div>}</div>
+        {/* ============ 2. VOIR : caméras en grand (fixes), puis les contenus ============ */}
+        <div className="center">
+          <CameraStrip studio={studio} cams={cams} covered={covered} onPick={pickCamera} onAdd={onSources} />
+          <ContentArea
+            view={view}
+            setView={setView}
+            lib={lib}
+            update={update}
+            sel={sel}
+            liveIndex={!offPlan && live && live.m === sel ? live.i : null}
+            liveSlide={live?.s ?? 0}
+            localBase={studio.server?.localBase ?? ""}
+            camera={camera}
+            bible={bible}
+            reading={mode === "reading" ? reading : null}
+            storeImage={(d) => storeImage(d, studio.server?.localBase ?? "")}
+            onShowItem={(i, s) => showPos({ m: sel, i, s }, "items")}
+            onShowOther={showOther}
+            onRead={(r) => read(r)}
+            onDeleteMoment={deleteMoment}
+            onMoveItem={moveItem}
+            onRemoveItem={removeItem}
+          />
+        </div>
+
+        {/* ============ 3. DIFFUSER : à l'écran + commandes, toujours au même endroit ============ */}
+        <aside className="output" aria-label={t("regie.output")}>
+          <div className="output-live">
+            <div className="screen-cap">
+              <strong>{t("regie.output")}</strong>
+              <span>{curLabel}</span>
             </div>
-            <div className="screen-col">
-              <div className="screen-cap">
-                <strong className="muted">{t("regie.upNext")}</strong>
-                <span>{upcoming ? upcoming.label : t("regie.end")}</span>
-              </div>
-              <div className="screen screen-next">{upcoming ? <MiniScreen content={upcoming.content} camera={camera} /> : <MiniScreen content={{ kind: "none" }} camera={camera} />}</div>
-              {canLayout && (
-                <div className="segmented" style={{ display: "flex" }} role="radiogroup" aria-label={t("regie.layout")}>
-                  <button type="button" role="radio" style={{ flex: 1 }} aria-checked={cur.layout === "lower"} aria-pressed={cur.layout === "lower"} onClick={() => setLayout("lower")}>
-                    {t("regie.onCamera")}
-                  </button>
-                  <button type="button" role="radio" style={{ flex: 1 }} aria-checked={cur.layout === "full"} aria-pressed={cur.layout === "full"} onClick={() => setLayout("full")}>
-                    {t("regie.fullScreen")}
-                  </button>
-                </div>
-              )}
-            </div>
+            <div className="screen screen-live">{preview ? <img src={preview} alt={t("regie.previewAlt")} /> : <div className="screen-wait">…</div>}</div>
           </div>
 
           {studio.link.kind === "on" && !studio.renderOnline && (
@@ -375,68 +403,68 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
 
           {mode === "reading" && reading && bible && (
             <div className="reading-bar">
-              <BookOpen size={20} strokeWidth={1.75} />
-              <span>
+              <BookOpen size={18} strokeWidth={1.75} />
+              <span className="reading-text">
                 <strong>
                   {t("regie.reading", {
                     ref: `${refLabel(bible, reading)} / ${bible.books[reading.book].chapters[reading.chapter - 1].length}`,
                   })}
-                </strong>{" "}
-                <span className="muted">— {t("regie.readingHelp")}</span>
+                </strong>
+                <span className="muted">{t("regie.readingHelp")}</span>
               </span>
-              <span className="spacer" />
               <button type="button" className="btn btn-sm" onClick={() => setMode("items")}>
                 {t("regie.stopReading")}
               </button>
             </div>
           )}
 
-          <div className="transport">
-            <button type="button" className="btn big-action" onClick={() => go(-1)}>
-              <span className="row-icon">
+          {/* Les commandes : les éléments les plus visibles de l'écran. */}
+          <div className="controls">
+            <button type="button" className="btn btn-primary next-btn" onClick={() => go(1)} disabled={!nextTarget}>
+              <span>
+                {nextWord}
+                <small>{t("regie.nextKeys")}</small>
+              </span>
+              <ArrowRight size={28} strokeWidth={2.2} />
+            </button>
+            <div className="controls-row">
+              <button type="button" className="btn ctl-btn" onClick={() => go(-1)}>
                 <ArrowLeft size={22} strokeWidth={2} />
                 <span>
                   {t("regie.previous")}
                   <small>{t("regie.previousKeys")}</small>
                 </span>
-              </span>
-            </button>
-            <button type="button" className="btn big-action grow-1" onClick={cameraOnly}>
-              {t("regie.backToCamera")}
-              <small>{t("regie.escapeKey")}</small>
-            </button>
-            <button type="button" className="btn btn-primary big-action next-btn grow-2" onClick={() => go(1)} disabled={!nextTarget}>
-              <span>
-                {nextWord}
-                <small>{t("regie.nextKeys")}</small>
-              </span>
-              <ArrowRight size={26} strokeWidth={2.2} />
-            </button>
+              </button>
+              <button type="button" className="btn ctl-btn" onClick={cameraOnly}>
+                <Video size={22} strokeWidth={1.9} />
+                <span>
+                  {t("regie.cameraOnly")}
+                  <small>{t("regie.escapeKey")}</small>
+                </span>
+              </button>
+            </div>
+            <div className="segmented layout-toggle" role="radiogroup" aria-label={t("regie.layout")} title={canLayout ? undefined : t("regie.layoutHelp")}>
+              <button type="button" role="radio" disabled={!canLayout} aria-checked={canLayout && cur.layout === "lower"} aria-pressed={canLayout && cur.layout === "lower"} onClick={() => setLayout("lower")}>
+                {t("regie.onCamera")}
+              </button>
+              <button type="button" role="radio" disabled={!canLayout} aria-checked={canLayout && cur.layout === "full"} aria-pressed={canLayout && cur.layout === "full"} onClick={() => setLayout("full")}>
+                {t("regie.fullScreen")}
+              </button>
+            </div>
           </div>
 
-          <CameraRow studio={studio} onAdd={onSources} />
-        </main>
-
-        <RightPanel
-          lib={lib}
-          update={update}
-          sel={sel}
-          tab={tab}
-          setTab={setTab}
-          liveIndex={!offPlan && live && live.m === sel ? live.i : null}
-          liveSlide={live?.s ?? 0}
-          camera={camera}
-          bible={bible}
-          reading={mode === "reading" ? reading : null}
-          storeImage={(d) => storeImage(d, studio.server?.localBase ?? "")}
-          onShowItem={(i, s) => showPos({ m: sel, i, s }, "items")}
-          localBase={studio.server?.localBase ?? ""}
-          onShowOther={showOther}
-          onRead={(r) => read(r)}
-          onDeleteMoment={deleteMoment}
-          onMoveItem={moveItem}
-          onRemoveItem={removeItem}
-        />
+          <div className="output-next">
+            <div className="screen-cap">
+              <strong className="muted">{t("regie.upNext")}</strong>
+            </div>
+            <div className="next-row">
+              <div className="screen screen-next">
+                <MiniScreen content={upcoming ? upcoming.content : { kind: "none" }} camera={camera} />
+              </div>
+              <span className="next-label">{upcoming ? upcoming.label : t("regie.end")}</span>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );
