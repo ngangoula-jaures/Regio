@@ -173,6 +173,12 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   code n'est qu'une préférence ; un téléphone ne chasse JAMAIS un autre téléphone (identifiant d'appareil
   `regio.device` en localStorage) ; s'il est pris → 1re place libre prête dans OBS (message `assigned`), sinon
   fermeture 4009 et nouvel essai. Même appareil (reconnexion) → reprend sa place.
+- **Caméras du PC OPTIONNELLES** (demande de l'utilisateur, 2026-11-13 : à l'église on n'utilise jamais la webcam du
+  portable ; Regio sert aussi aux streamers) : éteintes par défaut (`active: false` dans OBS : voyant et processeur
+  libérés), « Utiliser cette caméra » / « Ne plus utiliser cette caméra » dans Caméras du jour, choix retenu
+  (`localStorage regio.cameras.on`, par nom de périphérique). La régie ne montre que `studio.activeCameras` + téléphones ;
+  seule une caméra utilisée devient principale d'office. Écouter le direct AU CASQUE (rappelé dans l'encadré Facebook) :
+  un haut-parleur près d'un micro crée écho + sifflement (constaté le 2026-11-13).
 - Page du téléphone (`src/phone/`) : charte Regio, textes FR/EN (langue du téléphone), icônes Lucide.
 - Images : `object-fit: contain` en plein cadre (agrandies si plus petites). Télé réglée hors 16:9 (ex. 1024 × 768)
   → avertissement au démarrage et dans « Télé de la salle » (régler Windows en 1920 × 1080).

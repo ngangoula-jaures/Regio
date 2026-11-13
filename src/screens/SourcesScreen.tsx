@@ -2,37 +2,65 @@
 
 import { useCallback, useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { ArrowRight, Info, Star, Video } from "lucide-react";
+import { ArrowRight, Info, Power, Star, Video, VideoOff } from "lucide-react";
 import { RegioLockup } from "../components/Logo";
 import { longDate, t } from "../i18n";
 import { phoneUrl } from "../shared/server";
 import { usePolledImage, type Camera, type Studio } from "../app/useStudio";
 
-function CamCard({ studio, cam, isMain, live }: { studio: Studio; cam: Camera; isMain: boolean; live: boolean }) {
+function CamCard({ studio, cam, isMain, on }: { studio: Studio; cam: Camera; isMain: boolean; on: boolean }) {
   const fetcher = useCallback(() => studio.cameraShot(cam.source), [studio.cameraShot, cam.source]); // eslint-disable-line react-hooks/exhaustive-deps
-  const shot = usePolledImage(live ? fetcher : null, 1000);
+  const shot = usePolledImage(on ? fetcher : null, 1000);
+  const name = cam.kind === "phone" ? t("sources.phoneN", { n: cam.label }) : cam.label;
+  // Caméra du PC non utilisée : éteinte, on propose seulement de l'utiliser.
+  if (!on)
+    return (
+      <div className="cam is-off">
+        <div className="cam-view">
+          <VideoOff size={44} strokeWidth={1.5} />
+        </div>
+        <div className="cam-row">
+          <div>
+            <div className="cam-name">{name}</div>
+            <div className="cam-detail">{t("sources.offHelp")}</div>
+          </div>
+          <span className="pill pill-neutral">{t("sources.notUsed")}</span>
+        </div>
+        <button type="button" className="btn cam-use" onClick={() => studio.setCameraUsed(cam, true)}>
+          <Power size={17} strokeWidth={2} />
+          {t("sources.useCamera")}
+        </button>
+      </div>
+    );
   return (
-    <button type="button" className={`cam ${isMain ? "is-main" : ""}`} aria-pressed={isMain} onClick={() => studio.chooseMain(isMain ? null : cam.source)}>
-      <div className="cam-view">
-        {shot ? <img src={shot} alt="" /> : <Video size={48} strokeWidth={1.5} />}
-        {shot && <span className="cam-tag">{t("sources.live")}</span>}
-      </div>
-      <div className="cam-row">
-        <div>
-          <div className="cam-name">{cam.kind === "phone" ? t("sources.phoneN", { n: cam.label }) : cam.label}</div>
-          <div className="cam-detail">{cam.kind === "phone" ? t("sources.phoneHelp") : ""}</div>
-        </div>
-        <span className="pill pill-ok">{cam.kind === "phone" ? t("sources.phoneConnected") : t("sources.ready")}</span>
-      </div>
-      {isMain ? (
-        <div className="cam-main">
-          <Star size={18} fill="currentColor" strokeWidth={0} />
-          {t("sources.main")}
-        </div>
-      ) : (
-        <div className="cam-make">{t("sources.makeMain")}</div>
+    <div className={`cam ${isMain ? "is-main" : ""}`}>
+      <button type="button" className="cam-select" aria-pressed={isMain} aria-label={`${name} : ${isMain ? t("sources.main") : t("sources.makeMain")}`} onClick={() => studio.chooseMain(isMain ? null : cam.source)}>
+        <span className="cam-view">
+          {shot ? <img src={shot} alt="" /> : <Video size={48} strokeWidth={1.5} />}
+          {shot && <span className="cam-tag">{t("sources.live")}</span>}
+        </span>
+        <span className="cam-row">
+          <span>
+            <span className="cam-name">{name}</span>
+            <span className="cam-detail">{cam.kind === "phone" ? t("sources.phoneHelp") : ""}</span>
+          </span>
+          <span className="pill pill-ok">{cam.kind === "phone" ? t("sources.phoneConnected") : t("sources.ready")}</span>
+        </span>
+        {isMain ? (
+          <span className="cam-main">
+            <Star size={18} fill="currentColor" strokeWidth={0} />
+            {t("sources.main")}
+          </span>
+        ) : (
+          <span className="cam-make">{t("sources.makeMain")}</span>
+        )}
+      </button>
+      {cam.kind === "device" && (
+        <button type="button" className="cam-stop" onClick={() => studio.setCameraUsed(cam, false)}>
+          {t("sources.stopUsing")}
+        </button>
       )}
-    </button>
+    </div>
   );
 }
 
@@ -118,7 +146,7 @@ export function SourcesScreen({ studio, onBack, onStart }: { studio: Studio; onB
 
         <div className="cams">
           {all.map((c) => (
-            <CamCard key={c.source} studio={studio} cam={c} isMain={c.source === studio.mainCamera} live />
+            <CamCard key={c.source} studio={studio} cam={c} isMain={c.source === studio.mainCamera} on={c.kind === "phone" || studio.camerasOn.includes(c.label)} />
           ))}
           {studio.freePhone && <PhoneCard key={studio.freePhone} studio={studio} id={studio.freePhone} />}
           <div className="cam is-hint">

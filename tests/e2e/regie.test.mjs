@@ -52,12 +52,28 @@ try {
   // --- Sources du jour ---
   await app.click("text=Choisir les caméras du jour");
   await app.waitForSelector("text=Quelles caméras aujourd'hui ?");
+  // Les caméras du PC sont optionnelles : éteintes tant qu'on ne choisit pas de les utiliser.
+  await app.waitForSelector(".cam.is-off:has-text('Cam Link 4K')", { timeout: 8000 });
+  const dshow = () => obs.state.inputs.filter((i) => i.inputKind === "dshow_input" && !i.inputName.includes("sonde"));
+  await check((await app.locator(".cam.is-off").count()) === 2 && dshow().every((i) => i.settings.active === false) && !(await app.$(".cam.is-main")),
+    "par défaut, aucune caméra du PC n'est utilisée (réellement éteintes dans le moteur vidéo)");
+  await app.click(".cam:has-text('Cam Link 4K') >> text=Utiliser cette caméra");
   await app.waitForSelector(".cam.is-main", { timeout: 8000 });
-  await check((await app.textContent(".cam.is-main .cam-name")).includes("Cam Link 4K"), "première caméra choisie automatiquement comme principale");
-  await app.click(".cam:has-text('Webcam intégrée')");
+  await check((await app.textContent(".cam.is-main .cam-name")).includes("Cam Link 4K") && dshow().find((i) => i.inputName.includes("Cam Link")).settings.active === true,
+    "« Utiliser cette caméra » : allumée, et devient la caméra principale (il n'y en avait pas)");
+  await app.click(".cam:has-text('Webcam intégrée') >> text=Utiliser cette caméra");
+  await app.waitForSelector(".cam:not(.is-off):has-text('Webcam intégrée')");
+  await app.click(".cam:has-text('Webcam intégrée') .cam-select");
   await app.waitForSelector(".cam.is-main:has-text('Webcam intégrée')");
   const en = enabledCams();
   await check(en.length === 1 && en[0].includes("Webcam intégrée"), `une seule caméra à l'écran : ${en.join(", ")}`);
+  await app.click(".cam:has-text('Webcam intégrée') >> text=Ne plus utiliser cette caméra");
+  await app.waitForSelector(".cam.is-off:has-text('Webcam intégrée')");
+  await app.waitForSelector(".cam.is-main:has-text('Cam Link 4K')");
+  await check(dshow().find((i) => i.inputName.includes("Webcam")).settings.active === false && enabledCams().join() === "Regio - Caméra : Cam Link 4K",
+    "« Ne plus utiliser » la caméra à l'écran : éteinte, une autre caméra utilisée prend le relais");
+  await app.click(".cam:has-text('Webcam intégrée') >> text=Utiliser cette caméra");
+  await app.waitForSelector(".cam:not(.is-off):has-text('Webcam intégrée')");
   await app.waitForSelector("img[alt='QR code à scanner avec le téléphone']", { timeout: 8000 });
   const phone = obs.state.inputs.find((i) => i.inputName === "Regio - Téléphone QR 1");
   await check(phone?.inputKind === "browser_source" && phone.settings.reroute_audio === true, "téléphone : QR code affiché, réception prête dans le moteur vidéo (son inclus)");
@@ -230,6 +246,7 @@ try {
   await app.waitForSelector(".moment:has-text('Témoignages')");
   await app.click(".moment:has-text('Prédication')");
   await check((await app.locator(".item-card").count()) === 3, "après redémarrage : moment « Témoignages » et contenus de « Prédication » retrouvés");
+  await check((await app.locator(".cam-tile").count()) === 2, "après redémarrage : les deux caméras utilisées sont retenues dans la régie");
   await check((await labels()).join("|") === order.join("|"), `l'ordre des contenus est conservé (${order.join(" | ")})`);
 
   await check(external.length === 0, `aucune ressource chargée depuis Internet (hors ligne) ${external.slice(0, 3).join(" ")}`);

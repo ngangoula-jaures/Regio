@@ -313,14 +313,22 @@ export class ObsController {
       }));
   }
 
-  /** Crée (ou met à jour) une source caméra pour un périphérique ; l'affiche si `activate`. */
-  async useVideoDevice(device: VideoDevice, activate = true): Promise<string> {
+  /**
+   * Crée (ou met à jour) une source caméra pour un périphérique ; l'affiche si `activate`.
+   * `on` = false : caméra non utilisée aujourd'hui, réellement éteinte (voyant de la webcam, processeur).
+   */
+  async useVideoDevice(device: VideoDevice, activate = true, on = true): Promise<string> {
     const name = `${CAMERA_PREFIX} : ${device.name}`;
-    const settings = { video_device_id: device.id, active: true, deactivate_when_not_showing: false };
+    const settings = { video_device_id: device.id, active: on, deactivate_when_not_showing: false };
     if (!(await this.inputExists(name))) {
       await this.ws.call("CreateInput", { sceneName: SCENE, inputName: name, inputKind: "dshow_input", inputSettings: settings, sceneItemEnabled: false });
     } else {
-      await this.ws.call("SetInputSettings", { inputName: name, inputSettings: settings });
+      // Ne réécrire que ce qui change : chaque réécriture recharge le périphérique (image coupée un instant).
+      const { inputSettings } = await this.ws.call("GetInputSettings", { inputName: name });
+      const cur = inputSettings as { video_device_id?: string; active?: boolean };
+      if (cur.video_device_id !== device.id || (cur.active ?? true) !== on) {
+        await this.ws.call("SetInputSettings", { inputName: name, inputSettings: settings });
+      }
     }
     if (activate) await this.activateCamera(name);
     return name;

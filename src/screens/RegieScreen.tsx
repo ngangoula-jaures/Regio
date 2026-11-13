@@ -168,7 +168,8 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   const cameraOnly = () => showOther({ kind: "none" });
 
   // ---------- Caméras ----------
-  const cams: Camera[] = [...(studio.cameras ?? []), ...studio.phoneCams];
+  // Seulement les caméras du PC qu'on a choisi d'utiliser (+ les téléphones connectés).
+  const cams: Camera[] = [...studio.activeCameras, ...studio.phoneCams];
   const covered = covers(studio.current);
   // La caméra dont on gardait le son a disparu (téléphone déconnecté) : le son suit de nouveau l'image.
   const camKeys = cams.map((c) => c.source).join("|");

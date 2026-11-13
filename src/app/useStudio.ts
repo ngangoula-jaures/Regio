@@ -22,6 +22,15 @@ export interface Camera {
 export const MAX_PHONES = 4;
 
 const SETTINGS_KEY = "regio.obs";
+/** Caméras du PC (webcam, boîtier HDMI) que l'utilisateur a choisi d'utiliser : retenu d'un culte à l'autre. */
+const CAMERAS_ON_KEY = "regio.cameras.on";
+const loadCamerasOn = (): string[] => {
+  try {
+    return JSON.parse(localStorage.getItem(CAMERAS_ON_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+};
 
 /** La télé reçoit-elle un format proche du 16:9 de la sortie ? Sinon : bandes noires. */
 export const isWide = (m: Monitor) => Math.abs(m.width / m.height - 16 / 9) < 0.08;
@@ -94,18 +103,25 @@ export function useStudio() {
   const mainRef = useRef(mainCamera);
   mainRef.current = mainCamera;
 
+  // Les caméras du PC sont OPTIONNELLES (éteintes par défaut) : à l'église on ne se sert pas de la webcam du portable,
+  // un streamer si. On les allume une fois dans « Caméras du jour », le choix est retenu.
+  const [camerasOn, setCamerasOn] = useState<string[]>(loadCamerasOn);
+  const camerasOnRef = useRef(camerasOn);
+  camerasOnRef.current = camerasOn;
+
   const detectCameras = useCallback(async () => {
     const devices = await obs.current.listVideoDevices().catch(() => []);
     const found: Camera[] = [];
     for (const d of devices) {
-      const source = await obs.current.useVideoDevice(d, false);
+      const source = await obs.current.useVideoDevice(d, false, camerasOnRef.current.includes(d.name));
       found.push({ source, label: d.name, kind: "device" });
     }
     setCameras(found);
-    // Une seule caméra : elle devient la caméra principale sans rien demander.
-    if (!mainRef.current && found.length > 0) {
-      await obs.current.activateCamera(found[0].source);
-      setMainCamera(found[0].source);
+    // Pas encore de caméra principale : la première caméra utilisée le devient sans rien demander.
+    const first = found.find((c) => camerasOnRef.current.includes(c.label));
+    if (!mainRef.current && first) {
+      await obs.current.activateCamera(first.source);
+      setMainCamera(first.source);
     }
     return found;
   }, []);
@@ -122,6 +138,29 @@ export function useStudio() {
     setKeptAudio(source);
     await obs.current.setKeptAudio(source);
   }, []);
+
+  /** Utiliser (ou ne plus utiliser) une caméra du PC. */
+  const setCameraUsed = useCallback(
+    async (cam: Camera, on: boolean) => {
+      const next = on ? [...new Set([...camerasOnRef.current, cam.label])] : camerasOnRef.current.filter((n) => n !== cam.label);
+      camerasOnRef.current = next;
+      setCamerasOn(next);
+      localStorage.setItem(CAMERAS_ON_KEY, JSON.stringify(next));
+      await obs.current.useVideoDevice({ name: cam.label, ...(await deviceOf(cam)) }, false, on);
+      if (on && !mainRef.current) await chooseMain(cam.source);
+      if (!on && mainRef.current === cam.source) {
+        // C'était la caméra à l'écran : une autre caméra utilisée prend le relais (sinon le fond de secours).
+        const other = (cameras ?? []).find((c) => c.source !== cam.source && next.includes(c.label));
+        await chooseMain(other?.source ?? null);
+      }
+    },
+    [cameras, chooseMain], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  /** Identifiant du périphérique d'une caméra déjà détectée (gardé dans la source OBS). */
+  const deviceOf = async (cam: Camera) => {
+    const { inputSettings } = await obs.current.ws.call("GetInputSettings", { inputName: cam.source });
+    return { id: (inputSettings as { video_device_id?: string }).video_device_id ?? "" };
+  };
 
   const cameraShot = useCallback((source: string) => obs.current.sourceShot(source, 480), []);
 
@@ -271,6 +310,10 @@ export function useStudio() {
     projection,
     projectTo,
     cameras,
+    /** Caméras du PC utilisées aujourd'hui (les autres sont éteintes). */
+    activeCameras: (cameras ?? []).filter((c) => camerasOn.includes(c.label)),
+    camerasOn,
+    setCameraUsed,
     detectCameras,
     mainCamera,
     chooseMain,

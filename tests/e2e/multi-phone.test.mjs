@@ -70,6 +70,8 @@ try {
   await phoneA.waitForSelector(".status.live", { timeout: 10000 });
   await check((await phoneA.locator(".cam-name").textContent()) === "Téléphone 1" && (await phoneB.locator(".status.live").count()) === 1, "après une coupure, le téléphone 1 reprend sa place sans gêner le 2");
 
+  await app.click(".cam:has-text('Cam Link 4K') >> text=Utiliser cette caméra");
+  await app.waitForSelector(".cam:not(.is-off):has-text('Cam Link 4K')");
   await app.click("text=Commencer le culte");
   await app.waitForSelector(".cam-tile:has-text('Téléphone 2')");
   await app.click(".cam-tile:has-text('Téléphone 2')");

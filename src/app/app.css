@@ -431,3 +431,12 @@ button.cam:hover { border-color: #3a4775; }
 .cam-strip-head .spacer { flex: 1 0 0; }
 .cam-tiles.is-compact .keep-text { display: none; }
 .cam-tiles.is-compact .keep-btn { width: 26px; padding: 0; justify-content: center; }
+
+/* ---------- Caméras du PC optionnelles ---------- */
+.cam-select { display: grid; gap: 14px; align-content: start; padding: 0; border: 0; background: transparent; text-align: left; color: inherit; }
+.cam-select .cam-name, .cam-select .cam-detail { display: block; }
+.cam.is-off .cam-view { color: var(--regio-bord-fort); }
+.cam.is-off .cam-name { color: var(--regio-texte-doux); }
+.cam-use { justify-self: start; gap: 8px; border-color: var(--regio-ivoire); font-weight: 600; }
+.cam-stop { justify-self: start; padding: 4px 0; border: 0; background: transparent; color: var(--regio-ardoise); font-size: var(--regio-texte-sm); text-decoration: underline; }
+.cam-stop:hover { color: var(--regio-ivoire); }
