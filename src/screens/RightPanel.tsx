@@ -1,7 +1,7 @@
 // Panneau de droite de la régie : l'onglet du moment sélectionné, la Bible, les médias, le texte.
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronRight, ImagePlus, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { Check, ChevronRight, GripVertical, ImagePlus, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { t } from "../i18n";
 import type { Content } from "../shared/content";
 import { MiniScreen } from "../components/MiniScreen";
@@ -35,8 +35,20 @@ function MomentTab(props: {
   onRename: (name: string) => void;
   onDelete: () => void;
   onRemoveItem: (i: number) => void;
+  onMoveItem: (from: number, to: number) => void;
 }) {
   const { moment } = props;
+  // Glisser-déposer : contenu saisi, et place où il irait (indice d'insertion entre 0 et n).
+  const [drag, setDrag] = useState<number | null>(null);
+  const [dropAt, setDropAt] = useState<number | null>(null);
+  const endDrag = () => {
+    setDrag(null);
+    setDropAt(null);
+  };
+  const drop = () => {
+    if (drag !== null && dropAt !== null) props.onMoveItem(drag, dropAt > drag ? dropAt - 1 : dropAt);
+    endDrag();
+  };
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(moment.name);
   const [confirm, setConfirm] = useState(false);
@@ -88,23 +100,64 @@ function MomentTab(props: {
         </div>
       )}
       {moment.items.length === 0 && <p className="empty-note">{t("regie.momentEmpty", { name: moment.name })}</p>}
-      {moment.items.map((it, i) => (
-        <div key={it.id} className={`item-card ${props.liveIndex === i ? "is-live" : ""}`}>
-          <button type="button" className="item-main" onClick={() => props.onShow(i)} aria-current={props.liveIndex === i ? "true" : undefined}>
-            <span className="item-thumb">
-              <MiniScreen content={it.content} camera={props.camera} />
-            </span>
-            <span className="item-text">
-              <span className="item-label">{it.label}</span>
-              <span className="item-kind">{kindLabel(it.content)}</span>
-            </span>
-            {props.liveIndex === i && <span className="plan-badge">{t("regie.onScreen")}</span>}
-          </button>
-          <button type="button" className="icon-btn" aria-label={t("regie.removeItem", { name: it.label })} title={t("regie.removeItem", { name: it.label })} onClick={() => props.onRemoveItem(i)}>
-            <X size={15} strokeWidth={2} />
-          </button>
-        </div>
-      ))}
+      {moment.items.length > 1 && <p className="note">{t("regie.reorderHelp")}</p>}
+      <div className="item-list" onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setDropAt(null)}>
+        {moment.items.map((it, i) => (
+          <div
+            key={it.id}
+            className={`item-card ${props.liveIndex === i ? "is-live" : ""} ${drag === i ? "is-dragging" : ""} ${dropAt === i && drag !== null ? "drop-before" : ""} ${dropAt === i + 1 && drag !== null && i === moment.items.length - 1 ? "drop-after" : ""}`}
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", it.id);
+              setDrag(i);
+            }}
+            onDragOver={(e) => {
+              if (drag === null) return;
+              e.preventDefault();
+              const r = e.currentTarget.getBoundingClientRect();
+              setDropAt(e.clientY < r.top + r.height / 2 ? i : i + 1);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              drop();
+            }}
+            onDragEnd={endDrag}
+          >
+            <button
+              type="button"
+              className="item-grip"
+              data-own-keys
+              aria-label={t("regie.moveItem", { name: it.label })}
+              title={t("regie.moveItem", { name: it.label })}
+              onKeyDown={(e) => {
+                if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+                e.preventDefault();
+                const to = i + (e.key === "ArrowDown" ? 1 : -1);
+                props.onMoveItem(i, to);
+                // Garder le focus sur la poignée du contenu déplacé.
+                const list = e.currentTarget.closest(".item-list");
+                window.setTimeout(() => (list?.querySelectorAll<HTMLButtonElement>(".item-grip")[Math.min(Math.max(0, to), moment.items.length - 1)])?.focus(), 0);
+              }}
+            >
+              <GripVertical size={16} strokeWidth={1.75} />
+            </button>
+            <button type="button" className="item-main" onClick={() => props.onShow(i)} aria-current={props.liveIndex === i ? "true" : undefined}>
+              <span className="item-thumb">
+                <MiniScreen content={it.content} camera={props.camera} />
+              </span>
+              <span className="item-text">
+                <span className="item-label">{it.label}</span>
+                <span className="item-kind">{kindLabel(it.content)}</span>
+              </span>
+              {props.liveIndex === i && <span className="plan-badge">{t("regie.onScreen")}</span>}
+            </button>
+            <button type="button" className="icon-btn" aria-label={t("regie.removeItem", { name: it.label })} title={t("regie.removeItem", { name: it.label })} onClick={() => props.onRemoveItem(i)}>
+              <X size={15} strokeWidth={2} />
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -375,6 +428,8 @@ export function RightPanel(props: {
   onShowOther: (c: Content) => void;
   onRead: (r: Reading) => void;
   onDeleteMoment: () => void;
+  onMoveItem: (from: number, to: number) => void;
+  onRemoveItem: (i: number) => void;
 }) {
   const { lib, update, sel } = props;
   const moment = lib.moments[sel];
@@ -417,7 +472,8 @@ export function RightPanel(props: {
           onShow={props.onShowItem}
           onRename={(name) => update((l) => ({ ...l, moments: l.moments.map((x, i) => (i === sel ? { ...x, name } : x)) }))}
           onDelete={props.onDeleteMoment}
-          onRemoveItem={(idx) => update((l) => ({ ...l, moments: l.moments.map((x, i) => (i === sel ? { ...x, items: x.items.filter((_, j) => j !== idx) } : x)) }))}
+          onRemoveItem={props.onRemoveItem}
+          onMoveItem={props.onMoveItem}
         />
       )}
       {/* Bible, Médias et Texte restent montés : on retrouve son chapitre ou sa saisie en revenant. */}

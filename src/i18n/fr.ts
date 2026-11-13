@@ -110,6 +110,8 @@ export const fr = {
     deleteMomentConfirm: "Supprimer « {name} » et ses {n} contenu(s) ?",
     confirmDelete: "Oui, supprimer",
     removeItem: "Retirer « {name} » de ce moment",
+    moveItem: "Déplacer « {name} » (glisser, ou flèches ↑ ↓)",
+    reorderHelp: "Pour changer l'ordre, faites glisser un contenu par la poignée à sa gauche.",
     momentHelp: "Cliquez sur un contenu pour l'afficher",
     momentEmpty: "Ce moment est vide. Ajoutez-y un verset (onglet Bible), une image (Médias) ou un texte (Texte) avec « Ajouter à {name} ».",
     room: "Télé de la salle",

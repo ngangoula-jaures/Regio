@@ -130,7 +130,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!keys.current.active) return;
-      if ((e.target as HTMLElement).closest("input, textarea, select, [contenteditable]")) return;
+      if ((e.target as HTMLElement).closest("input, textarea, select, [contenteditable], [data-own-keys]")) return;
       if (e.key === " " || e.key === "ArrowRight") {
         e.preventDefault();
         keys.current.go(1);
@@ -202,6 +202,32 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
     setSel(at);
     setTab("moment");
     if (live && live.m >= at) setLive({ ...live, m: live.m + 1 });
+  };
+
+  /** Déplacer un contenu dans le moment choisi ; le contenu à l'écran reste repéré. */
+  const moveItem = (from: number, to: number) => {
+    const m = sel;
+    if (from === to || to < 0 || to >= (lib.moments[m]?.items.length ?? 0)) return;
+    update((l) => ({
+      ...l,
+      moments: l.moments.map((x, i) => {
+        if (i !== m) return x;
+        const items = [...x.items];
+        const [it] = items.splice(from, 1);
+        items.splice(to, 0, it);
+        return { ...x, items };
+      }),
+    }));
+    if (live && live.m === m) {
+      const i = live.i === from ? to : live.i > from && live.i <= to ? live.i - 1 : live.i < from && live.i >= to ? live.i + 1 : live.i;
+      setLive({ m, i });
+    }
+  };
+
+  const removeItem = (idx: number) => {
+    const m = sel;
+    update((l) => ({ ...l, moments: l.moments.map((x, i) => (i === m ? { ...x, items: x.items.filter((_, j) => j !== idx) } : x)) }));
+    if (live && live.m === m && live.i >= idx) setLive(live.i === idx ? null : { m, i: live.i - 1 });
   };
 
   const deleteMoment = () => {
@@ -380,6 +406,8 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
           onShowOther={showOther}
           onRead={(r) => read(r)}
           onDeleteMoment={deleteMoment}
+          onMoveItem={moveItem}
+          onRemoveItem={removeItem}
         />
       </div>
     </div>

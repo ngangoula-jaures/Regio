@@ -134,6 +134,25 @@ try {
   await app.waitForSelector("text=Ajouté à Prédication");
   await check(true, "« + » sur Jean 3:16 : verset rattaché au moment sélectionné (Prédication)");
 
+  // Réordonner les contenus d'un moment : glisser-déposer, puis clavier sur la poignée.
+  await app.click("role=tab[name='Prédication']");
+  const labels = () => app.locator(".item-card .item-label").allInnerTexts();
+  const before = await labels();
+  await app.locator(".item-card >> nth=2").dragTo(app.locator(".item-card >> nth=0"), { targetPosition: { x: 40, y: 4 } });
+  const afterDrag = await labels();
+  await check(afterDrag[0] === before[2] && afterDrag.length === 3, `glisser-déposer : le dernier contenu passe en premier (${afterDrag.join(" | ")})`);
+  await app.click(".item-card:has-text('Culte de Noël') .item-main");
+  await waitRender(".text-title:has-text('Culte de Noël')");
+  await app.focus(".item-card:has-text('Culte de Noël') .item-grip");
+  await app.keyboard.press("ArrowUp");
+  const afterKey = await labels();
+  await check(afterKey.join("|") === [afterDrag[0], "Culte de Noël", afterDrag[1]].join("|"), `poignée + ↑ : le contenu monte d'un cran (${afterKey.join(" | ")})`);
+  await check((await app.locator(".item-card.is-live:has-text('Culte de Noël')").count()) === 1 && (await app.textContent(".moment.is-selected")).includes("Prédication"),
+    "le contenu à l'écran reste repéré après le déplacement ; ↑ n'a pas changé de moment");
+  await check((await app.evaluate(() => document.activeElement?.closest(".item-card")?.textContent ?? "")).includes("Culte de Noël"), "la poignée garde le focus (on peut appuyer plusieurs fois)");
+  await app.locator("body").click({ position: { x: 700, y: 30 } });
+  const order = await labels();
+
   await app.click("text=+ Ajouter un moment");
   await app.fill("#new-moment", "Témoignages");
   await app.press("#new-moment", "Enter");
@@ -167,6 +186,7 @@ try {
   await app.waitForSelector(".moment:has-text('Témoignages')");
   await app.click(".moment:has-text('Prédication')");
   await check((await app.locator(".item-card").count()) === 3, "après redémarrage : moment « Témoignages » et contenus de « Prédication » retrouvés");
+  await check((await labels()).join("|") === order.join("|"), `l'ordre des contenus est conservé (${order.join(" | ")})`);
 
   await check(external.length === 0, `aucune ressource chargée depuis Internet (hors ligne) ${external.slice(0, 3).join(" ")}`);
   if (errors.length) await fail(errors.join("\n"));

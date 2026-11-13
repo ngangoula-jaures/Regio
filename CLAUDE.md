@@ -75,7 +75,7 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   Mode navigateur : `ConnectScreen` d'abord.
 - `src/app/useStudio.ts` = état du moteur vidéo (contenu à l'écran, projection, caméras, téléphone).
 - **Déroulé = moments du culte** (`src/app/library.ts`) : `{ moments: [{ name, items: [{ label, content }] }], media }`,
-  propre à chaque église (ajouter / renommer / supprimer un moment, retirer un contenu), enregistré
+  propre à chaque église (ajouter / renommer / supprimer un moment, retirer un contenu, **réordonner les contenus** : poignée à glisser, ou poignée + ↑/↓ ; le contenu à l'écran reste repéré), enregistré
   automatiquement (`src/shared/storage.ts` → commandes Rust `load_data`/`save_data`, fichier
   `%APPDATA%\org.regio.app\data\library.json`, écriture atomique ; navigateur : localStorage).
 - **Navigation** (`src/screens/RegieScreen.tsx`) — DEUX navigations séparées (exigence de l'utilisateur) :
@@ -104,7 +104,7 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   Télé de la salle : `src/screens/RoomDialog.tsx` (« Votre ordinateur » / « Télé / projecteur » / fenêtre d'essai).
 - **Textes : jamais en dur** (`src/i18n/fr.ts` + `en.ts`). Styles via les jetons (`base.css`, `app.css`).
   Aperçus réduits : `src/components/MiniScreen.tsx` (même mise en page que la sortie projetée).
-- Pas encore fait (ne pas l'afficher comme si ça marchait) : réordonner les contenus d'un moment, direct sur les
+- Pas encore fait (ne pas l'afficher comme si ça marchait) : direct sur les
   réseaux, vumètre, « musique hors direct », bascule auto sur le logo si une caméra se débranche,
   import PowerPoint, plusieurs déroulés / modèles de culte.
 

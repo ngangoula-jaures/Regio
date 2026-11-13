@@ -238,11 +238,21 @@ button.cam:hover { border-color: #3a4775; }
 .empty-note { padding: 16px; border-radius: 10px; border: 1px dashed var(--regio-bord-fort); font-size: var(--regio-texte-sm); color: var(--regio-ardoise); line-height: 1.5; }
 .item-card { display: flex; align-items: center; gap: 6px; padding: 6px 6px 6px 8px; border-radius: 10px; background: var(--regio-nuit-2); border: 1px solid var(--regio-nuit-3); }
 .item-card.is-live { border: 2px solid var(--regio-ivoire); padding: 5px 5px 5px 7px; }
+.item-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.item-card { position: relative; padding-left: 2px; }
+.item-card.is-live { padding-left: 1px; }
+.item-card.is-dragging { opacity: .45; }
+.item-card.drop-before::before, .item-card.drop-after::after { content: ""; position: absolute; left: 4px; right: 4px; height: 3px; border-radius: 2px; background: var(--regio-ivoire); }
+.item-card.drop-before::before { top: -7px; }
+.item-card.drop-after::after { bottom: -7px; }
+.item-grip { flex: none; align-self: stretch; width: 24px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--regio-ardoise); cursor: grab; padding: 0; }
+.item-grip:hover, .item-grip:focus-visible { color: var(--regio-ivoire); background: var(--regio-survol); }
+.item-card.is-dragging .item-grip { cursor: grabbing; }
 .item-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; border: 0; background: transparent; text-align: left; padding: 0; }
 .item-thumb { flex: none; width: 112px; border-radius: 6px; overflow: hidden; }
 .item-text { flex: 1; min-width: 0; }
 .item-label { display: block; font-size: var(--regio-texte-md); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item-kind { display: block; font-size: 12px; color: var(--regio-ardoise); }
+.item-kind { display: block; font-size: 12px; color: var(--regio-ardoise); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .toast { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(76, 195, 138, .14); color: var(--regio-pret); font-size: var(--regio-texte-sm); font-weight: 600; }
 .search-row { display: flex; gap: 8px; }
 .crumbs { display: flex; align-items: center; gap: 4px; font-size: var(--regio-texte-sm); flex-wrap: wrap; color: var(--regio-ardoise); }

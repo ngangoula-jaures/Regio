@@ -104,6 +104,8 @@ export const en: Messages = {
     deleteMomentConfirm: "Delete “{name}” and its {n} item(s)?",
     confirmDelete: "Yes, delete",
     removeItem: "Remove “{name}” from this moment",
+    moveItem: "Move “{name}” (drag, or ↑ ↓ keys)",
+    reorderHelp: "To change the order, drag an item by the handle on its left.",
     momentHelp: "Click an item to show it",
     momentEmpty: "This moment is empty. Add a verse (Bible tab), an image (Media) or a text (Text) with “Add to {name}”.",
     room: "Room screen",
