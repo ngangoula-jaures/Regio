@@ -1,5 +1,6 @@
 mod obs;
 mod server;
+mod storage;
 
 use std::sync::Arc;
 
@@ -29,7 +30,7 @@ pub fn run() {
             app.manage(obs);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![server_info, obs_status])
+        .invoke_handler(tauri::generate_handler![server_info, obs_status, storage::load_data, storage::save_data, storage::save_media])
         .build(tauri::generate_context!())
         .expect("erreur au lancement de Regio");
 

@@ -69,21 +69,32 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   espace = verset suivant, bandeau « Lecture suivie »). Rangée de caméras approuvée par l'utilisateur.
   La maquette v1 est devenue PUBLIQUE (partagée par l'utilisateur) : ne plus la modifier sans son accord.
 
-## Interface (codée le 2026-11-13 d'après les maquettes)
-- `src/app/App.tsx` enchaîne : Démarrage (`StartupScreen`) → Sources du jour (`SourcesScreen`) → Régie
-  (`RegieScreen` + `ContentPanels`). En mode navigateur, `ConnectScreen` d'abord (connexion manuelle à OBS).
-- `src/app/useStudio.ts` = **tout l'état** (moteur vidéo, contenu à l'écran, projection, caméras, téléphone) ;
-  les écrans n'en sont que l'affichage. Projection ouverte automatiquement sur le 1er écran NON principal ;
-  1re caméra détectée = caméra principale ; téléphone connecté sans caméra principale = principal.
-- **Textes : jamais en dur.** `src/i18n/fr.ts` (référence) + `src/i18n/en.ts` (TypeScript vérifie qu'il ne
-  manque rien) ; `t("cle.sous_cle", { var })`. Langue : `localStorage["regio.lang"]` sinon langue du système.
-- Styles : `src/design/base.css` (boutons, pastilles, champs…) + `src/app/app.css` (écrans), uniquement via les
-  jetons. Polices embarquées via Fontsource (`src/design/fonts.ts`), icônes `lucide-react`. Aucun accès Internet
-  (vérifié par le test). Sortie projetée : `src/render/` (échelle de la charte, taille auto des longs textes).
-- Déroulé : `src/app/plan.ts` = **déroulé d'exemple** en attendant la Phase 1 (préparation + SQLite).
-  Bible : échantillon de 3 versets (`src/shared/bible-sample.ts`) en attendant la Bible complète.
-- Pas encore fait (ne pas l'afficher comme si ça marchait) : direct sur les réseaux, vumètre, « musique hors
-  direct », bascule automatique sur le logo si une caméra se débranche, page du téléphone au nouveau style.
+## Interface (régie v3 codée le 2026-11-13, d'après la maquette v3 validée)
+- `src/app/App.tsx` : Démarrage → Sources du jour → Régie. Une fois le culte commencé, la Régie reste montée ;
+  « Ajouter une caméra » ouvre les Sources PAR-DESSUS (`.overlay`, raccourcis de la régie désactivés).
+  Mode navigateur : `ConnectScreen` d'abord.
+- `src/app/useStudio.ts` = état du moteur vidéo (contenu à l'écran, projection, caméras, téléphone).
+- **Déroulé = moments du culte** (`src/app/library.ts`) : `{ moments: [{ name, items: [{ label, content }] }], media }`,
+  propre à chaque église (ajouter / renommer / supprimer un moment, retirer un contenu), enregistré
+  automatiquement (`src/shared/storage.ts` → commandes Rust `load_data`/`save_data`, fichier
+  `%APPDATA%\org.regio.app\data\library.json`, écriture atomique ; navigateur : localStorage).
+- **Navigation** (`src/screens/RegieScreen.tsx`) selon le dernier clic : moment → « Moment suivant » ;
+  contenu → « Contenu suivant » (puis 1er contenu du moment suivant) ; verset → « Verset suivant » (lecture
+  suivie). Touches : espace / → / ↓ = suivant ; ← / ↑ = précédent ; Échap = caméra.
+- Panneau de droite (`src/screens/RightPanel.tsx`) : onglet AU NOM du moment sélectionné + Bible + Médias + Texte
+  (onglets gardés montés : la Bible garde son chapitre). « Ajouter à <moment> » partout ; toast de confirmation.
+- **Bible LSG 1910 complète** (domaine public, eBible.org) : `public/bible/lsg1910.json` (4,2 Mo, construit par
+  `scripts/build_bible.py`) ; `src/bible/bible.ts` = chargement, références (« jn 3:16 », « 1jn 4 8 », « ps 23 »,
+  abréviations), recherche par mots. Livres › Chapitres › chapitre entier.
+- **Images importées** : réduites en JPEG puis enregistrées comme fichiers (`save_media` →
+  `%APPDATA%\org.regio.app\media\`), servies à OBS par le serveur local `/media/<fichier>` (noms filtrés).
+- Caméras pendant le culte : `src/screens/CameraRow.tsx` (vignettes, un clic = caméra à l'écran).
+  Télé de la salle : `src/screens/RoomDialog.tsx` (« Votre ordinateur » / « Télé / projecteur » / fenêtre d'essai).
+- **Textes : jamais en dur** (`src/i18n/fr.ts` + `en.ts`). Styles via les jetons (`base.css`, `app.css`).
+  Aperçus réduits : `src/components/MiniScreen.tsx` (même mise en page que la sortie projetée).
+- Pas encore fait (ne pas l'afficher comme si ça marchait) : réordonner les contenus d'un moment, direct sur les
+  réseaux, vumètre, « musique hors direct », bascule auto sur le logo si une caméra se débranche, page du
+  téléphone au nouveau style, import PowerPoint, plusieurs déroulés / modèles de culte.
 
 ## Architecture
 
@@ -172,7 +183,7 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   (pas de webkit2gtk ni de sudo ici).
 - Vérifier avec `npm run build` (tsc + vite) avant de rendre la main.
 - Tests de bout en bout (serveur de dev lancé) : `npm run test:e2e` = `test:regie` (parcours complet
-  Démarrage → Sources → Régie ↔ faux OBS `tests/e2e/fake-obs.mjs`, 18 vérifications) + `test:phone` (caméra téléphone WebRTC avec caméra simulée). Le faux OBS
+  Démarrage → Sources → Régie ↔ faux OBS `tests/e2e/fake-obs.mjs`, 36 vérifications : navigation, Bible, ajouts, conservation après redémarrage…) + `test:phone` (caméra téléphone WebRTC avec caméra simulée). Le faux OBS
   doit reproduire le comportement RÉEL d'OBS (ex. CustomEvent sans enveloppe `eventData`).
 - **Compilation Windows (Tauri)** : le code reste dans WSL (source de vérité, git, tests). Windows ne sait
   pas compiler depuis un chemin WSL → `scripts/win.sh` synchronise le code vers `C:\dev\regio`

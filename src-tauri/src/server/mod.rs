@@ -95,6 +95,7 @@ pub async fn start(app: AppHandle) -> Result<Server, String> {
     let server = Server { app, rooms, key, local_port, phone_port, phone_error };
     let router = Router::new()
         .route("/regio/signal", get(local_signal))
+        .route("/media/{file}", get(media_file))
         .fallback(static_file)
         .with_state(server.clone());
     tauri::async_runtime::spawn(async move {
@@ -165,6 +166,29 @@ fn random_key() -> Arc<str> {
 
 async fn local_signal(ws: WebSocketUpgrade, State(s): State<Server>) -> impl IntoResponse {
     ws.on_upgrade(move |socket| signal::handle(socket, s.rooms, Access::Local))
+}
+
+/// Images importées (affiches…), lues dans le dossier de données. Uniquement sur le serveur local.
+async fn media_file(State(s): State<Server>, axum::extract::Path(file): axum::extract::Path<String>) -> Response {
+    let ok = file.len() <= 40 && file.chars().all(|c| c.is_ascii_alphanumeric() || c == '.') && file.matches('.').count() == 1;
+    let Ok(dir) = crate::storage::media_dir(&s.app) else { return StatusCode::INTERNAL_SERVER_ERROR.into_response() };
+    if !ok {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    let mime = match file.rsplit('.').next() {
+        Some("png") => "image/png",
+        Some("webp") => "image/webp",
+        _ => "image/jpeg",
+    };
+    match tokio::fs::read(dir.join(&file)).await {
+        Ok(bytes) => Response::builder()
+            .header(header::CONTENT_TYPE, mime)
+            .header(header::CACHE_CONTROL, "max-age=31536000, immutable")
+            .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+            .body(Body::from(bytes))
+            .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response()),
+        Err(_) => StatusCode::NOT_FOUND.into_response(),
+    }
 }
 
 async fn static_file(State(s): State<Server>, uri: Uri) -> Response {
