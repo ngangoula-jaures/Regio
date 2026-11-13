@@ -15,7 +15,8 @@
         "title": "Regio — Régie du culte",
         "width": 1366,
         "height": 820,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,OverscrollHistoryNavigation --disable-pinch --overscroll-history-navigation=0"
       }
     ],
     "security": {

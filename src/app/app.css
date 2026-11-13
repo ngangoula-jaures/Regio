@@ -440,3 +440,9 @@ button.cam:hover { border-color: #3a4775; }
 .cam-use { justify-self: start; gap: 8px; border-color: var(--regio-ivoire); font-weight: 600; }
 .cam-stop { justify-self: start; padding: 4px 0; border: 0; background: transparent; color: var(--regio-ardoise); font-size: var(--regio-texte-sm); text-decoration: underline; }
 .cam-stop:hover { color: var(--regio-ivoire); }
+
+/* ---------- Fenêtre fixe : seuls ces panneaux défilent, sans rebond ---------- */
+.startup, .sources, .connect { height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+.regie { height: 100%; overflow: clip; }
+.plan, .center-scroll, .output, .overlay, .modal, .health-panel { overscroll-behavior: contain; }
+.startup { justify-content: safe center; }

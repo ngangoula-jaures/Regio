@@ -49,11 +49,26 @@ try {
   await render.waitForSelector(".standby-title:has-text('Bienvenue')", { timeout: 5000 });
   await check(true, "salle : écran d'attente « Bienvenue » affiché dès le démarrage");
 
+  // --- Fenêtre d'application : jamais de défilement de la page entière, texte non sélectionnable ---
+  const pageScroll = () => app.evaluate(() => {
+    const el = document.scrollingElement;
+    el.scrollTop = 300;
+    el.scrollLeft = 300;
+    return el.scrollTop + el.scrollLeft;
+  });
+  await check((await pageScroll()) === 0 && (await app.evaluate(() => getComputedStyle(document.body).userSelect)) === "none",
+    "fenêtre fixe : la page ne défile pas (ni glisser, ni rebond) et le texte de l'interface ne se sélectionne pas");
+
   // --- Sources du jour ---
   await app.click("text=Choisir les caméras du jour");
   await app.waitForSelector("text=Quelles caméras aujourd'hui ?");
   // Les caméras du PC sont optionnelles : éteintes tant qu'on ne choisit pas de les utiliser.
   await app.waitForSelector(".cam.is-off:has-text('Cam Link 4K')", { timeout: 8000 });
+  await app.setViewportSize({ width: 1366, height: 600 });
+  await check(await app.evaluate(() => { const el = document.querySelector(".sources"); el.scrollTop = 200; return el.scrollTop > 0; }) && (await pageScroll()) === 0,
+    "« Caméras du jour » trop haut pour la fenêtre : c'est l'écran qui défile à l'intérieur, pas la fenêtre");
+  await app.setViewportSize({ width: 1366, height: 820 });
+  await app.evaluate(() => (document.querySelector(".sources").scrollTop = 0));
   const dshow = () => obs.state.inputs.filter((i) => i.inputKind === "dshow_input" && !i.inputName.includes("sonde"));
   await check((await app.locator(".cam.is-off").count()) === 2 && dshow().every((i) => i.settings.active === false) && !(await app.$(".cam.is-main")),
     "par défaut, aucune caméra du PC n'est utilisée (réellement éteintes dans le moteur vidéo)");

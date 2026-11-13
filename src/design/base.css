@@ -3,6 +3,13 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body, #root { height: 100%; }
+/* Application de bureau, pas une page web : la fenêtre ne défile JAMAIS (ni glisser prolongé, ni rebond du pavé
+   tactile) — « clip » interdit même le défilement provoqué par une sélection. Seuls les panneaux intérieurs défilent. */
+html, body, #root { overflow: clip; overscroll-behavior: none; }
+/* Le texte de l'interface ne se sélectionne pas (comme dans OBS, Spotify…) ; les champs de saisie, si. */
+body { -webkit-user-select: none; user-select: none; }
+input, textarea, [contenteditable], .selectable { -webkit-user-select: text; user-select: text; }
+img { -webkit-user-drag: none; }
 body {
   margin: 0;
   background: var(--regio-nuit);

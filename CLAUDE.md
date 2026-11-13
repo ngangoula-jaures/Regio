@@ -308,6 +308,11 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   (cible : SignPath Foundation, gratuit pour l'open source, sur candidature).
 - PowerShell : stratégie `RemoteSigned` (CurrentUser) en place ; depuis WSL, utiliser `npm.cmd`/`npx.cmd`.
 - Fenêtre Tauri : `dragDropEnabled: false` (sinon WebView2 bloque le glisser-déposer HTML sous Windows).
+- **Fenêtre d'application FIXE** (retour de l'utilisateur : « l'interface se déplace, s'étire ») : `html, body, #root`
+  en `overflow: clip` + `overscroll-behavior: none` (ni défilement par glisser prolongé, ni rebond du pavé tactile) ;
+  seuls les panneaux défilent (`.plan`, `.center-scroll`, `.output`, `.sources`, `.startup`…). Texte de l'interface non
+  sélectionnable (`user-select: none`, sauf champs). WebView2 : `additionalBrowserArgs` coupe le zoom au pincement et la
+  navigation par balayage (en gardant les options par défaut de Tauri).
 - Piloter la VRAIE application (vérifs de mise en page, import) : lancer `regio.exe` avec
   `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333`, puis un script Node Windows
   (`playwright-core` via `createRequire("C:/dev/regio/package.json")`, `chromium.connectOverCDP`). Le navigateur
