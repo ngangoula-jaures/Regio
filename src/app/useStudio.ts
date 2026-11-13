@@ -247,6 +247,8 @@ export function useStudio() {
   const outputShot = useCallback(() => obs.current.screenshot(960), []);
 
   return {
+    /** Accès direct au moteur vidéo (le direct, le vumètre). */
+    controller: obs.current,
     link,
     engine,
     error,

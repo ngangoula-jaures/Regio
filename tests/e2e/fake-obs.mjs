@@ -5,7 +5,17 @@ import { WebSocketServer } from "ws";
 
 export function startFakeObs(port = 4466) {
   const calls = [];
-  const state = { scenes: [], inputs: [], items: {}, nextId: 1 };
+  const state = {
+    scenes: [], inputs: [], items: {}, nextId: 1,
+    // Le direct : comme OBS, un débit envoyé qui grandit, et un enregistrement dont on renvoie le chemin.
+    service: null, stream: null, record: null, congestion: 0, reconnecting: false, level: 0.3,
+  };
+  const meterClients = new Set();
+  // Niveaux sonores (~20/s dans OBS) : envoyés seulement aux clients abonnés à InputVolumeMeters (1 << 16).
+  const meterTimer = setInterval(() => {
+    const l = state.level * (0.7 + Math.random() * 0.3);
+    for (const c of meterClients) c.send(JSON.stringify({ op: 5, d: { eventType: "InputVolumeMeters", eventIntent: 1 << 16, eventData: { inputs: [{ inputName: "Micro/Aux", inputLevelsMul: [[l * 0.6, l, l], [l * 0.5, l * 0.9, l * 0.9]] }] } } }));
+  }, 100);
   const clients = new Set();
   const wss = new WebSocketServer({ port });
   const items = (s) => (state.items[s] ??= []);
@@ -21,6 +31,7 @@ export function startFakeObs(port = 4466) {
       const m = JSON.parse(raw);
       if (m.op === 1) {
         clients.add(ws);
+        if ((m.d.eventSubscriptions ?? 0) & (1 << 16)) meterClients.add(ws);
         return ws.send(JSON.stringify({ op: 2, d: { negotiatedRpcVersion: 1 } }));
       }
       if (m.op !== 6) return;
@@ -75,13 +86,27 @@ export function startFakeObs(port = 4466) {
             r = { imageData: "data:image/svg+xml;base64," + Buffer.from(svg).toString("base64") };
           }
           break;
+        case "SetStreamServiceSettings": state.service = d; break;
+        case "StartStream": state.stream = { start: Date.now() }; break;
+        case "StopStream": state.stream = null; break;
+        case "GetStreamStatus": {
+          const ms = state.stream ? Date.now() - state.stream.start : 0;
+          r = { outputActive: !!state.stream, outputReconnecting: state.reconnecting, outputDuration: ms, outputBytes: Math.round((ms / 1000) * 375000), outputCongestion: state.congestion, outputSkippedFrames: 0, outputTotalFrames: Math.round(ms / 33) };
+          break;
+        }
+        case "StartRecord": state.record = { start: Date.now() }; break;
+        case "GetRecordStatus": r = { outputActive: !!state.record }; break;
+        case "StopRecord": state.record = null; r = { outputPath: "C:/Users/Eglise/Videos/Regio/Culte 2026-11-16 10-02.mp4" }; break;
         case "BroadcastCustomEvent":
           for (const c of clients) c.send(JSON.stringify({ op: 5, d: { eventType: "CustomEvent", eventIntent: 1, eventData: d.eventData } }));
           break;
       }
       ws.send(JSON.stringify({ op: 7, d: { requestType: t, requestId, requestStatus: { result: true, code: 100 }, responseData: r } }));
     });
-    ws.on("close", () => clients.delete(ws));
+    ws.on("close", () => {
+      clients.delete(ws);
+      meterClients.delete(ws);
+    });
   });
-  return { state, calls, close: () => wss.close() };
+  return { state, calls, close: () => { clearInterval(meterTimer); wss.close(); } };
 }

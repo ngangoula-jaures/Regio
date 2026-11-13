@@ -57,11 +57,13 @@ pub struct ObsManager {
     state: Mutex<ObsState>,
     child: Mutex<Option<Child>>,
     quitting: AtomicBool,
+    /// Redémarrage voulu (nouvelle qualité du direct) : ce n'est pas un plantage.
+    restarting: AtomicBool,
 }
 
 impl ObsManager {
     pub fn new() -> Arc<Self> {
-        Arc::new(Self { state: Mutex::new(ObsState::Preparing), child: Mutex::new(None), quitting: AtomicBool::new(false) })
+        Arc::new(Self { state: Mutex::new(ObsState::Preparing), child: Mutex::new(None), quitting: AtomicBool::new(false), restarting: AtomicBool::new(false) })
     }
 
     pub fn state(&self) -> ObsState {
@@ -83,6 +85,14 @@ impl ObsManager {
     }
 
     /// Ferme OBS (à la fermeture de Regio).
+    /// Redémarre OBS pour appliquer de nouveaux réglages (profil réécrit avant le relancement).
+    pub fn restart(&self) {
+        self.restarting.store(true, Ordering::SeqCst);
+        if let Some(child) = self.child.lock().unwrap().as_mut() {
+            let _ = child.kill();
+        }
+    }
+
     pub fn stop(&self) {
         self.quitting.store(true, Ordering::SeqCst);
         if let Some(mut child) = self.child.lock().unwrap().take() {
@@ -106,18 +116,28 @@ impl ObsManager {
 
         let password = load_or_create_password(&base)?;
         let port = free_port(PREFERRED_PORT).ok_or("aucun port libre pour la connexion à OBS")?;
-        configure(&root, port, &password)?;
+        let paths = LaunchPaths {
+            root: root.clone(),
+            data: app.path().app_data_dir().map_err(|e| e.to_string())?.join("data"),
+            videos: app.path().video_dir().map(|d| d.join("Regio")).unwrap_or_else(|_| base.join("videos")),
+        };
+        configure(&paths, port, &password)?;
 
         // Surveillance dans un fil dédié : lancement, attente, relance si plantage.
         let me = self.clone();
-        std::thread::spawn(move || me.supervise(&exe, port, &password));
+        std::thread::spawn(move || me.supervise(&exe, &paths, port, &password));
         Ok(())
     }
 
-    fn supervise(&self, exe: &Path, port: u16, password: &str) {
+    fn supervise(&self, exe: &Path, paths: &LaunchPaths, port: u16, password: &str) {
         let mut crashes: Vec<Instant> = Vec::new();
         while !self.quitting.load(Ordering::SeqCst) {
             self.set(ObsState::Starting);
+            // Réglages réécrits à CHAQUE lancement : un changement de qualité du direct s'applique au redémarrage.
+            if let Err(e) = configure(paths, port, password) {
+                self.set(ObsState::Error { message: format!("Configuration du moteur vidéo impossible : {e}") });
+                return;
+            }
             let child = Command::new(exe)
                 .current_dir(exe.parent().unwrap())
                 .args(["--portable", "--minimize-to-tray", "--disable-shutdown-check", "--disable-updater", "--multi"])
@@ -153,6 +173,11 @@ impl ObsManager {
             }
             if self.quitting.load(Ordering::SeqCst) {
                 return;
+            }
+
+            if self.restarting.swap(false, Ordering::SeqCst) {
+                std::thread::sleep(Duration::from_millis(800));
+                continue;
             }
 
             // Plantage ou fermeture inattendue : relance, sauf si cela se répète trop.
@@ -313,7 +338,17 @@ fn free_port(preferred: u16) -> Option<u16> {
 
 /// Prépare la configuration d'OBS AVANT son lancement : mode portable, WebSocket, pas d'assistant,
 /// pas de mise à jour, démarrage réduit dans la zone de notification, fermeture sans confirmation.
-fn configure(root: &Path, port: u16, password: &str) -> Result<(), String> {
+/// Dossiers utiles au lancement d'OBS.
+struct LaunchPaths {
+    root: PathBuf,
+    /// Données de Regio (réglages du direct : `live.json`).
+    data: PathBuf,
+    /// Où les cultes sont enregistrés (Vidéos\Regio).
+    videos: PathBuf,
+}
+
+fn configure(paths: &LaunchPaths, port: u16, password: &str) -> Result<(), String> {
+    let root = paths.root.as_path();
     let write = |p: PathBuf, content: String| -> Result<(), String> {
         if let Some(dir) = p.parent() {
             fs::create_dir_all(dir).map_err(|e| e.to_string())?;
@@ -349,5 +384,193 @@ fn configure(root: &Path, port: u16, password: &str) -> Result<(), String> {
         "server_port": port,
     });
     write(cfg.join("plugin_config").join("obs-websocket").join("config.json"), ws.to_string())?;
-    Ok(())
+    write_live_profile(&cfg, paths)
+}
+
+// ---------------------------------------------------------------- Le direct : profil OBS « Regio »
+
+/// Qualité du direct choisie dans Regio (`data/live.json`, écrit par l'interface).
+#[derive(Deserialize, Default)]
+struct LiveDoc {
+    quality: Option<String>,
+}
+
+/// Profil OBS « Regio », réécrit avant chaque lancement d'OBS (mode avancé) :
+/// - direct redimensionné selon la qualité (480p / 720p / 1080p), débit constant, débit dynamique si Internet faiblit,
+///   reconnexion automatique ;
+/// - enregistrement (seulement si l'utilisateur le demande) = la MÊME image que le direct, sans 2e encodage :
+///   léger pour le disque (~1,4 Go/h en 720p) et le processeur ; Vidéos\Regio, MP4 « hybride » (lisible après une coupure) ;
+/// - encodage matériel selon la carte graphique (indispensable sur un PC modeste).
+fn write_live_profile(cfg: &Path, paths: &LaunchPaths) -> Result<(), String> {
+    let quality = fs::read_to_string(paths.data.join("live.json"))
+        .ok()
+        .and_then(|s| serde_json::from_str::<LiveDoc>(&s).ok())
+        .and_then(|d| d.quality)
+        .unwrap_or_else(|| "720".into());
+    let (w, h, kbps) = match quality.as_str() {
+        "480" => (854, 480, 1500),
+        "1080" => (1920, 1080, 6000),
+        _ => (1280, 720, 3000),
+    };
+    let enc = encoder(&paths.root);
+    let software = enc == "obs_x264";
+    let _ = fs::create_dir_all(&paths.videos);
+    let videos = paths.videos.to_string_lossy().replace('\\', "/");
+
+    let dir = cfg.join("basic").join("profiles").join("Regio");
+    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let ini = format!(
+        "[General]\r\nName=Regio\r\n\r\n\
+         [Output]\r\nMode=Advanced\r\nFilenameFormatting=Culte %CCYY-%MM-%DD %hh-%mm\r\nReconnect=true\r\nRetryDelay=2\r\n\
+         MaxRetries=60\r\nDynamicBitrate=true\r\nDelayEnable=false\r\nLowLatencyEnable=false\r\n\r\n\
+         [AdvOut]\r\nApplyServiceSettings=true\r\nEncoder={enc}\r\nUseRescale={rescale}\r\nRescaleRes={w}x{h}\r\nTrackIndex=1\r\n\
+         RecType=Standard\r\nRecFilePath={videos}\r\nRecFormat2=hybrid_mp4\r\nRecUseRescale=false\r\nRecTracks=1\r\n\
+         RecEncoder={rec_enc}\r\nAudioEncoder=ffmpeg_aac\r\nRecAudioEncoder=ffmpeg_aac\r\nTrack1Bitrate=160\r\n\r\n\
+         [Video]\r\nBaseCX=1920\r\nBaseCY=1080\r\nOutputCX=1920\r\nOutputCY=1080\r\nFPSType=0\r\nFPSCommon=30\r\n\
+         ScaleType=bicubic\r\nColorFormat=NV12\r\nColorSpace=709\r\nColorRange=Partial\r\n\r\n\
+         [Audio]\r\nSampleRate=48000\r\nChannelSetup=Stereo\r\n",
+        rescale = w != 1920,
+        // « none » = l'enregistrement réutilise l'encodage du direct (fichiers légers, choix de l'utilisateur).
+        rec_enc = "none",
+    );
+    fs::write(dir.join("basic.ini"), ini).map_err(|e| e.to_string())?;
+    let mut stream = serde_json::json!({ "rate_control": "CBR", "bitrate": kbps, "keyint_sec": 2 });
+    if software {
+        stream["preset"] = "veryfast".into();
+        stream["profile"] = "main".into();
+    }
+    fs::write(dir.join("streamEncoder.json"), stream.to_string()).map_err(|e| e.to_string())?;
+
+    // OBS ouvre ce profil au démarrage.
+    set_ini(&cfg.join("user.ini"), "Basic", &[("Profile", "Regio"), ("ProfileDir", "Regio")])
+}
+
+/// Encodeur vidéo : choix forcé (`regio-encoder.txt` à côté d'OBS) ou d'après la carte graphique.
+fn encoder(root: &Path) -> String {
+    if let Ok(forced) = fs::read_to_string(root.join("regio-encoder.txt")) {
+        let forced = forced.trim().to_string();
+        if !forced.is_empty() {
+            return forced;
+        }
+    }
+    static DETECTED: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    DETECTED.get_or_init(|| encoder_for(&graphics_cards())).clone()
+}
+
+/// NVIDIA (NVENC) d'abord, puis Intel (QuickSync), puis AMD (AMF) ; sinon encodage logiciel x264.
+fn encoder_for(cards: &str) -> String {
+    let c = cards.to_ascii_lowercase();
+    if c.contains("nvidia") {
+        "obs_nvenc_h264_tex"
+    } else if c.contains("intel") {
+        "obs_qsv11_v2"
+    } else if c.contains("amd") || c.contains("radeon") {
+        "h264_texture_amf"
+    } else {
+        "obs_x264"
+    }
+    .into()
+}
+
+#[cfg(windows)]
+fn graphics_cards() -> String {
+    use std::os::windows::process::CommandExt;
+    Command::new("powershell.exe")
+        .args(["-NoProfile", "-NonInteractive", "-Command", "(Get-CimInstance Win32_VideoController).Name -join ';'"])
+        .creation_flags(0x0800_0000)
+        .output()
+        .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
+        .unwrap_or_default()
+}
+
+#[cfg(not(windows))]
+fn graphics_cards() -> String {
+    String::new()
+}
+
+/// Remplace (ou ajoute) des clés dans une section d'un fichier INI, en gardant tout le reste.
+fn set_ini(path: &Path, section: &str, pairs: &[(&str, &str)]) -> Result<(), String> {
+    let text = fs::read_to_string(path).unwrap_or_default();
+    let text = text.trim_start_matches('\u{feff}');
+    let mut out: Vec<String> = Vec::new();
+    let mut in_section = false;
+    let mut done = vec![false; pairs.len()];
+    let flush = |out: &mut Vec<String>, done: &mut Vec<bool>| {
+        for (k, (key, val)) in pairs.iter().enumerate() {
+            if !done[k] {
+                out.push(format!("{key}={val}"));
+                done[k] = true;
+            }
+        }
+    };
+    let mut seen = false;
+    for line in text.lines() {
+        let t = line.trim();
+        if t.starts_with('[') && t.ends_with(']') {
+            if in_section {
+                // Fin de la section : ajouter les clés absentes avant la suivante (ligne vide conservée après).
+                let blank = out.last().is_some_and(|l| l.trim().is_empty());
+                if blank {
+                    out.pop();
+                }
+                flush(&mut out, &mut done);
+                if blank {
+                    out.push(String::new());
+                }
+            }
+            in_section = &t[1..t.len() - 1] == section;
+            seen |= in_section;
+            out.push(line.to_string());
+            continue;
+        }
+        if in_section {
+            if let Some((k, _)) = t.split_once('=') {
+                if let Some(i) = pairs.iter().position(|(key, _)| *key == k.trim()) {
+                    out.push(format!("{}={}", pairs[i].0, pairs[i].1));
+                    done[i] = true;
+                    continue;
+                }
+            }
+        }
+        out.push(line.to_string());
+    }
+    if in_section {
+        flush(&mut out, &mut done);
+    } else if !seen {
+        if out.last().is_some_and(|l| !l.trim().is_empty()) {
+            out.push(String::new());
+        }
+        out.push(format!("[{section}]"));
+        flush(&mut out, &mut done);
+    }
+    fs::write(path, out.join("\r\n") + "\r\n").map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn encodeur_selon_la_carte() {
+        assert_eq!(encoder_for("Intel(R) UHD Graphics"), "obs_qsv11_v2");
+        assert_eq!(encoder_for("Intel(R) UHD Graphics;NVIDIA GeForce RTX 3050"), "obs_nvenc_h264_tex");
+        assert_eq!(encoder_for("AMD Radeon(TM) Graphics"), "h264_texture_amf");
+        assert_eq!(encoder_for("Microsoft Basic Display Adapter"), "obs_x264");
+    }
+
+    #[test]
+    fn ini_cles_remplacees_ou_ajoutees() {
+        let dir = std::env::temp_dir().join(format!("regio-ini-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let p = dir.join("user.ini");
+        fs::write(&p, "\u{feff}[General]\r\nA=1\r\n\r\n[Basic]\r\nProfile=Sans nom\r\nSceneCollection=X\r\n\r\n[Z]\r\nB=2\r\n").unwrap();
+        set_ini(&p, "Basic", &[("Profile", "Regio"), ("ProfileDir", "Regio")]).unwrap();
+        let t = fs::read_to_string(&p).unwrap();
+        assert!(t.contains("[Basic]\r\nProfile=Regio\r\nSceneCollection=X\r\nProfileDir=Regio\r\n\r\n[Z]"), "{t}");
+        assert!(t.contains("[General]\r\nA=1") && t.contains("B=2"));
+        let q = dir.join("vide.ini");
+        set_ini(&q, "Basic", &[("Profile", "Regio")]).unwrap();
+        assert_eq!(fs::read_to_string(&q).unwrap(), "[Basic]\r\nProfile=Regio\r\n");
+        let _ = fs::remove_dir_all(&dir);
+    }
 }

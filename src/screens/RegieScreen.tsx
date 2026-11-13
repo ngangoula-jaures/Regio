@@ -22,6 +22,8 @@ import { uid, useLibrary } from "../app/library";
 import { usePolledImage, type Camera, type Studio } from "../app/useStudio";
 import { storeImage } from "../shared/storage";
 import { CameraStrip } from "./CameraStrip";
+import { useLive } from "../app/useLive";
+import { HealthPanel, LiveBanners, LiveConfirmDialog, LiveEndedDialog, LiveHeader, LiveSetupDialog, LiveStopDialog, SoundMeter } from "./LiveControls";
 import { RoomButton } from "./RoomDialog";
 import { ContentArea, verseContent, type Reading, type View } from "./ContentArea";
 
@@ -38,6 +40,13 @@ interface Pos {
 }
 
 export function RegieScreen({ studio, active = true, onSources }: { studio: Studio; active?: boolean; onSources: () => void }) {
+  // ---------- Le direct ----------
+  const stream = useLive(studio);
+  const [liveDlg, setLiveDlg] = useState<null | "setup" | "confirm" | "stop">(null);
+  const [healthOpen, setHealthOpen] = useState(false);
+  const [fbStep, setFbStep] = useState(false);
+  const keysOn = active && !liveDlg && !stream.ended;
+
   const { lib, update } = useLibrary();
   const [bible, setBible] = useState<Bible | null>(null);
   useEffect(() => {
@@ -169,7 +178,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
 
   // Clavier : espace / → = suivant ; ← = précédent ; ↑ / ↓ = choisir le moment ; Échap = caméra.
   const keys = useRef({ go, moveSel, cameraOnly, active, cams, pickCamera });
-  keys.current = { go, moveSel, cameraOnly, active, cams, pickCamera };
+  keys.current = { go, moveSel, cameraOnly, active: keysOn, cams, pickCamera };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!keys.current.active) return;
@@ -296,6 +305,14 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
         <span className="spacer" />
         {studio.link.kind !== "on" && <span className="pill pill-warn">{t("regie.engineLost")}</span>}
         <RoomButton studio={studio} />
+        <LiveHeader
+          live={stream}
+          onSetup={() => setLiveDlg("setup")}
+          onConfirm={() => setLiveDlg("confirm")}
+          onStop={() => setLiveDlg("stop")}
+          healthOpen={healthOpen}
+          toggleHealth={() => setHealthOpen((o) => !o)}
+        />
       </header>
 
       <div className="regie-body">
@@ -388,6 +405,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
 
         {/* ============ 3. DIFFUSER : à l'écran + commandes, toujours au même endroit ============ */}
         <aside className="output" aria-label={t("regie.output")}>
+          <LiveBanners live={stream} fbStep={fbStep} onFbDone={() => setFbStep(false)} />
           <div className="output-live">
             <div className="screen-cap">
               <strong>{t("regie.output")}</strong>
@@ -395,6 +413,8 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
             </div>
             <div className="screen screen-live">{preview ? <img src={preview} alt={t("regie.previewAlt")} /> : <div className="screen-wait">…</div>}</div>
           </div>
+
+          <SoundMeter studio={studio} />
 
           {studio.link.kind === "on" && !studio.renderOnline && (
             <p className="banner banner-error">
@@ -473,6 +493,42 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
           </div>
         </aside>
       </div>
+
+      {healthOpen && stream.phase === "live" && <HealthPanel live={stream} onClose={() => setHealthOpen(false)} />}
+      {liveDlg === "setup" && (
+        <LiveSetupDialog
+          initial={stream.settings}
+          onClose={() => setLiveDlg(null)}
+          onDone={(s) => {
+            setLiveDlg(null);
+            stream.configure(s);
+          }}
+        />
+      )}
+      {liveDlg === "confirm" && stream.settings && (
+        <LiveConfirmDialog
+          live={stream}
+          onClose={() => setLiveDlg(null)}
+          onGo={() => {
+            setLiveDlg(null);
+            setFbStep(true);
+            stream.start();
+          }}
+        />
+      )}
+      {liveDlg === "stop" && (
+        <LiveStopDialog
+          live={stream}
+          onClose={() => setLiveDlg(null)}
+          onStop={() => {
+            setLiveDlg(null);
+            setHealthOpen(false);
+            setFbStep(false);
+            stream.stop();
+          }}
+        />
+      )}
+      {stream.ended && <LiveEndedDialog live={stream} onClose={stream.clearEnded} />}
     </div>
   );
 }

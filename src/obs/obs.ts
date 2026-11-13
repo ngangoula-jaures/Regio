@@ -2,7 +2,7 @@
 // Toutes les scènes/sources créées ici sont préfixées « Regio - » pour ne pas toucher
 // à la configuration personnelle de l'utilisateur.
 
-import OBSWebSocket, { type OBSRequestTypes } from "obs-websocket-js";
+import OBSWebSocket, { EventSubscription, type OBSRequestTypes } from "obs-websocket-js";
 import type { BusMessage } from "../shared/content";
 
 export const SCENE = "Regio - Sortie";
@@ -20,6 +20,24 @@ export const CANVAS_H = 1080;
  * sont supprimées à la connexion, APRÈS la mise en place de la scène Regio (jamais d'écran vide).
  */
 const LEGACY_PREFIX = "DiffChurch - ";
+
+/** Serveur de Facebook Live (RTMPS, port 443 : passe même derrière les pare-feux stricts). */
+export const FACEBOOK_SERVER = "rtmps://live-api-s.facebook.com:443/rtmp/";
+
+/** État du direct et de l'enregistrement, tel qu'OBS le donne. */
+export interface LiveStatus {
+  active: boolean;
+  reconnecting: boolean;
+  /** Durée du direct (ms). */
+  durationMs: number;
+  /** Octets envoyés depuis le début (pour calculer le débit). */
+  bytes: number;
+  /** Encombrement de la connexion, 0 (fluide) à 1 (saturée). */
+  congestion: number;
+  skippedFrames: number;
+  totalFrames: number;
+  recording: boolean;
+}
 
 export interface ConnectionSettings {
   host: string;
@@ -61,16 +79,56 @@ export class ObsController {
 
   async connect(s: ConnectionSettings): Promise<string> {
     this.settings = s;
-    const { obsWebSocketVersion } = await this.ws.connect(
-      `ws://${s.host}:${s.port}`,
-      s.password || undefined,
-    );
+    const { obsWebSocketVersion } = await this.ws.connect(`ws://${s.host}:${s.port}`, s.password || undefined, {
+      // + niveaux sonores (événement fréquent, non inclus par défaut) : le vumètre.
+      eventSubscriptions: EventSubscription.All | EventSubscription.InputVolumeMeters,
+    });
     const { obsVersion } = await this.ws.call("GetVersion");
     return `OBS ${obsVersion} (websocket ${obsWebSocketVersion})`;
   }
 
   async disconnect() {
     await this.ws.disconnect();
+  }
+
+  // ---------------------------------------------------------------- Le direct
+
+  /** Destination du direct : Facebook, avec la clé de stream de l'église. */
+  async setFacebookKey(key: string): Promise<void> {
+    await this.ws.call("SetStreamServiceSettings", {
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: { server: FACEBOOK_SERVER, key: key.trim(), use_auth: false },
+    });
+  }
+
+  /** Lance le direct (et l'enregistrement sur ce PC si demandé). */
+  async startLive(record: boolean): Promise<void> {
+    await this.ws.call("StartStream");
+    if (record) await this.ws.call("StartRecord").catch(() => {});
+  }
+
+  /** Arrête le direct et l'enregistrement ; renvoie le chemin du fichier enregistré (s'il y en a un). */
+  async stopLive(): Promise<string | null> {
+    await this.ws.call("StopStream").catch(() => {});
+    const rec = await this.ws.call("GetRecordStatus").catch(() => null);
+    if (!rec?.outputActive) return null;
+    const { outputPath } = await this.ws.call("StopRecord");
+    return outputPath;
+  }
+
+  async liveStatus(): Promise<LiveStatus> {
+    const st = await this.ws.call("GetStreamStatus");
+    const rec = await this.ws.call("GetRecordStatus").catch(() => null);
+    return {
+      active: st.outputActive,
+      reconnecting: st.outputReconnecting,
+      durationMs: st.outputDuration,
+      bytes: st.outputBytes,
+      congestion: st.outputCongestion,
+      skippedFrames: st.outputSkippedFrames,
+      totalFrames: st.outputTotalFrames,
+      recording: !!rec?.outputActive,
+    };
   }
 
   /** URL de la page d'affichage chargée par OBS comme Browser Source. */

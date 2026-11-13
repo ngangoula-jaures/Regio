@@ -86,13 +86,34 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   (supprimer android/ et ios/) → `make_ico.py src-tauri/icons/icon.ico` → copier regio-icon-32.png en 32x32.png.
   `src-tauri/build.rs` surveille `icons/` : sans ça, l'ancienne icône restait intégrée dans regio.exe.
 
-- **Maquette du direct, Phase 2 (2026-11-13, EN ATTENTE de validation)** : https://claude.ai/artifact/GHd8FoYJ1VgrRpfMtUtgHH
+- **Maquette du direct, Phase 2 (2026-11-13) — VALIDÉE et CODÉE** : https://claude.ai/artifact/GHd8FoYJ1VgrRpfMtUtgHH
   (copie `design/maquettes/direct/`). **Facebook d'abord** (choix de l'utilisateur) : clé de stream PERSISTANTE (configurée
   une fois), RTMPS direct depuis OBS ; Facebook exige encore un clic « Passer en direct » dans sa page Vidéo en direct
   (Regio le rappelle ; automatisation possible plus tard via l'API Facebook). En-tête : Diffuser sur Facebook →
   [Facebook · 720p] Passer en direct → ● EN DIRECT 00:12:34 + voyant santé (popover détails) + Terminer. Assistant 3
   étapes (Où ? / La clé / Test de connexion → qualité conseillée), confirmation, rappel du clic Facebook, alertes
-  connexion faible (480p auto) / coupée (reconnexion, l'enregistrement continue), vumètre SON, résumé de fin.
+  connexion faible (débit réduit auto) / coupée (reconnexion, l'enregistrement continue), vumètre SON, résumé de fin.
+  **Enregistrement = AU CHOIX** (retour de l'utilisateur : « un direct de 2 h, c'est lourd ») : case dans la confirmation,
+  décochée la 1re fois puis dernier choix retenu, taille annoncée (~1,4 Go/h en 720p) + espace libre ; l'enregistrement
+  réutilise l'encodage du direct (`RecEncoder=none`) : même qualité, aucun effort en plus pour le PC.
+
+## Le direct (codé le 2026-11-13, validé sur le vrai OBS — pas encore essayé avec une vraie clé Facebook)
+- `src/app/useLive.ts` : réglages (doc `live` → `data/live.json` : target, key, quality, record), phases unset → ready →
+  starting → live → stopping, santé toutes les 2 s (`GetStreamStatus` : reconnexion → coupée ; encombrement > 0,25 ou
+  débit < 60 % → faible), refus de Facebook détecté après 20 s. Test de connexion : commande Rust `upload_test`
+  (`src-tauri/src/live.rs`, 3 × 4 Mo vers speed.cloudflare.com, rien d'identifiant) ; 720p si ≥ 4,5 Mb/s, sinon 480p ;
+  1080p seulement si ≥ 9 Mb/s. `recordings_info` = Vidéos\Regio + espace libre.
+- `src/screens/LiveControls.tsx` : en-tête, assistant, confirmation, fin, alertes, vumètre (`InputVolumeMeters`, abonnement
+  explicite à la connexion ; DOM mis à jour sans re-rendu de la régie). Fenêtre ouverte = raccourcis de la régie coupés ;
+  « Terminer » met le focus sur « Continuer le direct » (un espace par réflexe ne coupe rien).
+- **Profil OBS « Regio »** écrit par `obs.rs` (`write_live_profile`) AVANT CHAQUE lancement d'OBS : mode avancé, encodeur
+  matériel selon la carte (NVIDIA `obs_nvenc_h264_tex` > Intel `obs_qsv11_v2` > AMD `h264_texture_amf` > `obs_x264` ;
+  forçable par `regio-encoder.txt` à côté d'OBS), direct redimensionné (480p 1,5 / 720p 3 / 1080p 6 Mb/s, CBR, image clé 2 s),
+  `DynamicBitrate`, reconnexion (60 essais), enregistrement MP4 hybride dans Vidéos\Regio ; `user.ini [Basic]` → profil Regio.
+  Changer la qualité → commande `restart_engine` (redémarrage voulu, pas compté comme plantage ; Regio se reconnecte seul).
+- Facebook : `SetStreamServiceSettings` rtmp_custom `rtmps://live-api-s.facebook.com:443/rtmp/` + clé (avant chaque départ).
+- Test : `npm run test:live` (faux OBS : StartStream/Record, GetStreamStatus, niveaux sonores) ; vrai OBS :
+  `C:\dev\regio-test\live-real.mjs` (profil + enregistrement de 4 s) et `live-wizard.mjs` (assistant dans l'app).
 
 ## Interface (régie v5 codée le 2026-11-13, d'après la maquette v5 validée)
 - `src/app/App.tsx` : Démarrage → Sources du jour → Régie. Une fois le culte commencé, la Régie reste montée ;
