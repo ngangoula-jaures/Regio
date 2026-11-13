@@ -62,6 +62,11 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   (À l'écran + Ensuite côte à côte), ◀ Précédent / Suivant ▶ (← → espace), rangée de CAMÉRAS cliquables pendant
   le culte (manquait !), écrans nommés « Votre ordinateur » / « Télé / projecteur » (pas « Écran 1/2 »),
   mise en page « Sur la caméra / En plein écran » sans doublon de « Caméra seule ».
+  **v3 (même lien, 2026-11-13)** d'après les retours : le déroulé = **moments du culte** (« compartiments »,
+  créés par chaque église : Écran d'attente, Louange, Adoration, Prédication, Offrandes…) ; clic sur un moment →
+  onglet à droite **à son nom** avec ses contenus ; images/textes/versets **rattachables à un moment**
+  (« Ajouter à … ») ; **Bible** : recherche, Livres › Chapitre, chapitre entier → **lecture suivie** (Suivant /
+  espace = verset suivant, bandeau « Lecture suivie »). Rangée de caméras approuvée par l'utilisateur.
   La maquette v1 est devenue PUBLIQUE (partagée par l'utilisateur) : ne plus la modifier sans son accord.
 
 ## Interface (codée le 2026-11-13 d'après les maquettes)

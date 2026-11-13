@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>Regio · Régie v2</title>
+<title>Regio · Régie v3</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -11,11 +11,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600&amp;family=Inter:wght@400;500;600&amp;family=Source+Serif+4:opsz,wght@8..60,400&amp;family=Montserrat:wght@600;700&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0;background:#0E1530}
-button{font:inherit;color:inherit}
+button,input,textarea,select{font:inherit;color:inherit}
 .hov:hover{background:#1E2848}
-.cam:hover{border-color:#3A4775}
+.card:hover{border-color:#3A4775}
 .next:hover{background:#F2C86B}
-.hov:focus-visible,.cam:focus-visible,.next:focus-visible{outline:3px solid #F6F2E8;outline-offset:2px}
+.hov:focus-visible,.card:focus-visible,.next:focus-visible{outline:3px solid #F6F2E8;outline-offset:2px}
 </style>
 </helmet>
 <div style="position: relative; width: 100%; min-height: 900px; box-sizing: border-box; background: #0E1530; font-family: Inter, 'Segoe UI', sans-serif; color: #F6F2E8; display: flex; flex-direction: column">
@@ -27,217 +27,408 @@ button{font:inherit;color:inherit}
     </div>
     <span style="font-size: 14px; color: #9AA3BF">Culte du dimanche 16 novembre</span>
     <span style="flex: 1"></span>
-    <button type="button" class="hov" onClick="{{toggleRoom}}" aria-expanded="{{roomOpen}}" style="display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #253055; background: #111933; cursor: pointer; font-size: 14px">
+    <button type="button" class="hov" style="display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #253055; background: #111933; cursor: pointer; font-size: 14px">
       <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2" fill="none" stroke="#C9CEDD" stroke-width="1.75"></rect><path d="M8 20h8M12 16v4" stroke="#C9CEDD" stroke-width="1.75" stroke-linecap="round"></path></svg>
-      <span>Télé de la salle</span>
-      <span style="display: inline-flex; align-items: center; gap: 6px; color: #4CC38A; font-weight: 600"><span style="width: 7px; height: 7px; border-radius: 50%; background: #4CC38A"></span>affichée</span>
+      Télé de la salle <span style="display: inline-flex; align-items: center; gap: 6px; color: #4CC38A; font-weight: 600"><span style="width: 7px; height: 7px; border-radius: 50%; background: #4CC38A"></span>affichée</span>
     </button>
   </header>
 
   <div style="flex: 1; display: flex; flex-wrap: wrap; min-height: 0">
 
-    <nav aria-label="Déroulé du culte" style="flex: 1 0 260px; max-width: 290px; box-sizing: border-box; border-right: 1px solid #253055; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px">
-      <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 0 8px 10px">
+    <!-- ============ DÉROULÉ : les compartiments ============ -->
+    <nav aria-label="Déroulé du culte" style="flex: 1 0 240px; max-width: 260px; box-sizing: border-box; border-right: 1px solid #253055; padding: 16px 10px; display: flex; flex-direction: column; gap: 4px">
+      <div style="padding: 0 8px 10px">
         <h2 style="margin: 0; font-family: Sora, Inter, sans-serif; font-size: 16px; font-weight: 600">Déroulé</h2>
-        <span style="font-size: 12px; color: #9AA3BF">{{progress}}</span>
+        <p style="margin: 4px 0 0; font-size: 12px; color: #9AA3BF">Cliquez sur un moment pour voir son contenu</p>
       </div>
-      <sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
-        <button type="button" class="hov" onClick="{{r.pick}}" style="{{r.style}}">
-          <span style="{{r.num}}">{{r.n}}</span>
+      <sc-for list="{{comps}}" as="c" hint-placeholder-count="7">
+        <button type="button" class="hov" onClick="{{c.select}}" aria-current="{{c.ariaCur}}" style="{{c.style}}">
+          <span style="{{c.dot}}">{{c.n}}</span>
           <span style="flex: 1; min-width: 0; text-align: left">
-            <span style="display: block; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.label}}</span>
-            <span style="display: block; font-size: 12px; color: #9AA3BF">{{r.moment}}</span>
+            <span style="display: block; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.name}}</span>
+            <span style="display: block; font-size: 12px; color: #9AA3BF">{{c.count}}</span>
           </span>
-          <sc-if value="{{r.isCur}}" hint-placeholder-val="{{ false }}"><span style="font-size: 10.5px; font-weight: 600; padding: 3px 7px; border-radius: 99px; background: #F6F2E8; color: #0E1530">À L'ÉCRAN</span></sc-if>
-          <sc-if value="{{r.isNext}}" hint-placeholder-val="{{ false }}"><span style="font-size: 10.5px; font-weight: 600; padding: 3px 7px; border-radius: 99px; border: 1px solid #3A4568; color: #C9CEDD">ENSUITE</span></sc-if>
+          <sc-if value="{{c.live}}" hint-placeholder-val="{{ false }}"><span style="font-size: 10px; font-weight: 600; padding: 3px 7px; border-radius: 99px; background: #F6F2E8; color: #0E1530">À L'ÉCRAN</span></sc-if>
         </button>
       </sc-for>
-    </nav>
-
-    <main style="flex: 999 1 600px; min-width: 0; box-sizing: border-box; padding: 18px 24px; display: flex; flex-direction: column; gap: 16px">
-      <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap">
-        <div style="flex: 1.7 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
-          <div style="display: flex; align-items: center; justify-content: space-between">
-            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: #F6F2E8">À L'ÉCRAN</span>
-            <span style="font-size: 12.5px; color: #9AA3BF">{{curLabel}}</span>
-          </div>
-          <div style="border-radius: 12px; overflow: hidden; outline: 2px solid #F6F2E8">
-            <dc-import name="Ecran" item="{{cur}}" cam="{{cam}}" hint-size="100%,300px"></dc-import>
+      <sc-if value="{{adding}}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top: 8px; padding: 10px; border-radius: 10px; background: #18213F; border: 1px solid #253055; display: flex; flex-direction: column; gap: 8px">
+          <label for="newc" style="font-size: 12px; color: #9AA3BF">Nom du nouveau moment</label>
+          <input id="newc" type="text" value="{{newName}}" onInput="{{typeName}}" placeholder="Ex. : Témoignages, Sainte Cène…" style="min-height: 40px; box-sizing: border-box; padding: 0 12px; border-radius: 8px; border: 1px solid #3A4568; background: #111933">
+          <div style="display: flex; gap: 8px">
+            <button type="button" class="hov" onClick="{{cancelAdd}}" style="flex: 1; min-height: 36px; border-radius: 8px; border: 1px solid #253055; background: transparent; cursor: pointer; font-size: 13px">Annuler</button>
+            <button type="button" class="hov" onClick="{{confirmAdd}}" style="flex: 1; min-height: 36px; border-radius: 8px; border: 1px solid #F6F2E8; background: transparent; cursor: pointer; font-size: 13px; font-weight: 600">Ajouter</button>
           </div>
         </div>
-        <div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
-          <div style="display: flex; align-items: center; justify-content: space-between">
+      </sc-if>
+      <sc-if value="{{notAdding}}" hint-placeholder-val="{{ true }}">
+        <button type="button" class="hov" onClick="{{startAdd}}" style="margin-top: 8px; min-height: 42px; border-radius: 10px; border: 1px dashed #3A4568; background: transparent; cursor: pointer; font-size: 13px; color: #C9CEDD">+ Ajouter un moment</button>
+      </sc-if>
+    </nav>
+
+    <!-- ============ CENTRE : à l'écran, ensuite, commandes, caméras ============ -->
+    <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 18px 22px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap">
+        <div style="flex: 1.7 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em">À L'ÉCRAN</span>
+            <span style="font-size: 12.5px; color: #9AA3BF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{curLabel}}</span>
+          </div>
+          <div style="border-radius: 12px; overflow: hidden; outline: 2px solid #F6F2E8">
+            <dc-import name="Ecran" item="{{cur}}" cam="{{cam}}" hint-size="100%,280px"></dc-import>
+          </div>
+        </div>
+        <div style="flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
             <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: #9AA3BF">ENSUITE</span>
-            <span style="font-size: 12.5px; color: #9AA3BF">{{nextLabel}}</span>
+            <span style="font-size: 12.5px; color: #9AA3BF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{nextLabel}}</span>
           </div>
           <div style="border-radius: 12px; overflow: hidden; outline: 1px solid #253055; opacity: 0.85">
-            <dc-import name="Ecran" item="{{nxt}}" cam="{{cam}}" hint-size="100%,170px"></dc-import>
+            <dc-import name="Ecran" item="{{nxt}}" cam="{{cam}}" hint-size="100%,160px"></dc-import>
           </div>
           <sc-if value="{{hasLayout}}" hint-placeholder-val="{{ true }}">
-            <div style="margin-top: 6px; padding: 12px 14px; border-radius: 12px; background: #18213F; border: 1px solid #253055; display: flex; flex-direction: column; gap: 8px">
-              <span style="font-size: 12.5px; color: #9AA3BF">Ce qui est à l'écran s'affiche :</span>
-              <div role="radiogroup" aria-label="Mise en page" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: #111933">
-                <button type="button" role="radio" aria-checked="{{isLower}}" onClick="{{setLower}}" style="{{segLower}}">Sur la caméra</button>
-                <button type="button" role="radio" aria-checked="{{isFull}}" onClick="{{setFull}}" style="{{segFull}}">En plein écran</button>
-              </div>
+            <div role="radiogroup" aria-label="Mise en page" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: #111933">
+              <button type="button" role="radio" aria-checked="{{isLower}}" onClick="{{setLower}}" style="{{segLower}}">Sur la caméra</button>
+              <button type="button" role="radio" aria-checked="{{isFull}}" onClick="{{setFull}}" style="{{segFull}}">En plein écran</button>
             </div>
           </sc-if>
         </div>
       </div>
 
+      <sc-if value="{{reading}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 14px; border-radius: 12px; background: #18213F; border: 1px solid #3A4775">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z" fill="none" stroke="#F6F2E8" stroke-width="1.75" stroke-linejoin="round"></path></svg>
+          <span style="font-size: 14px"><strong>Lecture suivie · {{readingLabel}}</strong> <span style="color: #9AA3BF">— « Suivant » passe au verset suivant</span></span>
+          <span style="flex: 1"></span>
+          <button type="button" class="hov" onClick="{{stopReading}}" style="min-height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #253055; background: transparent; cursor: pointer; font-size: 13px">Arrêter la lecture</button>
+        </div>
+      </sc-if>
+
       <div style="display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap">
-        <button type="button" class="hov" onClick="{{prev}}" style="min-height: 64px; padding: 0 20px; border-radius: 12px; border: 1px solid #253055; background: #18213F; cursor: pointer; display: flex; align-items: center; gap: 12px">
+        <button type="button" class="hov" onClick="{{prev}}" style="min-height: 62px; padding: 0 18px; border-radius: 12px; border: 1px solid #253055; background: #18213F; cursor: pointer; display: flex; align-items: center; gap: 10px">
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6" fill="none" stroke="#F6F2E8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          <span style="display: flex; flex-direction: column; align-items: flex-start"><span style="font-size: 16px; font-weight: 600">Précédent</span><span style="font-size: 12px; color: #9AA3BF">touche ←</span></span>
+          <span style="display: flex; flex-direction: column; align-items: flex-start"><span style="font-size: 15px; font-weight: 600">Précédent</span><span style="font-size: 12px; color: #9AA3BF">touche ←</span></span>
         </button>
-        <button type="button" class="hov" onClick="{{cameraOnly}}" style="flex: 1 1 160px; min-height: 64px; padding: 0 20px; border-radius: 12px; border: 1px solid #253055; background: #18213F; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center">
-          <span style="font-size: 16px; font-weight: 600">Revenir à la caméra</span><span style="font-size: 12px; color: #9AA3BF">touche Échap</span>
+        <button type="button" class="hov" onClick="{{cameraOnly}}" style="flex: 1 1 150px; min-height: 62px; padding: 0 16px; border-radius: 12px; border: 1px solid #253055; background: #18213F; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center">
+          <span style="font-size: 15px; font-weight: 600">Revenir à la caméra</span><span style="font-size: 12px; color: #9AA3BF">touche Échap</span>
         </button>
-        <button type="button" class="next" onClick="{{next}}" style="flex: 2 1 260px; min-height: 64px; padding: 0 24px; border-radius: 12px; border: 0; background: #E8B44C; color: #0E1530; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 14px">
-          <span style="display: flex; flex-direction: column; align-items: flex-start"><span style="font-size: 18px; font-weight: 600">Suivant</span><span style="font-size: 12px; opacity: 0.75">barre d'espace ou touche →</span></span>
+        <button type="button" class="next" onClick="{{next}}" style="flex: 2 1 240px; min-height: 62px; padding: 0 22px; border-radius: 12px; border: 0; background: #E8B44C; color: #0E1530; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 14px">
+          <span style="display: flex; flex-direction: column; align-items: flex-start"><span style="font-size: 18px; font-weight: 600">{{nextWord}}</span><span style="font-size: 12px; opacity: 0.75">barre d'espace ou touche →</span></span>
           <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="#0E1530" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
         </button>
       </div>
 
-      <section aria-label="Caméras" style="display: flex; flex-direction: column; gap: 10px">
-        <div style="display: flex; align-items: baseline; gap: 10px">
-          <h2 style="margin: 0; font-family: Sora, Inter, sans-serif; font-size: 15px; font-weight: 600">Caméras</h2>
-          <span style="font-size: 12.5px; color: #9AA3BF">Un clic change l'image, même pendant un verset</span>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px">
-          <sc-for list="{{cams}}" as="c" hint-placeholder-count="2">
-            <button type="button" class="cam" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="{{c.style}}">
-              <div style="border-radius: 8px; overflow: hidden">
-                <dc-import name="Ecran" item="{{camOnly}}" cam="{{c.id}}" hint-size="100%,110px"></dc-import>
-              </div>
-              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
-                <span style="font-size: 14px; font-weight: 600">{{c.name}}</span>
-                <sc-if value="{{c.on}}" hint-placeholder-val="{{ false }}"><span style="font-size: 10.5px; font-weight: 600; padding: 3px 7px; border-radius: 99px; background: #F6F2E8; color: #0E1530">À L'ÉCRAN</span></sc-if>
-              </div>
+      <section aria-label="Caméras" style="display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 0; font-family: Sora, Inter, sans-serif; font-size: 14px; font-weight: 600">Caméras <span style="font-family: Inter, sans-serif; font-weight: 400; font-size: 12.5px; color: #9AA3BF">· un clic change l'image, même sous un verset</span></h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px">
+          <sc-for list="{{cams}}" as="k" hint-placeholder-count="2">
+            <button type="button" class="card" onClick="{{k.pick}}" aria-pressed="{{k.on}}" style="{{k.style}}">
+              <div style="border-radius: 8px; overflow: hidden"><dc-import name="Ecran" item="{{camOnly}}" cam="{{k.id}}" hint-size="100%,90px"></dc-import></div>
+              <span style="display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 13px; font-weight: 600">{{k.name}}<sc-if value="{{k.on}}" hint-placeholder-val="{{ false }}"><span style="font-size: 10px; padding: 2px 6px; border-radius: 99px; background: #F6F2E8; color: #0E1530">À L'ÉCRAN</span></sc-if></span>
             </button>
           </sc-for>
-          <button type="button" class="cam" style="border-radius: 12px; border: 1px dashed #3A4568; background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 150px; color: #C9CEDD">
-            <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="#C9CEDD" stroke-width="1.75" stroke-linecap="round"></path></svg>
-            <span style="font-size: 14px">Ajouter une caméra</span>
-          </button>
         </div>
       </section>
     </main>
 
-    <aside aria-label="Bible et contenus" style="flex: 1 0 320px; max-width: 360px; box-sizing: border-box; border-left: 1px solid #253055; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+    <!-- ============ DROITE : onglets ============ -->
+    <aside aria-label="Contenus" style="flex: 1 0 340px; max-width: 380px; box-sizing: border-box; border-left: 1px solid #253055; padding: 14px; display: flex; flex-direction: column; gap: 12px">
       <div role="tablist" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: #111933">
-        <button type="button" role="tab" aria-selected="true" style="flex: 1; min-height: 38px; border: 0; border-radius: 8px; background: #253055; font-size: 14px; font-weight: 600; cursor: pointer">Bible</button>
-        <button type="button" role="tab" aria-selected="false" style="flex: 1; min-height: 38px; border: 0; border-radius: 8px; background: transparent; color: #9AA3BF; font-size: 14px; cursor: pointer">Médias</button>
-        <button type="button" role="tab" aria-selected="false" style="flex: 1; min-height: 38px; border: 0; border-radius: 8px; background: transparent; color: #9AA3BF; font-size: 14px; cursor: pointer">Texte</button>
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+          <button type="button" role="tab" aria-selected="{{t.sel}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+        </sc-for>
       </div>
-      <label for="ref2" style="font-size: 12.5px; color: #9AA3BF">Chercher un passage</label>
-      <input id="ref2" type="text" value="Jean 3 16" readonly="readonly" style="min-height: 44px; box-sizing: border-box; padding: 0 14px; border-radius: 8px; border: 1px solid #3A4568; background: #111933; color: #F6F2E8; font: inherit; font-size: 15px">
-      <sc-for list="{{verses}}" as="v" hint-placeholder-count="2">
-        <div style="padding: 12px 14px; border-radius: 12px; background: #18213F; border: 1px solid #253055; display: flex; flex-direction: column; gap: 10px">
-          <div style="font-size: 13px; font-weight: 600; color: #C9CEDD">{{v.ref}}</div>
-          <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.5">{{v.text}}</div>
+
+      <!-- Onglet du compartiment sélectionné -->
+      <sc-if value="{{tabDetails}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div>
+            <h2 style="margin: 0; font-family: Sora, Inter, sans-serif; font-size: 17px; font-weight: 600">{{selName}}</h2>
+            <p style="margin: 3px 0 0; font-size: 12.5px; color: #9AA3BF">Cliquez sur un contenu pour l'afficher</p>
+          </div>
+          <sc-for list="{{details}}" as="d" hint-placeholder-count="3">
+            <button type="button" class="card" onClick="{{d.show}}" style="{{d.style}}">
+              <div style="flex: none; width: 112px; border-radius: 6px; overflow: hidden"><dc-import name="Ecran" item="{{d.item}}" cam="{{cam}}" hint-size="112px,63px"></dc-import></div>
+              <span style="flex: 1; min-width: 0; text-align: left">
+                <span style="display: block; font-size: 14px; font-weight: 600">{{d.label}}</span>
+                <span style="display: block; font-size: 12px; color: #9AA3BF">{{d.kind}}</span>
+              </span>
+              <sc-if value="{{d.live}}" hint-placeholder-val="{{ false }}"><span style="font-size: 10px; font-weight: 600; padding: 3px 7px; border-radius: 99px; background: #F6F2E8; color: #0E1530">À L'ÉCRAN</span></sc-if>
+            </button>
+          </sc-for>
+          <sc-if value="{{detailsEmpty}}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 0; padding: 16px; border-radius: 10px; border: 1px dashed #3A4568; font-size: 13px; color: #9AA3BF; line-height: 1.5">Ce moment est vide. Ajoutez-y un verset (onglet Bible), une image (Médias) ou un texte (Texte) avec « Ajouter à {{selName}} ».</p>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- Onglet Bible -->
+      <sc-if value="{{tabBible}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 10px">
           <div style="display: flex; gap: 8px">
-            <button type="button" class="hov" onClick="{{v.show}}" style="flex: 1; min-height: 38px; border-radius: 8px; border: 1px solid #253055; background: transparent; font-size: 13px; font-weight: 600; cursor: pointer">Afficher</button>
-            <button type="button" class="hov" style="flex: 1; min-height: 38px; border-radius: 8px; border: 1px solid #253055; background: transparent; font-size: 13px; cursor: pointer">Ajouter au déroulé</button>
+            <label for="bq" style="position: absolute; width: 1px; height: 1px; overflow: hidden">Chercher</label>
+            <input id="bq" type="text" value="Psaume 23" readonly="readonly" style="flex: 1; min-width: 0; min-height: 42px; box-sizing: border-box; padding: 0 12px; border-radius: 8px; border: 1px solid #3A4568; background: #111933">
+            <button type="button" class="hov" onClick="{{goPs23}}" style="min-height: 42px; padding: 0 14px; border-radius: 8px; border: 1px solid #253055; background: transparent; cursor: pointer; font-size: 13px; font-weight: 600">Ouvrir</button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; flex-wrap: wrap">
+            <button type="button" class="hov" onClick="{{toBooks}}" style="border: 0; background: transparent; cursor: pointer; padding: 4px 6px; border-radius: 6px; color: #C9CEDD">Livres</button>
+            <sc-if value="{{hasBook}}" hint-placeholder-val="{{ false }}"><span style="color: #9AA3BF">›</span><button type="button" class="hov" onClick="{{toChapters}}" style="border: 0; background: transparent; cursor: pointer; padding: 4px 6px; border-radius: 6px; color: #C9CEDD">{{bookName}}</button></sc-if>
+            <sc-if value="{{hasChapter}}" hint-placeholder-val="{{ false }}"><span style="color: #9AA3BF">›</span><span style="padding: 4px 6px; font-weight: 600">Chapitre {{chapter}}</span></sc-if>
+            <span style="flex: 1"></span><span style="font-size: 12px; color: #9AA3BF">Louis Segond 1910</span>
+          </div>
+
+          <sc-if value="{{viewBooks}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: #111933">
+                <button type="button" onClick="{{showAT}}" style="{{segAT}}">Ancien Testament</button>
+                <button type="button" onClick="{{showNT}}" style="{{segNT}}">Nouveau Testament</button>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; max-height: 470px; overflow-y: auto">
+                <sc-for list="{{books}}" as="b" hint-placeholder-count="20">
+                  <button type="button" class="hov" onClick="{{b.pick}}" style="min-height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: #18213F; cursor: pointer; font-size: 13px; text-align: left">{{b.name}}</button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{viewChapters}}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; max-height: 500px; overflow-y: auto">
+              <sc-for list="{{chapters}}" as="h" hint-placeholder-count="24">
+                <button type="button" class="hov" onClick="{{h.pick}}" style="min-height: 36px; border: 0; border-radius: 8px; background: #18213F; cursor: pointer; font-size: 13px">{{h.n}}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{viewChapter}}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 6px; max-height: 520px; overflow-y: auto">
+              <p style="margin: 0 0 4px; font-size: 12.5px; color: #9AA3BF; line-height: 1.45">Cliquez sur un verset pour commencer la lecture : il s'affiche, puis « Suivant » avance verset par verset.</p>
+              <sc-for list="{{verses}}" as="v" hint-placeholder-count="6">
+                <div style="{{v.style}}">
+                  <button type="button" onClick="{{v.show}}" style="flex: 1; display: flex; gap: 10px; border: 0; background: transparent; cursor: pointer; text-align: left; padding: 0">
+                    <span style="flex: none; width: 22px; font-size: 12px; font-weight: 600; color: #9AA3BF; padding-top: 3px">{{v.n}}</span>
+                    <span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.5">{{v.text}}</span>
+                  </button>
+                  <button type="button" class="hov" onClick="{{v.add}}" aria-label="Ajouter au moment sélectionné" title="Ajouter à {{selName}}" style="flex: none; width: 32px; height: 32px; border-radius: 8px; border: 1px solid #253055; background: transparent; cursor: pointer; font-size: 16px">+</button>
+                </div>
+              </sc-for>
+              <sc-if value="{{noText}}" hint-placeholder-val="{{ false }}">
+                <p style="margin: 0; padding: 14px; border-radius: 10px; border: 1px dashed #3A4568; font-size: 13px; color: #9AA3BF">Maquette : seul le Psaume 23 est rempli. Dans l'application, tout le chapitre s'affiche ici.</p>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- Onglet Médias -->
+      <sc-if value="{{tabMedias}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <button type="button" class="hov" style="min-height: 48px; border-radius: 10px; border: 1px dashed #3A4568; background: transparent; cursor: pointer; font-size: 13px; color: #C9CEDD">+ Importer des images</button>
+          <sc-for list="{{medias}}" as="m" hint-placeholder-count="2">
+            <div style="padding: 10px; border-radius: 12px; background: #18213F; border: 1px solid #253055; display: flex; flex-direction: column; gap: 8px">
+              <div style="border-radius: 8px; overflow: hidden"><dc-import name="Ecran" item="{{m.item}}" cam="{{cam}}" hint-size="100%,170px"></dc-import></div>
+              <div style="display: flex; gap: 8px">
+                <button type="button" class="hov" onClick="{{m.show}}" style="flex: 1; min-height: 36px; border-radius: 8px; border: 1px solid #253055; background: transparent; cursor: pointer; font-size: 13px; font-weight: 600">Afficher</button>
+                <button type="button" class="hov" onClick="{{m.add}}" style="flex: 1.4; min-height: 36px; border-radius: 8px; border: 1px solid #253055; background: transparent; cursor: pointer; font-size: 13px">Ajouter à {{selName}}</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- Onglet Texte -->
+      <sc-if value="{{tabTexte}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <label for="tt" style="font-size: 12.5px; color: #9AA3BF">Titre</label>
+          <input id="tt" type="text" value="{{tTitle}}" onInput="{{typeTitle}}" style="min-height: 42px; box-sizing: border-box; padding: 0 12px; border-radius: 8px; border: 1px solid #3A4568; background: #111933">
+          <label for="tb" style="font-size: 12.5px; color: #9AA3BF">Texte</label>
+          <textarea id="tb" onInput="{{typeBody}}" style="min-height: 90px; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #3A4568; background: #111933; resize: vertical">{{tBody}}</textarea>
+          <button type="button" class="hov" onClick="{{showText}}" style="min-height: 40px; border-radius: 8px; border: 1px solid #253055; background: transparent; cursor: pointer; font-size: 13px; font-weight: 600">Afficher maintenant</button>
+          <div style="display: flex; gap: 8px; align-items: center">
+            <label for="tc" style="font-size: 13px; color: #9AA3BF; white-space: nowrap">Ajouter à</label>
+            <select id="tc" onChange="{{pickTarget}}" style="flex: 1; min-width: 0; min-height: 40px; padding: 0 10px; border-radius: 8px; border: 1px solid #3A4568; background: #111933">
+              <sc-for list="{{targets}}" as="o" hint-placeholder-count="5"><option value="{{o.i}}" selected="{{o.sel}}">{{o.name}}</option></sc-for>
+            </select>
+            <button type="button" class="hov" onClick="{{addText}}" style="min-height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid #253055; background: transparent; cursor: pointer; font-size: 13px">Ajouter</button>
           </div>
         </div>
-      </sc-for>
+      </sc-if>
     </aside>
   </div>
-
-  <sc-if value="{{roomOpen}}" hint-placeholder-val="{{ false }}">
-    <div role="dialog" aria-label="Où s'affiche l'image de la salle ?" style="position: absolute; right: 20px; top: 62px; width: 460px; padding: 20px; border-radius: 16px; background: #18213F; border: 1px solid #253055; box-shadow: 0 16px 48px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 14px">
-      <h2 style="margin: 0; font-family: Sora, Inter, sans-serif; font-size: 17px; font-weight: 600">Où s'affiche l'image de la salle ?</h2>
-      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
-        <button type="button" class="cam" onClick="{{pickPc}}" aria-pressed="{{onPc}}" style="{{roomPcStyle}}">
-          <svg width="64" height="44" viewBox="0 0 64 44" aria-hidden="true"><rect x="10" y="4" width="44" height="28" rx="3" fill="none" stroke="#C9CEDD" stroke-width="2"></rect><path d="M4 38h56" stroke="#C9CEDD" stroke-width="3" stroke-linecap="round"></path></svg>
-          <span style="font-size: 14px; font-weight: 600">Votre ordinateur</span>
-          <span style="font-size: 12px; color: #9AA3BF; text-align: center">l'écran où vous utilisez Regio</span>
-        </button>
-        <button type="button" class="cam" onClick="{{pickTv}}" aria-pressed="{{onTv}}" style="{{roomTvStyle}}">
-          <svg width="64" height="44" viewBox="0 0 64 44" aria-hidden="true"><rect x="4" y="2" width="56" height="34" rx="3" fill="none" stroke="#C9CEDD" stroke-width="2"></rect><path d="M22 42h20M32 36v6" stroke="#C9CEDD" stroke-width="2" stroke-linecap="round"></path></svg>
-          <span style="font-size: 14px; font-weight: 600">Télé / projecteur</span>
-          <span style="font-size: 12px; color: #9AA3BF; text-align: center">branché en HDMI · 1024 × 768</span>
-        </button>
-      </div>
-      <button type="button" class="hov" onClick="{{pickWin}}" style="min-height: 40px; border-radius: 8px; border: 1px solid #253055; background: transparent; cursor: pointer; font-size: 13px">Essayer dans une fenêtre (sans télé)</button>
-      <p style="margin: 0; font-size: 12.5px; color: #9AA3BF; line-height: 1.5">Pas de télé dans la liste ? Branchez-la en HDMI, puis appuyez sur Windows + P et choisissez « Étendre ». Regio l'utilisera tout seul.</p>
-    </div>
-  </sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { idx: 4, over: null, cam: 'pc', room: false, screen: 'tv' };
-  }
-  items() {
-    return [
-      { moment: 'Accueil', label: 'Écran d’attente', kind: 'standby' },
-      { moment: 'Louange', label: 'Louange', kind: 'camera' },
-      { moment: 'Prière', label: 'Prière d’ouverture', kind: 'camera' },
-      { moment: 'Lecture', label: 'Psaume 23:1', kind: 'full', ref: 'PSAUME 23:1 · LSG 1910', text: 'L’Éternel est mon berger : je ne manquerai de rien.' },
-      { moment: 'Prédication', label: 'Jean 3:16', kind: 'lower', ref: 'JEAN 3:16', text: 'Car Dieu a tant aimé le monde qu’il a donné son Fils unique…' },
-      { moment: 'Prédication', label: 'Romains 8:28', kind: 'full', ref: 'ROMAINS 8:28 · LSG 1910', text: 'Nous savons, du reste, que toutes choses concourent au bien de ceux qui aiment Dieu.' },
-      { moment: 'Offrandes', label: 'Offrandes et dîmes', kind: 'full', ref: 'OFFRANDES ET DÎMES', text: 'Mobile Money : [VOTRE NUMÉRO]\nVirement : [VOS COORDONNÉES]' },
-      { moment: 'Annonces', label: 'Réunion de prière', kind: 'full', ref: 'ANNONCE', text: 'Réunion de prière mercredi à 18 h 30' },
-      { moment: 'Bénédiction', label: 'Bénédiction', kind: 'camera' },
+    const ps = [
+      'Cantique de David. L’Éternel est mon berger : je ne manquerai de rien.',
+      'Il me fait reposer dans de verts pâturages, Il me dirige près des eaux paisibles.',
+      'Il restaure mon âme, Il me conduit dans les sentiers de la justice, À cause de son nom.',
+      'Quand je marche dans la vallée de l’ombre de la mort, Je ne crains aucun mal, car tu es avec moi : Ta houlette et ton bâton me rassurent.',
+      'Tu dresses devant moi une table, En face de mes adversaires ; Tu oins d’huile ma tête, Et ma coupe déborde.',
+      'Oui, le bonheur et la grâce m’accompagneront Tous les jours de ma vie, Et j’habiterai dans la maison de l’Éternel Jusqu’à la fin de mes jours.',
     ];
+    this.ps23 = ps;
+    this.state = {
+      comps: [
+        { name: 'Écran d’attente', items: [{ label: 'Bienvenue', kind: 'standby' }, { label: 'Horaires du jour', kind: 'full', ref: 'BIENVENUE', text: 'Culte de louange · 10 h' }] },
+        { name: 'Louange', items: [{ label: 'Caméra', kind: 'camera' }, { label: 'Chant : [TITRE]', kind: 'lower', ref: 'CHANT', text: '[Paroles du chant]' }] },
+        { name: 'Adoration', items: [{ label: 'Caméra', kind: 'camera' }] },
+        { name: 'Prédication', items: [
+          { label: 'Titre du message', kind: 'lower', ref: 'PRÉDICATION', text: '[TITRE DU MESSAGE] · Pasteur [NOM]' },
+          { label: 'Jean 3:16', kind: 'lower', ref: 'JEAN 3:16', text: 'Car Dieu a tant aimé le monde qu’il a donné son Fils unique…' },
+        ] },
+        { name: 'Offrandes et dîmes', items: [{ label: 'Numéros pour les dons', kind: 'full', ref: 'OFFRANDES ET DÎMES', text: 'Mobile Money : [VOTRE NUMÉRO]\nVirement : [VOS COORDONNÉES]' }] },
+        { name: 'Annonces', items: [
+          { label: 'Réunion de prière', kind: 'full', ref: 'ANNONCE', text: 'Réunion de prière mercredi à 18 h 30' },
+          { label: 'Conférence des jeunes', kind: 'full', ref: 'SAMEDI 22 NOVEMBRE · 15 H', text: 'Conférence des jeunes\nGrande salle · entrée libre' },
+        ] },
+        { name: 'Bénédiction', items: [{ label: 'Caméra', kind: 'camera' }] },
+      ],
+      live: { c: 3, i: 0 }, over: null, reading: null,
+      sel: 3, tab: 'details', cam: 'pc',
+      adding: false, newName: '',
+      bview: 'chapter', testament: 'AT', book: 'Psaumes', chapter: 23,
+      tTitle: 'Annonce', tBody: 'Repas fraternel après le culte', target: 5,
+    };
   }
+
+  flat() {
+    const out = [];
+    this.state.comps.forEach((c, ci) => c.items.forEach((it, ii) => out.push({ c: ci, i: ii, it })));
+    return out;
+  }
+
+  kindLabel(k) {
+    return { standby: 'Écran d’attente', camera: 'Caméra seule', lower: 'Sur la caméra', full: 'Plein écran' }[k];
+  }
+
+  verseItem(n, kind) {
+    return { kind: kind || 'full', label: 'Psaume 23:' + n, ref: 'PSAUME 23:' + n + ' · LSG 1910', text: this.ps23[n - 1] };
+  }
+
   renderVals() {
-    const items = this.items();
-    const { idx, over, cam, room, screen } = this.state;
-    const cur = over || items[idx];
-    const nxt = items[idx + 1] || { kind: 'standby' };
-    const seg = (on) => 'flex: 1; min-height: 36px; border: 0; border-radius: 8px; font-size: 13px; cursor: pointer; ' + (on ? 'background: #253055; color: #F6F2E8; font-weight: 600;' : 'background: transparent; color: #9AA3BF;');
-    const isText = cur.kind === 'lower' || cur.kind === 'full';
-    const roomCard = (on) => 'display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 10px; border-radius: 12px; cursor: pointer; background: #111933; border: ' + (on ? '2px solid #F6F2E8' : '1px solid #253055') + ';';
-    const camDef = [{ id: 'pc', name: 'Caméra du PC' }, { id: 'phone', name: 'Téléphone' }];
+    const s = this.state;
+    const flat = this.flat();
+    const pos = flat.findIndex((f) => f.c === s.live.c && f.i === s.live.i);
+    const cur = s.reading ? this.verseItem(s.reading, s.readKind) : (s.over || flat[pos].it);
+    const nextFlat = flat[pos + 1];
+    const readingMore = s.reading && s.reading < 6;
+    const nxt = readingMore ? this.verseItem(s.reading + 1, s.readKind) : (nextFlat ? nextFlat.it : { kind: 'standby' });
+    const liveComp = s.over || s.reading ? -1 : s.live.c;
+
+    const goto = (f) => this.setState({ live: { c: f.c, i: f.i }, over: null, reading: null, sel: f.c, tab: 'details' });
+    const seg = (on) => 'flex: 1; min-height: 34px; border: 0; border-radius: 8px; font-size: 13px; cursor: pointer; ' + (on ? 'background: #253055; color: #F6F2E8; font-weight: 600;' : 'background: transparent; color: #9AA3BF;');
+    const tabStyle = (on) => 'flex: 1; min-width: 0; min-height: 36px; padding: 0 6px; border: 0; border-radius: 8px; font-size: 13px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ' + (on ? 'background: #253055; color: #F6F2E8; font-weight: 600;' : 'background: transparent; color: #9AA3BF;');
+    const selComp = s.comps[s.sel];
+    const addTo = (item) => {
+      const comps = s.comps.map((c, i) => (i === s.sel ? { ...c, items: [...c.items, item] } : c));
+      this.setState({ comps });
+    };
+
+    const AT = [['Genèse',50],['Exode',40],['Lévitique',27],['Nombres',36],['Deutéronome',34],['Josué',24],['Juges',21],['Ruth',4],['1 Samuel',31],['2 Samuel',24],['1 Rois',22],['2 Rois',25],['1 Chroniques',29],['2 Chroniques',36],['Esdras',10],['Néhémie',13],['Esther',10],['Job',42],['Psaumes',150],['Proverbes',31],['Ecclésiaste',12],['Cantique des cantiques',8],['Ésaïe',66],['Jérémie',52],['Lamentations',5],['Ézéchiel',48],['Daniel',12],['Osée',14],['Joël',3],['Amos',9],['Abdias',1],['Jonas',4],['Michée',7],['Nahum',3],['Habacuc',3],['Sophonie',3],['Aggée',2],['Zacharie',14],['Malachie',4]];
+    const NT = [['Matthieu',28],['Marc',16],['Luc',24],['Jean',21],['Actes',28],['Romains',16],['1 Corinthiens',16],['2 Corinthiens',13],['Galates',6],['Éphésiens',6],['Philippiens',4],['Colossiens',4],['1 Thessaloniciens',5],['2 Thessaloniciens',3],['1 Timothée',6],['2 Timothée',4],['Tite',3],['Philémon',1],['Hébreux',13],['Jacques',5],['1 Pierre',5],['2 Pierre',3],['1 Jean',5],['2 Jean',1],['3 Jean',1],['Jude',1],['Apocalypse',22]];
+    const allBooks = AT.concat(NT);
+    const bookCh = (allBooks.find((b) => b[0] === s.book) || ['', 1])[1];
+    const isPs23 = s.book === 'Psaumes' && s.chapter === 23;
+
     return {
-      rows: items.map((it, i) => {
-        const isCur = i === idx && !over;
-        const done = i < idx;
+      comps: s.comps.map((c, i) => {
+        const isSel = i === s.sel;
         return {
-          n: i + 1, label: it.label, moment: it.moment, isCur, isNext: i === idx + 1,
-          pick: () => this.setState({ idx: i, over: null }),
-          style: 'display: flex; align-items: center; gap: 10px; width: 100%; min-height: 50px; padding: 6px 10px; border-radius: 10px; cursor: pointer; border: 1px solid ' + (isCur ? '#3A4775' : 'transparent') + '; background: ' + (isCur ? '#253055' : 'transparent') + '; opacity: ' + (done ? '0.55' : '1') + ';',
-          num: 'flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600; ' + (isCur ? 'background: #F6F2E8; color: #0E1530;' : 'border: 1.5px solid #3A4568; color: #C9CEDD;'),
+          n: i + 1, name: c.name, count: c.items.length + (c.items.length > 1 ? ' contenus' : ' contenu'),
+          live: i === liveComp, ariaCur: i === liveComp ? 'step' : 'false',
+          select: () => this.setState({ sel: i, tab: 'details' }),
+          style: 'display: flex; align-items: center; gap: 10px; width: 100%; min-height: 54px; padding: 6px 10px; border-radius: 10px; cursor: pointer; border: 1px solid ' + (isSel ? '#F6F2E8' : 'transparent') + '; background: ' + (isSel ? '#253055' : 'transparent') + ';',
+          dot: 'flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600; ' + (i === liveComp ? 'background: #F6F2E8; color: #0E1530;' : 'border: 1.5px solid #3A4568; color: #C9CEDD;'),
         };
       }),
-      progress: (idx + 1) + ' sur ' + items.length,
-      cur, nxt, cam,
-      camOnly: { kind: 'camera' },
-      curLabel: over ? 'Hors déroulé · ' + (cur.label || 'Caméra') : items[idx].moment + ' · ' + items[idx].label,
-      nextLabel: items[idx + 1] ? items[idx + 1].moment + ' · ' + items[idx + 1].label : 'Fin du culte',
-      hasLayout: isText,
-      isLower: cur.kind === 'lower' ? 'true' : 'false',
-      isFull: cur.kind === 'full' ? 'true' : 'false',
-      segLower: seg(cur.kind === 'lower'),
-      segFull: seg(cur.kind === 'full'),
-      setLower: () => this.setState({ over: { ...cur, kind: 'lower' } }),
-      setFull: () => this.setState({ over: { ...cur, kind: 'full' } }),
-      prev: () => this.setState({ idx: Math.max(0, idx - 1), over: null }),
-      next: () => this.setState({ idx: Math.min(items.length - 1, idx + 1), over: null }),
-      cameraOnly: () => this.setState({ over: { kind: 'camera', label: 'Caméra' } }),
-      cams: camDef.map((c) => ({
-        ...c, on: cam === c.id,
-        pick: () => this.setState({ cam: c.id }),
-        style: 'display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 12px; cursor: pointer; text-align: left; background: #18213F; border: ' + (cam === c.id ? '2px solid #F6F2E8' : '1px solid #253055') + ';',
+      adding: s.adding, notAdding: !s.adding, newName: s.newName,
+      startAdd: () => this.setState({ adding: true, newName: '' }),
+      cancelAdd: () => this.setState({ adding: false }),
+      typeName: (e) => this.setState({ newName: e.target.value }),
+      confirmAdd: () => {
+        const name = (s.newName || '').trim() || 'Nouveau moment';
+        const comps = [...s.comps.slice(0, -1), { name, items: [] }, s.comps[s.comps.length - 1]];
+        this.setState({ comps, adding: false, sel: comps.length - 2, tab: 'details' });
+      },
+
+      cur, nxt, cam: s.cam, camOnly: { kind: 'camera' },
+      curLabel: s.reading ? 'Psaume 23 · verset ' + s.reading : s.over ? 'Hors déroulé' : s.comps[s.live.c].name + ' · ' + flat[pos].it.label,
+      nextLabel: readingMore ? 'Psaume 23 · verset ' + (s.reading + 1) : nextFlat ? s.comps[nextFlat.c].name + ' · ' + nextFlat.it.label : 'Fin du culte',
+      nextWord: readingMore ? 'Verset suivant' : 'Suivant',
+      hasLayout: cur.kind === 'lower' || cur.kind === 'full',
+      isLower: cur.kind === 'lower' ? 'true' : 'false', isFull: cur.kind === 'full' ? 'true' : 'false',
+      segLower: seg(cur.kind === 'lower'), segFull: seg(cur.kind === 'full'),
+      setLower: () => (s.reading ? this.setState({ readKind: 'lower' }) : this.setState({ over: { ...cur, kind: 'lower' } })),
+      setFull: () => (s.reading ? this.setState({ readKind: 'full' }) : this.setState({ over: { ...cur, kind: 'full' } })),
+      reading: Boolean(s.reading), readingLabel: 'Psaume 23 · verset ' + s.reading + ' sur 6',
+      stopReading: () => this.setState({ reading: null }),
+      next: () => {
+        if (readingMore) return this.setState({ reading: s.reading + 1 });
+        if (s.reading) return this.setState({ reading: null });
+        if (nextFlat) goto(nextFlat);
+      },
+      prev: () => {
+        if (s.reading && s.reading > 1) return this.setState({ reading: s.reading - 1 });
+        if (s.reading) return this.setState({ reading: null });
+        if (pos > 0) goto(flat[pos - 1]);
+      },
+      cameraOnly: () => this.setState({ over: { kind: 'camera', label: 'Caméra' }, reading: null }),
+      cams: [{ id: 'pc', name: 'Caméra du PC' }, { id: 'phone', name: 'Téléphone' }].map((k) => ({
+        ...k, on: s.cam === k.id, pick: () => this.setState({ cam: k.id }),
+        style: 'display: flex; flex-direction: column; gap: 6px; padding: 7px; border-radius: 10px; cursor: pointer; text-align: left; background: #18213F; border: ' + (s.cam === k.id ? '2px solid #F6F2E8' : '1px solid #253055') + ';',
       })),
-      verses: [
-        { ref: 'Jean 3:16', text: 'Car Dieu a tant aimé le monde qu’il a donné son Fils unique, afin que quiconque croit en lui ne périsse point.' },
-        { ref: 'Jean 3:17', text: 'Dieu, en effet, n’a pas envoyé son Fils dans le monde pour qu’il juge le monde, mais pour que le monde soit sauvé par lui.' },
-      ].map((v) => ({ ...v, show: () => this.setState({ over: { kind: 'lower', label: v.ref, ref: v.ref.toUpperCase(), text: v.text } }) })),
-      roomOpen: room,
-      toggleRoom: () => this.setState({ room: !room }),
-      onPc: screen === 'pc' ? 'true' : 'false',
-      onTv: screen === 'tv' ? 'true' : 'false',
-      roomPcStyle: roomCard(screen === 'pc'),
-      roomTvStyle: roomCard(screen === 'tv'),
-      pickPc: () => this.setState({ screen: 'pc', room: false }),
-      pickTv: () => this.setState({ screen: 'tv', room: false }),
-      pickWin: () => this.setState({ screen: 'win', room: false }),
+
+      tabs: [['details', selComp.name], ['bible', 'Bible'], ['medias', 'Médias'], ['texte', 'Texte']].map(([id, label]) => ({
+        label, sel: s.tab === id ? 'true' : 'false', pick: () => this.setState({ tab: id }), style: tabStyle(s.tab === id),
+      })),
+      tabDetails: s.tab === 'details', tabBible: s.tab === 'bible', tabMedias: s.tab === 'medias', tabTexte: s.tab === 'texte',
+      selName: selComp.name,
+      details: selComp.items.map((it, i) => ({
+        label: it.label, kind: this.kindLabel(it.kind), item: it,
+        live: !s.over && !s.reading && s.live.c === s.sel && s.live.i === i,
+        show: () => this.setState({ live: { c: s.sel, i }, over: null, reading: null }),
+        style: 'display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 10px; cursor: pointer; background: #18213F; border: ' + (!s.over && !s.reading && s.live.c === s.sel && s.live.i === i ? '2px solid #F6F2E8' : '1px solid #253055') + ';',
+      })),
+      detailsEmpty: selComp.items.length === 0,
+
+      viewBooks: s.bview === 'books', viewChapters: s.bview === 'chapters', viewChapter: s.bview === 'chapter',
+      hasBook: s.bview !== 'books', hasChapter: s.bview === 'chapter', bookName: s.book, chapter: s.chapter,
+      toBooks: () => this.setState({ bview: 'books' }),
+      toChapters: () => this.setState({ bview: 'chapters' }),
+      goPs23: () => this.setState({ book: 'Psaumes', chapter: 23, bview: 'chapter' }),
+      segAT: seg(s.testament === 'AT'), segNT: seg(s.testament === 'NT'),
+      showAT: () => this.setState({ testament: 'AT' }), showNT: () => this.setState({ testament: 'NT' }),
+      books: (s.testament === 'AT' ? AT : NT).map(([name]) => ({ name, pick: () => this.setState({ book: name, bview: 'chapters' }) })),
+      chapters: Array.from({ length: bookCh }, (_, i) => ({ n: i + 1, pick: () => this.setState({ chapter: i + 1, bview: 'chapter' }) })),
+      noText: !isPs23,
+      verses: isPs23 ? this.ps23.map((text, i) => {
+        const on = s.reading === i + 1;
+        return {
+          n: i + 1, text,
+          show: () => this.setState({ reading: i + 1, readKind: s.readKind || 'full', over: null }),
+          add: () => addTo(this.verseItem(i + 1, 'full')),
+          style: 'display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 10px; background: ' + (on ? '#253055' : '#18213F') + '; border: ' + (on ? '2px solid #F6F2E8' : '1px solid #253055') + ';',
+        };
+      }) : [],
+
+      medias: [
+        { item: { kind: 'full', ref: 'SAMEDI 22 NOVEMBRE · 15 H', text: 'Conférence des jeunes', label: 'Affiche conférence' } },
+        { item: { kind: 'full', ref: 'DIMANCHE 21 DÉCEMBRE', text: 'Culte de Noël', label: 'Affiche Noël' } },
+      ].map((m) => ({ ...m, show: () => this.setState({ over: m.item, reading: null }), add: () => addTo(m.item) })),
+
+      tTitle: s.tTitle, tBody: s.tBody,
+      typeTitle: (e) => this.setState({ tTitle: e.target.value }),
+      typeBody: (e) => this.setState({ tBody: e.target.value }),
+      showText: () => this.setState({ over: { kind: 'full', ref: (s.tTitle || '').toUpperCase(), text: s.tBody, label: s.tTitle }, reading: null }),
+      targets: s.comps.map((c, i) => ({ i, name: c.name, sel: i === s.target })),
+      pickTarget: (e) => this.setState({ target: Number(e.target.value) }),
+      addText: () => {
+        const item = { kind: 'full', ref: (s.tTitle || '').toUpperCase(), text: s.tBody, label: s.tTitle || 'Texte' };
+        const comps = s.comps.map((c, i) => (i === s.target ? { ...c, items: [...c.items, item] } : c));
+        this.setState({ comps, sel: s.target, tab: 'details' });
+      },
     };
   }
 }
