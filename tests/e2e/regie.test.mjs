@@ -138,6 +138,12 @@ try {
   await app.click(".chapter-grid >> text=/^3$/");
   await app.waitForSelector(".verse-row[data-verse='16']:has-text('tant aimé le monde')");
   await check(true, "Bible complète : Livres › Jean › 3 → Jean 3:16 (Louis Segond 1910)");
+  await app.locator(".verse-row[data-verse='14']").evaluate((e) => e.scrollIntoView({ block: "start" }));
+  const shown = await app.evaluate(() => {
+    const box = document.querySelector(".center-scroll").getBoundingClientRect();
+    return [...document.querySelectorAll(".verse-row")].filter((r) => { const b = r.getBoundingClientRect(); return b.top >= box.top - 1 && b.bottom <= box.bottom + 1; }).length;
+  });
+  await check(shown >= 4, `au moins 4 versets visibles d'un coup dans la liste (${shown}, fenêtre 1366 × 820)`);
   await app.click(".moment:has-text('Prédication')");
   await app.click(".add-btn:has-text('Verset')");
   await app.click(".verse-row[data-verse='16'] .icon-btn");

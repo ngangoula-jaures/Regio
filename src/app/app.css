@@ -274,14 +274,14 @@ button.cam:hover { border-color: #3a4775; }
 .book-grid button, .chapter-grid button { min-height: 42px; padding: 0 12px; border: 1px solid transparent; border-radius: 9px; background: var(--regio-nuit-2); font-size: var(--regio-texte-md); text-align: left; }
 .chapter-grid button { text-align: center; padding: 0; }
 .book-grid button:hover, .chapter-grid button:hover { background: var(--regio-survol); border-color: #3a4775; }
-.verse-list { display: grid; gap: 6px; }
-.verse-row { display: flex; gap: 8px; align-items: flex-start; padding: 12px 12px 12px 14px; border-radius: 12px; background: transparent; border: 2px solid transparent; transition: background .15s; }
+.verse-list { display: grid; gap: 2px; }
+.verse-row { display: flex; gap: 8px; align-items: flex-start; padding: 7px 8px 7px 12px; border-radius: 12px; background: transparent; border: 2px solid transparent; transition: background .15s; }
 .verse-row:hover { background: var(--regio-nuit-2); }
 .verse-row.is-live { background: var(--regio-nuit-2); border-color: var(--regio-ivoire); }
-.verse-main { flex: 1; display: flex; gap: 14px; border: 0; background: transparent; text-align: left; padding: 0; }
-.verse-num { flex: none; width: 28px; padding-top: 4px; font-size: 13px; font-weight: 600; color: var(--regio-ardoise); }
+.verse-main { flex: 1; display: flex; gap: 12px; border: 0; background: transparent; text-align: left; padding: 0; }
+.verse-num { flex: none; width: 26px; padding-top: 3px; font-size: 12.5px; font-weight: 600; color: var(--regio-ardoise); }
 .verse-num.wide { width: auto; min-width: 90px; }
-.verse-main .verse-text { font-family: var(--regio-font-ecritures); font-size: 19px; line-height: 1.5; }
+.verse-main .verse-text { font-family: var(--regio-font-ecritures); font-size: 16px; line-height: 1.45; }
 .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
 .media-card { display: grid; gap: 10px; padding: 10px; border-radius: 14px; background: var(--regio-nuit-2); border: 1px solid var(--regio-nuit-3); }
 .media-show { padding: 0; border: 0; border-radius: 9px; overflow: hidden; background: transparent; }
@@ -335,3 +335,4 @@ button.cam:hover { border-color: #3a4775; }
 /* Les vignettes ne se « glissent » pas toutes seules : c'est la carte entière qu'on déplace. */
 .item-card img, .slide-card img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 .layout-cap { margin-top: 2px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--regio-ardoise); }
+.verse-row .icon-btn { width: 30px; height: 30px; }
