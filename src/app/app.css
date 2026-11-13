@@ -412,3 +412,22 @@ button.cam:hover { border-color: #3a4775; }
 .vu { display: grid; gap: 5px; }
 .vu > span { position: relative; height: 8px; border-radius: 4px; background: var(--regio-nuit); overflow: hidden; }
 .vu > span > span { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 4px; background: linear-gradient(90deg, var(--regio-pret) 0%, var(--regio-pret) 70%, var(--regio-attention) 90%); transition: width .08s linear; }
+
+/* ---------- Le son : suit l'image / son gardé ---------- */
+.cam-tile-wrap { position: relative; min-width: 0; display: grid; }
+.keep-btn { position: absolute; top: 13px; right: 13px; z-index: 2; display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 9px; border-radius: 99px; border: 1px solid rgba(246, 242, 232, .35); background: rgba(14, 21, 48, .82); color: var(--regio-texte-doux); font-size: 11.5px; font-weight: 600; opacity: 0; transition: opacity .15s, background .15s; }
+.cam-tile-wrap:hover .keep-btn, .keep-btn:focus-visible, .keep-btn.is-kept { opacity: 1; }
+.keep-btn:hover { background: var(--regio-nuit-3); color: var(--regio-ivoire); }
+.keep-btn.is-kept { border-color: transparent; background: var(--regio-ivoire); color: var(--regio-nuit); font-weight: 700; letter-spacing: .03em; }
+.cam-tiles.is-compact .keep-btn { top: 10px; right: 10px; }
+.cam-tile-wrap.is-kept .cam-tile { box-shadow: inset 0 0 0 2px rgba(246, 242, 232, .55); }
+.sound-state { display: inline-flex; align-items: center; gap: 6px; margin-left: 6px; padding: 3px 10px; border-radius: 99px; background: var(--regio-nuit-2); font-size: 12.5px; color: var(--regio-ardoise); }
+.sound-state.is-kept { color: var(--regio-ivoire); background: var(--regio-nuit-3); font-weight: 600; }
+.sound-state button { border: 0; background: transparent; padding: 0 0 0 6px; color: var(--regio-ivoire); text-decoration: underline; font-size: 12.5px; font-weight: 600; }
+.cam-strip-head { align-items: center; min-width: 0; }
+.cam-strip-head h2 { flex: none; }
+.cam-strip-head .note { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cam-strip-head .sound-state, .cam-strip-head .ghost-btn { flex: none; white-space: nowrap; }
+.cam-strip-head .spacer { flex: 1 0 0; }
+.cam-tiles.is-compact .keep-text { display: none; }
+.cam-tiles.is-compact .keep-btn { width: 26px; padding: 0; justify-content: center; }

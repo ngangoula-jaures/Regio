@@ -114,8 +114,13 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
 - **Son** : OBS ne crée PAS toujours ses sources audio au 1er lancement (vu sur le PC de dev : aucune entrée spéciale) →
   Regio crée `Regio - Son` (`wasapi_input_capture`, `device_id: "default"` = périphérique d'enregistrement par défaut de
   Windows) dans la scène de sortie ; elle fait partie des sources FIXES (jamais masquée au changement de caméra).
-  Testé le 2026-11-13 : 1er direct Facebook réel OK pour l'image, mais sans son → corrigé. À faire : choisir le
-  périphérique dans Regio (table de mixage USB vs micro intégré).
+  Testé le 2026-11-13 : direct Facebook réel OK (image + son). À faire : choisir le périphérique dans Regio.
+- **Le son suit l'image** (validé par l'utilisateur : le micro le plus proche de ce qu'on montre) : la caméra affichée
+  donne le son — un téléphone = son micro ; une caméra du PC (webcam/HDMI) = `Regio - Son`. **« Garder ce son »**
+  (cadenas sur chaque vignette, `obs.ts setKeptAudio`) : le son de cette caméra reste au direct quelle que soit l'image
+  (ex. montrer l'assemblée en entendant le prédicateur) — sa source reste ACTIVE mais déplacée hors du cadre
+  (positionX = 4 × largeur), les autres sont coupées (`SetInputMute`). Rappel « Son gardé : X · Libérer » ; libéré
+  tout seul si la caméra disparaît. Test : `npm run test:multiphone`.
 - Facebook : `SetStreamServiceSettings` rtmp_custom `rtmps://live-api-s.facebook.com:443/rtmp/` + clé (avant chaque départ).
 - Test : `npm run test:live` (faux OBS : StartStream/Record, GetStreamStatus, niveaux sonores) ; vrai OBS :
   `C:\dev\regio-test\live-real.mjs` (profil + enregistrement de 4 s) et `live-wizard.mjs` (assistant dans l'app).

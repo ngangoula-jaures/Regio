@@ -86,6 +86,8 @@ export function startFakeObs(port = 4466) {
             r = { imageData: "data:image/svg+xml;base64," + Buffer.from(svg).toString("base64") };
           }
           break;
+        case "SetInputMute": (state.mutes ??= {})[d.inputName] = d.inputMuted; break;
+        case "SetSceneItemTransform": { const it = items(d.sceneName).find((x) => x.sceneItemId === d.sceneItemId); if (it) it.transform = { ...it.transform, ...d.sceneItemTransform }; break; }
         case "SetStreamServiceSettings": state.service = d; break;
         case "StartStream": state.stream = { start: Date.now() }; break;
         case "StopStream": state.stream = null; break;

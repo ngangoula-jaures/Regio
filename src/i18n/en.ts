@@ -63,6 +63,13 @@ export const en: Messages = {
     start: "Start the service",
   },
   regie: {
+    soundFollows: "Sound: follows the picture",
+    soundKeep: "Keep the sound of “{name}” whatever the picture",
+    soundRelease: "Stop keeping the sound of “{name}” (sound will follow the picture)",
+    soundKeepShort: "Keep this sound",
+    soundKept: "SOUND KEPT",
+    soundKeptLine: "Sound kept: {name}",
+    soundReleaseShort: "Release",
     layoutCaption: "Verses and texts",
     camKey: "key {n}",
     camReady: "READY · under the full screen",

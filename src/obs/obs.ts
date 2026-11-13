@@ -355,8 +355,37 @@ export class ObsController {
   /** Masque toutes les caméras : le fond de secours s'affiche. */
   async deactivateCameras(): Promise<void> {
     for (const it of await this.sceneItems()) {
-      if (FIXED.has(it.sourceName) || !it.sceneItemEnabled) continue;
+      if (FIXED.has(it.sourceName) || !it.sceneItemEnabled || it.sourceName === this.keptAudio) continue;
       await this.ws.call("SetSceneItemEnabled", { sceneName: SCENE, sceneItemId: it.sceneItemId, sceneItemEnabled: false });
+    }
+    this.shown = null;
+    await this.applyAudio();
+  }
+
+  // ---------- Le son ----------
+  // Par défaut, LE SON SUIT L'IMAGE : la caméra affichée donne le son (un téléphone = son micro ; une caméra du PC,
+  // webcam ou HDMI = le son du PC / de la table de mixage). On peut GARDER le son d'une caméra : il reste au direct
+  // quelle que soit l'image (ex. montrer l'assemblée en entendant le prédicateur, grâce au téléphone près de lui).
+
+  /** Caméra dont on garde le son (null : le son suit l'image). */
+  keptAudio: string | null = null;
+  /** Caméra actuellement affichée. */
+  private shown: string | null = null;
+
+  async setKeptAudio(source: string | null): Promise<void> {
+    this.keptAudio = source;
+    if (this.shown) await this.activateCamera(this.shown);
+    else await this.deactivateCameras();
+  }
+
+  /** Une seule source de son à la fois : celle qu'on garde, sinon celle de la caméra affichée. */
+  private async applyAudio() {
+    const owner = this.keptAudio ?? this.shown;
+    const ownerIsPhone = !!owner?.startsWith(PHONE_QR_PREFIX);
+    const mute = (inputName: string, inputMuted: boolean) => this.ws.call("SetInputMute", { inputName, inputMuted }).catch(() => {});
+    await mute(SOUND, ownerIsPhone);
+    for (const it of await this.sceneItems()) {
+      if (it.sourceName.startsWith(PHONE_QR_PREFIX)) await mute(it.sourceName, it.sourceName !== owner);
     }
   }
 
@@ -382,13 +411,20 @@ export class ObsController {
         boundsHeight: CANVAS_H,
       },
     });
+    const kept = this.keptAudio;
     for (const it of await this.sceneItems()) {
       if (FIXED.has(it.sourceName)) continue;
-      const enabled = it.sourceName === sourceName;
+      // La caméra dont on garde le son reste active (sinon OBS coupe son son)… mais hors du cadre, donc invisible.
+      const enabled = it.sourceName === sourceName || it.sourceName === kept;
       if (it.sceneItemEnabled !== enabled) {
         await this.ws.call("SetSceneItemEnabled", { sceneName: SCENE, sceneItemId: it.sceneItemId, sceneItemEnabled: enabled });
       }
+      if (it.sourceName === kept && kept !== sourceName) {
+        await this.ws.call("SetSceneItemTransform", { sceneName: SCENE, sceneItemId: it.sceneItemId, sceneItemTransform: { positionX: CANVAS_W * 4, positionY: 0 } });
+      }
     }
+    this.shown = sourceName;
+    await this.applyAudio();
     await this.reorder();
   }
 

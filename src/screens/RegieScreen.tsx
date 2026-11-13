@@ -170,6 +170,11 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   // ---------- Caméras ----------
   const cams: Camera[] = [...(studio.cameras ?? []), ...studio.phoneCams];
   const covered = covers(studio.current);
+  // La caméra dont on gardait le son a disparu (téléphone déconnecté) : le son suit de nouveau l'image.
+  const camKeys = cams.map((c) => c.source).join("|");
+  useEffect(() => {
+    if (studio.keptAudio && !cams.some((c) => c.source === studio.keptAudio)) studio.keepAudio(null).catch(() => {});
+  }, [camKeys, studio.keptAudio]); // eslint-disable-line react-hooks/exhaustive-deps
   /** Un clic (ou touche 1 à 6) met la caméra à l'écran : un bandeau reste par-dessus, un plein écran s'efface. */
   const pickCamera = (cam: Camera) => {
     studio.chooseMain(cam.source).catch(() => {});

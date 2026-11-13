@@ -69,6 +69,13 @@ export const fr = {
     start: "Commencer le culte",
   },
   regie: {
+    soundFollows: "Son : suit l'image",
+    soundKeep: "Garder le son de « {name} » quelle que soit l'image",
+    soundRelease: "Ne plus garder le son de « {name} » (le son suivra l'image)",
+    soundKeepShort: "Garder ce son",
+    soundKept: "SON GARDÉ",
+    soundKeptLine: "Son gardé : {name}",
+    soundReleaseShort: "Libérer",
     layoutCaption: "Versets et textes",
     camKey: "touche {n}",
     camReady: "PRÊTE · sous le plein écran",

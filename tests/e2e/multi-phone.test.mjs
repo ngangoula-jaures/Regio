@@ -76,6 +76,26 @@ try {
   await app.waitForSelector(".cam-tile.is-on:has-text('Téléphone 2')");
   const on = obs.state.items["Regio - Sortie"].filter((i) => i.sceneItemEnabled && !["Regio - Fond", "Regio - Contenu", "Regio - Son"].includes(i.sourceName)).map((i) => i.sourceName);
   await check(on.length === 1 && on[0] === "Regio - Téléphone QR 2", `régie : bascule sur le téléphone 2 (${on.join(", ")})`);
+  // --- Le son suit l'image ; « Garder ce son » ---
+  const mutes = () => obs.state.mutes ?? {};
+  // Le moteur vidéo reçoit les ordres un instant après l'écran : on attend que l'état soit atteint.
+  const until = async (cond, ms = 4000) => { for (const end = Date.now() + ms; Date.now() < end; await new Promise((r) => setTimeout(r, 100))) if (cond()) return true; return cond(); };
+  const item = (n) => obs.state.items["Regio - Sortie"].find((i) => i.sourceName === n);
+  await check(await until(() => mutes()["Regio - Téléphone QR 2"] === false && mutes()["Regio - Son"] === true && mutes()["Regio - Téléphone QR 1"] === true),
+    "son qui suit l'image : téléphone 2 affiché → on entend le téléphone 2 seulement (PC et téléphone 1 coupés)");
+  await app.hover(".cam-tile-wrap:has-text('Téléphone 1')");
+  await app.click(".cam-tile-wrap:has-text('Téléphone 1') .keep-btn");
+  await app.waitForSelector(".sound-state.is-kept:has-text('Son gardé : Téléphone 1')");
+  await check(await until(() => item("Regio - Téléphone QR 1").sceneItemEnabled && item("Regio - Téléphone QR 1").transform?.positionX >= 1920 && mutes()["Regio - Téléphone QR 1"] === false && mutes()["Regio - Téléphone QR 2"] === true),
+    "« Garder ce son » sur le téléphone 1 : son son passe, son image reste hors du cadre ; le téléphone 2 (affiché) est coupé");
+  await app.click(".cam-tile:has-text('Cam Link 4K')");
+  await app.waitForSelector(".cam-tile.is-on:has-text('Cam Link 4K')");
+  await check(await until(() => mutes()["Regio - Son"] === true && mutes()["Regio - Téléphone QR 1"] === false && item("Regio - Téléphone QR 1").sceneItemEnabled),
+    "on montre une autre caméra (celle du PC) : on entend TOUJOURS le téléphone 1");
+  await app.click(".sound-state >> text=Libérer");
+  await app.waitForSelector(".sound-state:has-text(\"Son : suit l'image\")");
+  await check(await until(() => mutes()["Regio - Son"] === false && !item("Regio - Téléphone QR 1").sceneItemEnabled),
+    "« Libérer » : le son suit de nouveau l'image (caméra du PC → son du PC)");
   console.log("TOUS LES TESTS PASSENT");
   clearInterval(syncReceivers);
 } catch (e) {

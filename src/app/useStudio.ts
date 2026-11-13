@@ -116,6 +116,13 @@ export function useStudio() {
     setMainCamera(source);
   }, []);
 
+  /** Caméra dont on garde le son (null : le son suit l'image). */
+  const [keptAudio, setKeptAudio] = useState<string | null>(null);
+  const keepAudio = useCallback(async (source: string | null) => {
+    setKeptAudio(source);
+    await obs.current.setKeptAudio(source);
+  }, []);
+
   const cameraShot = useCallback((source: string) => obs.current.sourceShot(source, 480), []);
 
   // ---------- Téléphone (QR code) ----------
@@ -267,6 +274,8 @@ export function useStudio() {
     detectCameras,
     mainCamera,
     chooseMain,
+    keptAudio,
+    keepAudio,
     cameraShot,
     server,
     refreshServer,
