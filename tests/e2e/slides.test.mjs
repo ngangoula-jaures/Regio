@@ -55,7 +55,7 @@ try {
   const shown = async (n) => {
     await render.waitForFunction((n) => decodeURIComponent(document.querySelector(".layer.in img")?.getAttribute("src") ?? "").includes(`Diapo ${n}<`), n, { timeout: 5000 });
   };
-  await app.click("text=Commencer le culte");
+  await app.click("role=button[name='Commencer']");
 
   await app.click(".moment:has-text('Louange')");
   await check((await app.textContent(".item-card:has-text('Chants du dimanche') .item-kind")).includes("Présentation · 3 diapos"), "la présentation est UN contenu « Présentation · 3 diapos »");
@@ -80,8 +80,9 @@ try {
   await app.click(".slide-card[data-slide='0']");
   await shown(1);
   await app.keyboard.press("ArrowLeft");
-  await render.waitForSelector(".layer.in .standby-title:has-text('Bienvenue')");
-  await check(true, "clic sur la vignette 1 : diapo 1 ; ← : contenu précédent (moment d'avant)");
+  await render.waitForTimeout(600);
+  await shown(1);
+  await check((await app.locator(".moment.is-live:has-text('Louange')").count()) === 1, "clic sur la vignette 1 : diapo 1 ; ← au début du moment : rien ne change (on ne quitte pas le moment)");
 
   await check(errors.length === 0, `aucune erreur de page ${errors.join(" | ")}`);
   console.log("TOUS LES TESTS PASSENT");

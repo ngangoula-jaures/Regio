@@ -34,7 +34,7 @@ try {
   await app.goto(BASE);
   await app.fill("#port", "4466");
   await app.click("text=Se connecter");
-  await app.waitForSelector("text=Préparation du culte");
+  await app.waitForSelector("text=Préparation du direct");
   await app.waitForSelector("button:has-text('Choisir les caméras du jour'):not([disabled])", { timeout: 8000 });
   await check(await app.isVisible("text=Écran 2 · 1280 × 720"), "démarrage : écran de la salle trouvé (écran 2)");
   await check(await app.isVisible("text=2 caméra(s) trouvée(s)"), "démarrage : 2 caméras trouvées");
@@ -96,7 +96,11 @@ try {
   // --- Régie v3 ---
   const live = async () => (await render.locator(".layer.in").last().innerText().catch(() => "")).replace(/\s+/g, " ");
   const waitRender = (sel) => render.waitForSelector(`.layer.in ${sel}`, { timeout: 6000 });
-  await app.click("text=Commencer le culte");
+  await app.click("role=button[name='Commencer']");
+  // 1er lancement : Regio demande quel programme préparer (église, live, vide).
+  await app.waitForSelector("text=Que préparez-vous ?");
+  await check((await app.locator(".template-card").count()) === 3, "1er lancement : choix du programme de départ (culte, live/émission, vide)");
+  await app.click(".template-card:has-text(\"Un culte d'église\")");
   await app.waitForSelector(".moment.is-live:has-text('Écran d')");
   await waitRender(".standby-title");
   await check(true, "régie : le 1er moment (écran d'attente) est à l'écran");
@@ -125,8 +129,8 @@ try {
   await check((await render.locator(".layer.in .text-title, .layer.in .full").count()) === 0, "espace : le 1er contenu du moment s'affiche DIRECTEMENT sur la caméra (jamais en plein écran)");
   await app.click(".layout-toggle >> text=En plein écran");
   await waitRender(".text-title");
-  await check((await app.textContent(".moment.is-live")).includes("Prédication") && (await app.textContent(".next-btn")).includes("Contenu suivant"),
-    "« En plein écran » : le même texte passe en plein écran, on reste dans le déroulé");
+  await check((await app.textContent(".moment.is-live")).includes("Prédication") && (await app.textContent(".next-btn")).includes("Choisir le moment suivant"),
+    "« En plein écran » : le même texte passe en plein écran, on reste dans le programme");
 
   await app.click(".add-btn:has-text('Texte')");
   await app.fill("#ttitle", "Culte de Noël");
@@ -141,9 +145,18 @@ try {
   await app.keyboard.press("Space");
   await waitRender(".text-title:has-text('Culte de Noël')");
   await check(true, "espace : contenu suivant du moment (le texte ajouté)");
+  // ← → restent dans le moment ; espace en fin de moment CHOISIT le moment suivant, l'appui d'après l'affiche.
+  await app.keyboard.press("ArrowRight");
+  await render.waitForTimeout(400);
+  await check((await app.locator(".moment.is-live:has-text('Prédication')").count()) === 1 && (await app.locator(".moment.is-selected:has-text('Prédication')").count()) === 1,
+    "→ en fin de moment : rien ne change (les flèches ← → ne quittent jamais le moment)");
+  await check((await app.textContent(".next-btn")).includes("Choisir le moment suivant"), "en fin de moment, le bouton annonce « Choisir le moment suivant »");
+  await app.keyboard.press("Space");
+  await app.waitForSelector(".moment.is-selected:has-text('Offrandes')");
+  await check((await app.locator(".moment.is-live:has-text('Prédication')").count()) === 1, "espace en fin de moment : « Offrandes » est choisi, rien ne change à l'écran");
   await app.keyboard.press("Space");
   await app.waitForSelector(".moment.is-live:has-text('Offrandes')");
-  await check(true, "fin du moment : on enchaîne sur le 1er contenu du moment suivant");
+  await check(true, "espace encore : le 1er contenu d'« Offrandes » s'affiche");
 
   await app.click(".add-btn:has-text('Verset')");
   await app.fill("#bible-q", "ps 23 1");
@@ -257,7 +270,7 @@ try {
   await app.fill("#port", "4466");
   await app.click("text=Se connecter");
   await app.click("button:has-text('Choisir les caméras du jour'):not([disabled])", { timeout: 8000 });
-  await app.click("text=Commencer le culte");
+  await app.click("role=button[name='Commencer']");
   await app.waitForSelector(".moment:has-text('Témoignages')");
   await app.click(".moment:has-text('Prédication')");
   await check((await app.locator(".item-card").count()) === 3, "après redémarrage : moment « Témoignages » et contenus de « Prédication » retrouvés");

@@ -23,7 +23,8 @@ try {
   await app.fill("#port", "4471");
   await app.click("text=Se connecter");
   await app.click("button:has-text('Choisir les caméras du jour'):not([disabled])", { timeout: 20000 });
-  await app.click("text=Commencer le culte");
+  await app.click("role=button[name='Commencer']");
+  await app.click(".template-card:has-text(\"Un culte d'église\")");
 
   // --- Vumètre : le son du moteur vidéo arrive ---
   await app.waitForFunction(() => parseFloat(document.querySelector(".vu > span > span")?.style.width || "0") > 30, null, { timeout: 5000 });
@@ -98,7 +99,7 @@ try {
   await app.fill("#port", "4471");
   await app.click("text=Se connecter");
   await app.click("button:has-text('Choisir les caméras du jour'):not([disabled])", { timeout: 20000 });
-  await app.click("text=Commencer le culte");
+  await app.click("role=button[name='Commencer']");
   await app.waitForSelector(".live-target:has-text('Facebook · 720p')");
   await app.click("button.live-go");
   await check(await app.isChecked(".record-choice input"), "après redémarrage : réglages retenus, dernier choix « enregistrer » coché");

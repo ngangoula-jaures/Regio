@@ -8,7 +8,7 @@ export type Content =
   | { kind: "text"; layout: Layout; title: string; body: string }
   | { kind: "image"; src: string; name: string } // src = adresse de l'image (médias)
   // Présentation importée (PowerPoint) : une image par diapo ; `index` = diapo affichée.
-  | { kind: "slides"; name: string; slides: string[]; index: number }
+  | { kind: "slides"; name: string; slides: string[]; index: number; source?: "pdf" }
   | { kind: "standby"; title: string; subtitle: string }; // écran d'attente / logo
 
 /** Identifiant de chaque affichage : permet à la page render de lancer un fondu à chaque changement. */

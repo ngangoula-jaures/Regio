@@ -46,13 +46,39 @@ export function kindOf(c: Content): KindKey {
       return c.layout === "lower" ? "lower" : "fullText";
   }
 }
-export const kindLabel = (c: Content) => (c.kind === "slides" ? t("kinds.slides", { n: c.slides.length }) : t(`kinds.${kindOf(c)}` as MessageKey));
+export const kindLabel = (c: Content) =>
+  c.kind === "slides" ? t(c.source === "pdf" ? "kinds.pages" : "kinds.slides", { n: c.slides.length }) : t(`kinds.${kindOf(c)}` as MessageKey);
 
 export function standby(): Content {
   return { kind: "standby", title: t("defaults.standbyTitle"), subtitle: t("defaults.standbySubtitle") };
 }
 
-/** Déroulé de départ pour une nouvelle église (modifiable : ajouter, renommer, supprimer). */
+/** Programmes de départ proposés au 1er lancement (tout se modifie ensuite). */
+export type Template = "service" | "show" | "empty";
+
+export function templateLibrary(tpl: Template): Library {
+  if (tpl === "service") return defaultLibrary();
+  const camera = (label: string): PlanItem => ({ id: uid(), label, content: { kind: "none" } });
+  const welcome = { id: uid(), name: t("defaults.welcome"), items: [{ id: uid(), label: t("kinds.standby"), content: standby() }] };
+  if (tpl === "empty") return { version: 1, media: [], moments: [welcome] };
+  return {
+    version: 1,
+    media: [],
+    moments: [
+      welcome,
+      { id: uid(), name: t("templates.intro"), items: [camera(t("kinds.camera"))] },
+      { id: uid(), name: t("templates.main"), items: [camera(t("kinds.camera"))] },
+      { id: uid(), name: t("templates.questions"), items: [camera(t("kinds.camera"))] },
+      {
+        id: uid(),
+        name: t("templates.outro"),
+        items: [{ id: uid(), label: t("kinds.standby"), content: { kind: "standby", title: t("templates.thanks"), subtitle: "" } }],
+      },
+    ],
+  };
+}
+
+/** Programme de départ d'une église (modifiable : ajouter, renommer, supprimer). */
 function defaultLibrary(): Library {
   const camera = (label: string): PlanItem => ({ id: uid(), label, content: { kind: "none" } });
   const text = (label: string, title: string, body: string, layout: "lower" | "full" = "full"): PlanItem => ({
@@ -80,10 +106,22 @@ const DOC = "library";
 /** Bibliothèque chargée au démarrage, enregistrée automatiquement à chaque modification. */
 export function useLibrary() {
   const [lib, setLib] = useState<Library | null>(null);
+  /** 1er lancement (rien d'enregistré) : on demande quel programme de départ préparer. */
+  const [fresh, setFresh] = useState(false);
   const timer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
-    loadDoc<Library>(DOC).then((saved) => setLib(saved && saved.version === 1 ? saved : defaultLibrary()));
+    loadDoc<Library>(DOC).then((saved) => {
+      if (saved && saved.version === 1) setLib(saved);
+      else setFresh(true);
+    });
+  }, []);
+
+  const start = useCallback((tpl: Template) => {
+    const l = templateLibrary(tpl);
+    setLib(l);
+    setFresh(false);
+    saveDoc(DOC, l).catch(() => {});
   }, []);
 
   const update = useCallback((fn: (l: Library) => Library) => {
@@ -96,5 +134,5 @@ export function useLibrary() {
     });
   }, []);
 
-  return { lib, update };
+  return { lib, update, fresh, start };
 }

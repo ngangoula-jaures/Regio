@@ -1,7 +1,14 @@
-# Regio — Régie de culte (anciennement « DiffChurch »)
+# Regio — la régie de vos directs (anciennement « DiffChurch »)
 
-Logiciel desktop (Windows d'abord, fonctionne hors ligne) qui permet à n'importe quel membre du
-service communication d'une église de gérer un culte de bout en bout :
+**Positionnement (décidé par l'utilisateur le 2026-11-13)** : outil de régie **gratuit, open source, simple, fiable et
+multiplateforme** pour **tous ceux qui orchestrent un direct** sur Internet : églises (le besoin d'origine, qui reste la
+priorité : Regio doit y répondre COMPLÈTEMENT), mais aussi streamers, créateurs TikTok/YouTube/Facebook, associations…
+On continue à développer pour les églises ; ce qui rend Regio utile ailleurs est bienvenu tant que ça reste dans ce
+cadre. Conséquences : vocabulaire NEUTRE par défaut dans l'interface (« direct », « programme », « moment ») ; le
+vocabulaire d'église vit dans le programme de départ « Un culte d'église » ; la caméra du PC est optionnelle.
+
+Logiciel desktop (Windows d'abord, fonctionne hors ligne) qui permet de gérer un direct de bout en bout
+(à l'origine : le service communication d'une église et son culte) :
 projection locale (HDMI), diffusion en direct (Facebook, YouTube, TikTok…), Bible intégrée,
 affiches/annonces, diapos type PowerPoint (avec import .pptx), une ou plusieurs caméras.
 
@@ -144,11 +151,17 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   (déroulé, Bible, Texte) — la mise en page enregistrée dans un contenu est ignorée ; changer le choix pendant qu'un
   verset/texte est à l'écran le bascule sans quitter le déroulé ni la lecture suivie. Aperçus et libellés suivent.
   Réordonner : SEULE la poignée se saisit (un clic tremblé sur une carte doit l'afficher, pas la déplacer).
-- **Navigation** — DEUX navigations séparées (exigence de l'utilisateur) :
-  CHOISIR un moment (clic dans le déroulé, ↑ / ↓) n'affiche RIEN, ses contenus s'ouvrent à droite ;
-  AFFICHER = clic sur un contenu, ou Suivant / espace / → (contenu suivant ; si un autre moment est choisi :
-  son 1er contenu, bouton « Afficher « <moment> » ») et Précédent / ←. Lecture biblique : Suivant / ← = versets.
-  Échap = caméra. Les moments vides sont sautés en fin de moment.
+- **Navigation** — DEUX axes séparés (exigence de l'utilisateur, précisée le 2026-11-13) :
+  ↑ / ↓ (ou clic dans le Programme) = CHOISIR un moment, n'affiche RIEN ; ← / → = contenus (diapos, versets) DU moment,
+  JAMAIS de passage au moment voisin. Suivant (bouton or) / espace : contenu suivant ; en fin de moment, CHOISIT le
+  moment suivant non vide (bouton « Choisir le moment suivant », touches « espace ou ↓ »), l'appui d'après l'affiche ;
+  si un autre moment est choisi : « Afficher « <moment> » ». Lecture biblique : ← → = versets. Échap = caméra.
+- **Programme** (ex-« Déroulé », renommé : clair pour un culte comme pour un live). 1er lancement : choix du programme
+  de départ (`TemplateChooser.tsx`, `templateLibrary` : culte d'église / live-émission / vide). « Créer : Verset ·
+  Texte » et « Importer : PowerPoint · PDF · Image » (bien distincts). **PDF** : pdf.js (`src/app/pdf.ts`, chargé à la
+  demande, hors ligne) → une page = une diapo (`slides` avec `source: "pdf"`, « PDF · n pages », « Page suivante »).
+  Textes et écran d'attente MODIFIABLES (crayon → `EditItemDialog`, mis à jour à l'écran s'il y est). **Toute suppression
+  demande confirmation** (`components/Modal.tsx` → `ConfirmDialog`, focus sur « Annuler »). Test : `npm run test:programme`.
 - Bible / Images / Texte gardés montés (la Bible garde son chapitre). « Ajouter à <moment> » partout ; toast de confirmation.
 - **Bible LSG 1910 complète** (domaine public, eBible.org) : `public/bible/lsg1910.json` (4,2 Mo, construit par
   `scripts/build_bible.py`) ; `src/bible/bible.ts` = chargement, références (« jn 3:16 », « 1jn 4 8 », « ps 23 »,

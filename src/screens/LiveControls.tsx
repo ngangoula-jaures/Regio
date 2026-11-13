@@ -2,7 +2,8 @@
 // confirmation (avec le choix d'enregistrer), santé, fin, alertes et vumètre.
 // Rouge = UNIQUEMENT « en direct » ; l'or reste au bouton Suivant de la régie.
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Modal } from "../components/Modal";
 import { Radio, X } from "lucide-react";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { t } from "../i18n";
@@ -22,25 +23,6 @@ import {
 } from "../app/useLive";
 
 const fmt = (n: number, digits = 1) => n.toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits });
-
-// ---------------------------------------------------------------- Fenêtre (modale)
-
-function Modal(props: { label: string; width?: number; children: ReactNode; onClose: () => void }) {
-  const box = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    box.current?.querySelector<HTMLElement>("input, button.btn-default, button")?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && props.onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  return (
-    <div className="modal-back">
-      <div className="modal" role="dialog" aria-modal="true" aria-label={props.label} ref={box} style={{ width: `min(${props.width ?? 560}px, 100%)` }} data-own-keys>
-        {props.children}
-      </div>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------- En-tête
 

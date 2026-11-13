@@ -72,7 +72,8 @@ try {
 
   await app.click(".cam:has-text('Cam Link 4K') >> text=Utiliser cette caméra");
   await app.waitForSelector(".cam:not(.is-off):has-text('Cam Link 4K')");
-  await app.click("text=Commencer le culte");
+  await app.click("role=button[name='Commencer']");
+  await app.click(".template-card:has-text(\"Un culte d'église\")");
   await app.waitForSelector(".cam-tile:has-text('Téléphone 2')");
   await app.click(".cam-tile:has-text('Téléphone 2')");
   await app.waitForSelector(".cam-tile.is-on:has-text('Téléphone 2')");

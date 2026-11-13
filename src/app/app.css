@@ -446,3 +446,21 @@ button.cam:hover { border-color: #3a4775; }
 .regie { height: 100%; overflow: clip; }
 .plan, .center-scroll, .output, .overlay, .modal, .health-panel { overscroll-behavior: contain; }
 .startup { justify-content: safe center; }
+.btn-danger { border-color: rgba(255, 107, 107, .55); color: #ffb3b3; font-weight: 600; }
+.btn-danger:hover { background: rgba(255, 107, 107, .14); }
+.add-bar { gap: 10px 22px; }
+.add-group { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+/* ---------- 1er lancement : programme de départ ---------- */
+.templates .startup-head { display: grid; gap: 10px; max-width: 640px; }
+.templates h1 { font-size: 32px; letter-spacing: -0.02em; }
+.templates .startup-head p { color: var(--regio-ardoise); font-size: var(--regio-texte-lg); line-height: 1.55; }
+.template-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 260px)); gap: 18px; }
+.template-card { display: grid; justify-items: start; gap: 10px; padding: 24px 22px; border-radius: 16px; border: 1px solid var(--regio-nuit-3); background: var(--regio-nuit-2); text-align: left; transition: transform .18s ease, border-color .15s, box-shadow .18s; }
+.template-card:hover { transform: translateY(-3px); border-color: #5a6896; box-shadow: 0 12px 30px rgba(0, 0, 0, .3); }
+.template-card svg { color: var(--regio-ivoire); }
+.template-card strong { font-size: 17px; }
+.template-card span { font-size: var(--regio-texte-sm); line-height: 1.5; color: var(--regio-ardoise); }
+@media (max-width: 900px) { .template-grid { grid-template-columns: minmax(0, 1fr); } }
+.item-card:not(.is-slides) .item-edit { position: absolute; right: 46px; bottom: 10px; width: 30px; height: 30px; }
+.item-card:has(.item-edit) .item-text { padding-right: 78px; }

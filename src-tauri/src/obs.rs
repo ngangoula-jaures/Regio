@@ -421,7 +421,7 @@ fn write_live_profile(cfg: &Path, paths: &LaunchPaths) -> Result<(), String> {
     fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let ini = format!(
         "[General]\r\nName=Regio\r\n\r\n\
-         [Output]\r\nMode=Advanced\r\nFilenameFormatting=Culte %CCYY-%MM-%DD %hh-%mm\r\nReconnect=true\r\nRetryDelay=2\r\n\
+         [Output]\r\nMode=Advanced\r\nFilenameFormatting=Regio %CCYY-%MM-%DD %hh-%mm\r\nReconnect=true\r\nRetryDelay=2\r\n\
          MaxRetries=60\r\nDynamicBitrate=true\r\nDelayEnable=false\r\nLowLatencyEnable=false\r\n\r\n\
          [AdvOut]\r\nApplyServiceSettings=true\r\nEncoder={enc}\r\nUseRescale={rescale}\r\nRescaleRes={w}x{h}\r\nTrackIndex=1\r\n\
          RecType=Standard\r\nRecFilePath={videos}\r\nRecFormat2=hybrid_mp4\r\nRecUseRescale=false\r\nRecTracks=1\r\n\

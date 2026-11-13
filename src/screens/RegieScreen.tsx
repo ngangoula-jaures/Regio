@@ -22,6 +22,7 @@ import { uid, useLibrary } from "../app/library";
 import { usePolledImage, type Camera, type Studio } from "../app/useStudio";
 import { storeImage } from "../shared/storage";
 import { CameraStrip } from "./CameraStrip";
+import { TemplateChooser } from "./TemplateChooser";
 import { useLive } from "../app/useLive";
 import { HealthPanel, LiveBanners, LiveConfirmDialog, LiveEndedDialog, LiveHeader, LiveSetupDialog, LiveStopDialog, SoundMeter } from "./LiveControls";
 import { RoomButton } from "./RoomDialog";
@@ -47,7 +48,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   const [fbStep, setFbStep] = useState(false);
   const keysOn = active && !liveDlg && !stream.ended;
 
-  const { lib, update } = useLibrary();
+  const { lib, update, fresh, start } = useLibrary();
   const [bible, setBible] = useState<Bible | null>(null);
   useEffect(() => {
     loadBible().then(setBible).catch(() => {});
@@ -135,7 +136,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
     }
     const len = (m: number) => moments[m]?.items.length ?? 0;
     // Moment choisi différent de celui à l'écran : Suivant affiche son 1er contenu.
-    if (dir > 0 && (!live || live.m !== sel)) return sel < moments.length ? { kind: "pos", pos: { m: sel, i: 0 } } : null;
+    if (dir > 0 && (!live || live.m !== sel)) return len(sel) > 0 ? { kind: "pos", pos: { m: sel, i: 0 } } : null;
     if (!live) return null;
     // Présentation à l'écran : diapo suivante / précédente.
     const n = slideCount(live);
@@ -143,18 +144,28 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
     if (n && s >= 0 && s < n) return { kind: "pos", pos: { ...live, s } };
     // En reculant dans une présentation, on arrive sur sa dernière diapo.
     const at = (m: number, i: number): Pos => ({ m, i, s: dir < 0 ? Math.max(0, slideCount({ m, i }) - 1) : 0 });
+    // ← → restent DANS le moment (exigence de l'utilisateur) : on ne passe jamais au moment voisin par là.
     const i = live.i + dir;
     if (i >= 0 && i < len(live.m)) return { kind: "pos", pos: at(live.m, i) };
-    // Au bout du moment : moment voisin (les moments vides sont sautés).
-    for (let m = live.m + dir; m >= 0 && m < moments.length; m += dir) {
-      if (len(m) > 0) return { kind: "pos", pos: at(m, dir > 0 ? 0 : len(m) - 1) };
-    }
     return null;
   };
-  const go = (dir: 1 | -1) => {
+  /** Prochain moment non vide après le moment choisi (pour « Suivant » en fin de moment). */
+  const nextFilled = (() => {
+    for (let m = sel + 1; m < moments.length; m++) if ((moments[m]?.items.length ?? 0) > 0) return m;
+    return null;
+  })();
+  /**
+   * Suivant / Précédent. `toNextMoment` (bouton Suivant, barre d'espace) : en fin de moment, CHOISIT le moment
+   * suivant (comme ↓, sans rien afficher) ; l'appui d'après l'affiche. Les flèches ← → ne quittent jamais le moment.
+   */
+  const go = (dir: 1 | -1, toNextMoment = false) => {
     const target = step(dir);
     if (!target) {
-      if (mode === "reading" && dir > 0) setMode("items"); // fin du chapitre : on reprend le déroulé
+      if (mode === "reading" && dir > 0) setMode("items"); // fin du chapitre : on reprend le programme
+      else if (dir > 0 && toNextMoment && nextFilled !== null) {
+        setSel(nextFilled);
+        setView("moment");
+      }
       return;
     }
     if (target.kind === "verse") read(target.r);
@@ -191,7 +202,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
       if ((e.target as HTMLElement).closest("input, textarea, select, [contenteditable], [data-own-keys]")) return;
       if (e.key === " " || e.key === "ArrowRight") {
         e.preventDefault();
-        keys.current.go(1);
+        keys.current.go(1, e.key === " ");
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         keys.current.go(-1);
@@ -216,8 +227,12 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   // ---------- Ce qui est à l'écran, ce qui vient ----------
   const cur = studio.current;
   const nextTarget = step(1);
+  // Fin du moment : « Suivant » choisira le moment suivant ; on montre déjà son 1er contenu.
+  const nextMomentStep = !nextTarget && mode !== "reading" && nextFilled !== null;
   const upcoming: { content: Content; label: string } | null = !nextTarget
-    ? null
+    ? nextMomentStep
+      ? { content: contentAt({ m: nextFilled!, i: 0, s: 0 }) ?? { kind: "none" }, label: posLabel({ m: nextFilled!, i: 0, s: 0 }) }
+      : null
     : nextTarget.kind === "verse"
       ? { content: verseContent(bible!, nextTarget.r, layoutMode), label: refLabel(bible!, nextTarget.r) }
       : { content: contentAt(nextTarget.pos) ?? { kind: "none" }, label: posLabel(nextTarget.pos) };
@@ -228,12 +243,14 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
         ? t("regie.offPlan")
         : posLabel(live);
   const nextWord =
-    mode === "reading"
+    nextMomentStep
+      ? t("regie.nextMomentGo")
+      : mode === "reading"
       ? t("regie.nextVerse")
       : !live || live.m !== sel
         ? t("regie.showMoment", { name: moments[sel]?.name ?? "" })
         : !offPlan && (live.s ?? 0) < slideCount(live) - 1
-          ? t("regie.nextSlide")
+          ? t(moments[live.m]?.items[live.i]?.content.kind === "slides" && (moments[live.m].items[live.i].content as { source?: string }).source === "pdf" ? "regie.nextPage" : "regie.nextSlide")
           : t("regie.nextItem");
 
   /** Choisir la mise en page : pour la suite, et tout de suite si un verset ou un texte est à l'écran
@@ -255,7 +272,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
     return () => window.clearInterval(id);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!lib) return <div className="startup" />;
+  if (!lib) return fresh ? <TemplateChooser onChoose={start} /> : <div className="startup" />;
   const liveMoment = !offPlan && live ? live.m : -1;
 
   const addMoment = () => {
@@ -288,6 +305,13 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
       const i = live.i === from ? to : live.i > from && live.i <= to ? live.i - 1 : live.i < from && live.i >= to ? live.i + 1 : live.i;
       setLive({ ...live, i });
     }
+  };
+
+  /** Contenu modifié (texte, écran d'attente) : enregistré, et mis à jour tout de suite s'il est à l'écran. */
+  const editItem = (idx: number, content: Content, label: string) => {
+    const m = sel;
+    update((l) => ({ ...l, moments: l.moments.map((x, i) => (i === m ? { ...x, items: x.items.map((it, j) => (j === idx ? { ...it, content, label } : it)) } : x)) }));
+    if (!offPlan && live && live.m === m && live.i === idx) studio.show(withLayout(content));
   };
 
   const removeItem = (idx: number) => {
@@ -406,6 +430,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
             onDeleteMoment={deleteMoment}
             onMoveItem={moveItem}
             onRemoveItem={removeItem}
+            onEditItem={editItem}
           />
         </div>
 
@@ -452,10 +477,10 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
 
           {/* Les commandes : les éléments les plus visibles de l'écran. */}
           <div className="controls">
-            <button type="button" className="btn btn-primary next-btn" onClick={() => go(1)} disabled={!nextTarget}>
+            <button type="button" className="btn btn-primary next-btn" onClick={() => go(1, true)} disabled={!nextTarget && !nextMomentStep}>
               <span>
                 {nextWord}
-                <small>{t("regie.nextKeys")}</small>
+                <small>{nextMomentStep ? t("regie.nextMomentKeys") : t("regie.nextKeys")}</small>
               </span>
               <ArrowRight size={28} strokeWidth={2.2} />
             </button>

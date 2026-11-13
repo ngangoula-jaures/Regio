@@ -3,7 +3,7 @@
 // (plus d'onglets sur le côté), avec « Retour à « moment » ».
 
 import { useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
-import { BookOpen, Check, ChevronLeft, ChevronRight, GripVertical, ImagePlus, Pencil, Plus, Presentation, Search, Trash2, Type, X } from "lucide-react";
+import { BookOpen, Check, FileText, ChevronLeft, ChevronRight, GripVertical, ImagePlus, Pencil, Plus, Presentation, Search, Trash2, Type, X } from "lucide-react";
 import { t } from "../i18n";
 import type { Content, Layout } from "../shared/content";
 
@@ -15,6 +15,8 @@ import { kindLabel, uid, type Library, type MediaEntry, type Moment, type PlanIt
 import { loadImageAsDataUrl } from "../app/images";
 import { PRESENTATION_ACCEPT, importErrorKind, importPresentation } from "../shared/storage";
 import { inTauri } from "../shared/server";
+import { ConfirmDialog, Modal } from "../components/Modal";
+import { pdfToImages } from "../app/pdf";
 
 export type View = "moment" | "bible" | "media" | "text";
 
@@ -32,7 +34,7 @@ export const verseContent = (bible: Bible, p: Reading, layout: "lower" | "full")
   version: "LSG 1910",
 });
 
-type Importing = { name: string; done: number; total: number } | null;
+type Importing = { name: string; done: number; total: number; what: "ppt" | "pdf" } | null;
 
 // ---------------------------------------------------------------- Le moment, en grand
 
@@ -49,6 +51,8 @@ function MomentView(props: {
   importing: Importing;
   importError: string | null;
   onImport: (file: File) => void;
+  onImportPdf: (file: File) => void;
+  onEditItem: (i: number, content: Content, label: string) => void;
   onRename: (name: string) => void;
   onDelete: () => void;
   onRemoveItem: (i: number) => void;
@@ -114,8 +118,10 @@ function MomentView(props: {
       <GripVertical size={16} strokeWidth={1.75} />
     </button>
   );
+  const [confirmRemove, setConfirmRemove] = useState<number | null>(null);
+  const [editing, setEditing] = useState<number | null>(null);
   const remove = (i: number, label: string) => (
-    <button type="button" className="icon-btn item-remove" aria-label={t("regie.removeItem", { name: label })} title={t("regie.removeItem", { name: label })} onClick={() => props.onRemoveItem(i)}>
+    <button type="button" className="icon-btn item-remove" aria-label={t("regie.removeItem", { name: label })} title={t("regie.removeItem", { name: label })} onClick={() => setConfirmRemove(i)}>
       <X size={15} strokeWidth={2} />
     </button>
   );
@@ -127,6 +133,28 @@ function MomentView(props: {
 
   return (
     <div className="view">
+      {editing !== null && moment.items[editing] && (
+        <EditItemDialog
+          item={moment.items[editing]}
+          onClose={() => setEditing(null)}
+          onSave={(content, label) => {
+            props.onEditItem(editing, content, label);
+            setEditing(null);
+          }}
+        />
+      )}
+      {confirmRemove !== null && moment.items[confirmRemove] && (
+        <ConfirmDialog
+          title={t("regie.confirmRemoveTitle")}
+          text={t("regie.confirmRemoveText", { name: moment.items[confirmRemove].label, moment: moment.name })}
+          confirm={t("regie.confirmRemove")}
+          onCancel={() => setConfirmRemove(null)}
+          onConfirm={() => {
+            props.onRemoveItem(confirmRemove);
+            setConfirmRemove(null);
+          }}
+        />
+      )}
       <div className="view-head">
         {renaming ? (
           <form
@@ -165,56 +193,79 @@ function MomentView(props: {
       </div>
 
       {confirm && (
-        <div className="banner banner-error">
-          <span style={{ flex: 1 }}>{t("regie.deleteMomentConfirm", { name: moment.name, n: moment.items.length })}</span>
-          <button type="button" className="btn btn-sm" onClick={() => setConfirm(false)}>
-            {t("regie.cancel")}
-          </button>
-          <button type="button" className="btn btn-sm" onClick={props.onDelete}>
-            {t("regie.confirmDelete")}
-          </button>
-        </div>
+        <ConfirmDialog
+          title={t("regie.deleteMoment")}
+          text={t("regie.deleteMomentConfirm", { name: moment.name, n: moment.items.length })}
+          confirm={t("regie.confirmDelete")}
+          onCancel={() => setConfirm(false)}
+          onConfirm={() => {
+            setConfirm(false);
+            props.onDelete();
+          }}
+        />
       )}
 
-      {/* Ajouter au moment : remplace les onglets de droite. */}
+      {/* CRÉER (verset, texte) ou IMPORTER (PowerPoint, PDF, image) : remplace les onglets de droite. */}
       <div className="add-bar">
-        <span className="note">{t("regie.addLabel")}</span>
-        <button type="button" className="add-btn" onClick={() => props.onOpen("bible")}>
-          <BookOpen size={17} strokeWidth={1.75} />
-          {t("regie.addVerse")}
-        </button>
-        {inTauri && (
+        <span className="add-group">
+          <span className="note">{t("regie.addLabel")}</span>
+          <button type="button" className="add-btn" onClick={() => props.onOpen("bible")}>
+            <BookOpen size={17} strokeWidth={1.75} />
+            {t("regie.addVerse")}
+          </button>
+          <button type="button" className="add-btn" onClick={() => props.onOpen("text")}>
+            <Type size={17} strokeWidth={1.75} />
+            {t("regie.addText")}
+          </button>
+        </span>
+        <span className="add-group">
+          <span className="note">{t("regie.importLabel")}</span>
+          {inTauri && (
+            <label className="add-btn" aria-disabled={!!props.importing}>
+              <Presentation size={17} strokeWidth={1.75} />
+              {t("regie.addPpt")}
+              <input
+                type="file"
+                accept={PRESENTATION_ACCEPT}
+                disabled={!!props.importing}
+                aria-label={t("panels.importPpt", { name: moment.name })}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = "";
+                  if (f) props.onImport(f);
+                }}
+              />
+            </label>
+          )}
           <label className="add-btn" aria-disabled={!!props.importing}>
-            <Presentation size={17} strokeWidth={1.75} />
-            {t("regie.addPpt")}
+            <FileText size={17} strokeWidth={1.75} />
+            {t("regie.addPdf")}
             <input
               type="file"
-              accept={PRESENTATION_ACCEPT}
+              accept=".pdf,application/pdf"
               disabled={!!props.importing}
-              aria-label={t("panels.importPpt", { name: moment.name })}
+              aria-label={t("panels.importPdf", { name: moment.name })}
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 e.target.value = "";
-                if (f) props.onImport(f);
+                if (f) props.onImportPdf(f);
               }}
             />
           </label>
-        )}
-        <button type="button" className="add-btn" onClick={() => props.onOpen("media")}>
-          <ImagePlus size={17} strokeWidth={1.75} />
-          {t("regie.addImage")}
-        </button>
-        <button type="button" className="add-btn" onClick={() => props.onOpen("text")}>
-          <Type size={17} strokeWidth={1.75} />
-          {t("regie.addText")}
-        </button>
+          <button type="button" className="add-btn" onClick={() => props.onOpen("media")}>
+            <ImagePlus size={17} strokeWidth={1.75} />
+            {t("regie.addImage")}
+          </button>
+        </span>
       </div>
       {props.importing && (
         <div className="import-progress" role="status">
           <span>
-            {props.importing.total
-              ? t("panels.importProgress", { name: props.importing.name, done: props.importing.done, total: props.importing.total })
-              : t("panels.importStarting", { name: props.importing.name })}
+            {props.importing.what === "pdf"
+              ? t("panels.pdfProgress", { name: props.importing.name, done: props.importing.done, total: props.importing.total || "…" })
+              : props.importing.total
+                ? t("panels.importProgress", { name: props.importing.name, done: props.importing.done, total: props.importing.total })
+                : t("panels.importStarting", { name: props.importing.name })}
           </span>
           <span className="bar">
             <span style={{ width: `${props.importing.total ? (100 * props.importing.done) / props.importing.total : 4}%` }} />
@@ -239,7 +290,7 @@ function MomentView(props: {
                   <button type="button" className="item-main slides-title" onClick={click(() => props.onShow(i, 0))} aria-current={live ? "true" : undefined}>
                     <span className="item-label">{it.label}</span>
                     <span className="item-kind">
-                      {kindLabel(c)} · {t("regie.slidesHelp")}
+                      {kindLabel(c)} · {t(c.source === "pdf" ? "regie.pagesHelp" : "regie.slidesHelp")}
                     </span>
                   </button>
                   {live && <span className="plan-badge">{t("regie.onScreenSlide", { n: props.liveSlide + 1 })}</span>}
@@ -254,7 +305,7 @@ function MomentView(props: {
                         type="button"
                         className={`slide-card ${on ? "is-live" : ""}`}
                         data-slide={k}
-                        aria-label={t("panels.slideN", { n: k + 1 })}
+                        aria-label={t(c.source === "pdf" ? "panels.pageN" : "panels.slideN", { n: k + 1 })}
                         aria-current={on ? "true" : undefined}
                         onClick={click(() => props.onShow(i, k))}
                       >
@@ -262,7 +313,7 @@ function MomentView(props: {
                           <img src={src} alt="" loading="lazy" />
                         </span>
                         <span className="slide-foot">
-                          {t("panels.slideN", { n: k + 1 })}
+                          {t(c.source === "pdf" ? "panels.pageN" : "panels.slideN", { n: k + 1 })}
                           {on && <span className="plan-badge">{t("regie.onScreen")}</span>}
                         </span>
                       </button>
@@ -285,12 +336,58 @@ function MomentView(props: {
                 </span>
               </button>
               {grip(i, it.label)}
+              {(c.kind === "text" || c.kind === "standby") && (
+                <button type="button" className="icon-btn item-edit" aria-label={t("regie.editItem", { name: it.label })} title={t("regie.editItem", { name: it.label })} onClick={() => setEditing(i)}>
+                  <Pencil size={14} strokeWidth={1.9} />
+                </button>
+              )}
               {remove(i, it.label)}
             </div>
           );
         })}
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------- Modifier un texte / l'écran d'attente
+
+function EditItemDialog(props: { item: PlanItem; onClose: () => void; onSave: (content: Content, label: string) => void }) {
+  const c = props.item.content;
+  const isStandby = c.kind === "standby";
+  const [title, setTitle] = useState(c.kind === "text" || c.kind === "standby" ? c.title : "");
+  const [body, setBody] = useState(c.kind === "text" ? c.body : c.kind === "standby" ? c.subtitle : "");
+  const next: Content = c.kind === "standby" ? { ...c, title, subtitle: body } : c.kind === "text" ? { ...c, title, body } : c;
+  return (
+    <Modal label={t("regie.editTitle")} width={760} onClose={props.onClose}>
+      <h2>{t("regie.editTitle")}</h2>
+      <div className="text-editor">
+        <div className="text-form">
+          <div className="field">
+            <label htmlFor="edit-title">{t("panels.textTitle")}</label>
+            <input id="edit-title" className="input" value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+          <div className="field">
+            <label htmlFor="edit-body">{isStandby ? t("regie.editSubtitle") : t("panels.textBody")}</label>
+            <textarea id="edit-body" className="input" value={body} onChange={(e) => setBody(e.target.value)} />
+          </div>
+        </div>
+        <div>
+          <p className="field-label">{t("panels.preview")}</p>
+          <div className="text-preview">
+            <MiniScreen content={next} />
+          </div>
+        </div>
+      </div>
+      <div className="modal-actions">
+        <button type="button" className="btn btn-lg" onClick={props.onClose}>
+          {t("regie.cancel")}
+        </button>
+        <button type="button" className="btn btn-lg btn-ivory" onClick={() => props.onSave(next, isStandby ? props.item.label : title.trim() || props.item.label)}>
+          {t("regie.save")}
+        </button>
+      </div>
+    </Modal>
   );
 }
 
@@ -444,6 +541,7 @@ function BibleView(props: { bible: Bible | null; reading: Reading | null; selNam
 
 function MediaView(props: { media: MediaEntry[]; selName: string; store: (dataUrl: string) => Promise<string>; onAddMedia: (m: MediaEntry[]) => void; onRemove: (id: string) => void; onShow: (c: Content) => void; onAddTo: (c: Content, label: string) => void }) {
   const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<MediaEntry | null>(null);
   const add = async (files: FileList | null) => {
     if (!files) return;
     setBusy(true);
@@ -467,6 +565,18 @@ function MediaView(props: { media: MediaEntry[]; selName: string; store: (dataUr
         </div>
         <p className="view-sub">{t("panels.importHelp")}</p>
       </div>
+      {confirmDelete && (
+        <ConfirmDialog
+          title={t("regie.confirmMediaTitle")}
+          text={t("regie.confirmMediaText", { name: confirmDelete.name })}
+          confirm={t("regie.confirmMedia")}
+          onCancel={() => setConfirmDelete(null)}
+          onConfirm={() => {
+            props.onRemove(confirmDelete.id);
+            setConfirmDelete(null);
+          }}
+        />
+      )}
       <div className="media-grid">
         {props.media.map((m) => {
           const content: Content = { kind: "image", src: m.src, name: m.name };
@@ -479,7 +589,7 @@ function MediaView(props: { media: MediaEntry[]; selName: string; store: (dataUr
                 <span className="item-label" style={{ flex: 1 }}>
                   {m.name}
                 </span>
-                <button type="button" className="icon-btn" aria-label={t("panels.removeMedia", { name: m.name })} onClick={() => props.onRemove(m.id)}>
+                <button type="button" className="icon-btn" aria-label={t("panels.removeMedia", { name: m.name })} onClick={() => setConfirmDelete(m)}>
                   <Trash2 size={15} strokeWidth={1.75} />
                 </button>
               </div>
@@ -570,6 +680,7 @@ export function ContentArea(props: {
   onDeleteMoment: () => void;
   onMoveItem: (from: number, to: number) => void;
   onRemoveItem: (i: number) => void;
+  onEditItem: (i: number, content: Content, label: string) => void;
 }) {
   const { lib, update, sel, view } = props;
   const moment = lib.moments[sel];
@@ -589,14 +700,32 @@ export function ContentArea(props: {
     window.setTimeout(() => setToast(null), 1800);
   };
 
+  /** PDF → UN contenu « présentation » (une page = une diapo) ajouté au moment choisi. */
+  const importPdf = async (file: File) => {
+    const m = sel;
+    const name = file.name.replace(/\.[^.]+$/, "");
+    setImportError(null);
+    setImporting({ name, done: 0, total: 0, what: "pdf" });
+    try {
+      const pages = await pdfToImages(file, (done, total) => setImporting({ name, done, total, what: "pdf" }));
+      const slides: string[] = [];
+      for (const p of pages) slides.push(await props.storeImage(p));
+      addToMoment(m, { kind: "slides", name, slides, index: 0, source: "pdf" }, name);
+    } catch (e) {
+      setImportError(t("panels.pdfFailed", { message: String(e instanceof Error ? e.message : e) }));
+    } finally {
+      setImporting(null);
+    }
+  };
+
   /** PowerPoint → UN contenu « présentation » ajouté au moment choisi. */
   const importPpt = async (file: File) => {
     const m = sel;
     const name = file.name.replace(/\.[^.]+$/, "");
     setImportError(null);
-    setImporting({ name, done: 0, total: 0 });
+    setImporting({ name, done: 0, total: 0, what: "ppt" });
     try {
-      const r = await importPresentation(file, props.localBase, (done, total) => setImporting({ name, done, total }));
+      const r = await importPresentation(file, props.localBase, (done, total) => setImporting({ name, done, total, what: "ppt" }));
       addToMoment(m, { kind: "slides", name: r.name, slides: r.slides, index: 0 }, r.name);
     } catch (e) {
       const kind = importErrorKind(e);
@@ -634,6 +763,8 @@ export function ContentArea(props: {
           importing={importing}
           importError={importError}
           onImport={importPpt}
+          onImportPdf={importPdf}
+          onEditItem={props.onEditItem}
           onRename={(name) => update((l) => ({ ...l, moments: l.moments.map((x, i) => (i === sel ? { ...x, name } : x)) }))}
           onDelete={props.onDeleteMoment}
           onRemoveItem={props.onRemoveItem}
