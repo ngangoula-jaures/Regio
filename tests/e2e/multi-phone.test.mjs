@@ -74,7 +74,7 @@ try {
   await app.waitForSelector(".cam-tile:has-text('Téléphone 2')");
   await app.click(".cam-tile:has-text('Téléphone 2')");
   await app.waitForSelector(".cam-tile.is-on:has-text('Téléphone 2')");
-  const on = obs.state.items["Regio - Sortie"].filter((i) => i.sceneItemEnabled && !["Regio - Fond", "Regio - Contenu"].includes(i.sourceName)).map((i) => i.sourceName);
+  const on = obs.state.items["Regio - Sortie"].filter((i) => i.sceneItemEnabled && !["Regio - Fond", "Regio - Contenu", "Regio - Son"].includes(i.sourceName)).map((i) => i.sourceName);
   await check(on.length === 1 && on[0] === "Regio - Téléphone QR 2", `régie : bascule sur le téléphone 2 (${on.join(", ")})`);
   console.log("TOUS LES TESTS PASSENT");
   clearInterval(syncReceivers);

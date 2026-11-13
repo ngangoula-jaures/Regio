@@ -111,6 +111,11 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   forçable par `regio-encoder.txt` à côté d'OBS), direct redimensionné (480p 1,5 / 720p 3 / 1080p 6 Mb/s, CBR, image clé 2 s),
   `DynamicBitrate`, reconnexion (60 essais), enregistrement MP4 hybride dans Vidéos\Regio ; `user.ini [Basic]` → profil Regio.
   Changer la qualité → commande `restart_engine` (redémarrage voulu, pas compté comme plantage ; Regio se reconnecte seul).
+- **Son** : OBS ne crée PAS toujours ses sources audio au 1er lancement (vu sur le PC de dev : aucune entrée spéciale) →
+  Regio crée `Regio - Son` (`wasapi_input_capture`, `device_id: "default"` = périphérique d'enregistrement par défaut de
+  Windows) dans la scène de sortie ; elle fait partie des sources FIXES (jamais masquée au changement de caméra).
+  Testé le 2026-11-13 : 1er direct Facebook réel OK pour l'image, mais sans son → corrigé. À faire : choisir le
+  périphérique dans Regio (table de mixage USB vs micro intégré).
 - Facebook : `SetStreamServiceSettings` rtmp_custom `rtmps://live-api-s.facebook.com:443/rtmp/` + clé (avant chaque départ).
 - Test : `npm run test:live` (faux OBS : StartStream/Record, GetStreamStatus, niveaux sonores) ; vrai OBS :
   `C:\dev\regio-test\live-real.mjs` (profil + enregistrement de 4 s) et `live-wizard.mjs` (assistant dans l'app).

@@ -9,6 +9,10 @@ export const SCENE = "Regio - Sortie";
 export const BACKGROUND = "Regio - Fond";
 export const OVERLAY = "Regio - Contenu";
 export const CAMERA_PREFIX = "Regio - Caméra";
+/** Le son du culte : périphérique d'enregistrement par défaut de Windows (table de mixage USB, micro…). */
+export const SOUND = "Regio - Son";
+/** Sources toujours actives de la scène (jamais masquées quand on change de caméra). */
+const FIXED = new Set([BACKGROUND, OVERLAY, SOUND]);
 /** Préfixe des caméras téléphone « sans application » (QR code + WebRTC). */
 export const PHONE_QR_PREFIX = "Regio - Téléphone QR";
 
@@ -193,6 +197,16 @@ export class ObsController {
       await this.ensureInScene(OVERLAY);
     }
 
+    // Le son : sans lui, ni le direct ni l'enregistrement n'ont de son (OBS n'en crée pas toujours au 1er lancement).
+    if (!(await this.inputExists(SOUND))) {
+      await this.ws
+        .call("CreateInput", { sceneName: SCENE, inputName: SOUND, inputKind: "wasapi_input_capture", inputSettings: { device_id: "default" } })
+        .catch(() => {}); // pas Windows (développement) : pas de capture sonore
+    } else {
+      const id = await this.ensureInScene(SOUND).catch(() => null);
+      if (id !== null) await this.ws.call("SetSceneItemEnabled", { sceneName: SCENE, sceneItemId: id, sceneItemEnabled: true }).catch(() => {});
+    }
+
     await this.reorder();
     await this.ws.call("SetCurrentProgramScene", { sceneName: SCENE });
     await this.removeLegacy();
@@ -341,7 +355,7 @@ export class ObsController {
   /** Masque toutes les caméras : le fond de secours s'affiche. */
   async deactivateCameras(): Promise<void> {
     for (const it of await this.sceneItems()) {
-      if (it.sourceName === BACKGROUND || it.sourceName === OVERLAY || !it.sceneItemEnabled) continue;
+      if (FIXED.has(it.sourceName) || !it.sceneItemEnabled) continue;
       await this.ws.call("SetSceneItemEnabled", { sceneName: SCENE, sceneItemId: it.sceneItemId, sceneItemEnabled: false });
     }
   }
@@ -369,7 +383,7 @@ export class ObsController {
       },
     });
     for (const it of await this.sceneItems()) {
-      if (it.sourceName === BACKGROUND || it.sourceName === OVERLAY) continue;
+      if (FIXED.has(it.sourceName)) continue;
       const enabled = it.sourceName === sourceName;
       if (it.sceneItemEnabled !== enabled) {
         await this.ws.call("SetSceneItemEnabled", { sceneName: SCENE, sceneItemId: it.sceneItemId, sceneItemEnabled: enabled });

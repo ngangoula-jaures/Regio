@@ -183,6 +183,10 @@ try {
   await app.waitForSelector(".cam-tile.is-on:has-text('Cam Link 4K')");
   const en2 = enabledCams();
   await check(en2.length === 1 && en2[0].includes("Cam Link 4K"), "rangée des caméras : un clic change la caméra à l'écran");
+  const sound = obs.state.inputs.find((i) => i.inputName === "Regio - Son");
+  const soundItem = obs.state.items[SCENE].find((i) => i.sourceName === "Regio - Son");
+  await check(sound?.inputKind === "wasapi_input_capture" && sound.settings.device_id === "default" && soundItem?.sceneItemEnabled,
+    "le son du culte (périphérique d'enregistrement par défaut) est dans la sortie et reste actif après un changement de caméra");
   await app.click(".cam-tile:has-text('Webcam intégrée')"); // nom long + badge « À l'écran »
   await app.waitForSelector(".cam-tile.is-on:has-text('Webcam intégrée')");
   const overlap = await app.$$eval(".cam-tile", (tiles) =>
