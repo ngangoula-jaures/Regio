@@ -14,8 +14,11 @@ affiches/annonces, diapos type PowerPoint (avec import .pptx), une ou plusieurs 
 
 **Nom définitif : Regio** (choisi le 2026-11-12). « Regi » écarté : trop proche de **Resi** (resi.io), entreprise
 américaine de diffusion de cultes. `regio.app` pris ; `getregio.app` et `regio.church` semblent libres (à confirmer).
-**Dépôt GitHub : https://github.com/ngangoula-jaures/Regio** (branche `main`, SSH). **Privé** depuis le 2026-11-12 ;
-à repasser en public avant la candidature SignPath (réservée aux projets open source publics).
+**Dépôt GitHub : https://github.com/ngangoula-jaures/Regio** (branche `main`, SSH). **PUBLIC depuis le 2026-11-13**
+(décision de l'utilisateur, pour la v0.1). **Version 0.1.0 publiée** : https://github.com/ngangoula-jaures/Regio/releases/tag/v0.1.0
+(installeur + empreinte SHA-256 ; GitHub CLI `C:\Program Files\GitHub CLI\gh.exe` connecté au compte de l'utilisateur).
+SignPath : candidature à envoyer par l'utilisateur (texte prêt dans `C:\dev\regio-release\signpath-candidature.md`) ;
+SignPath exige en général une construction par CI (GitHub Actions) → prévoir un workflow Windows qui construit l'installeur.
 Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app supprime les anciennes scènes/sources
 `DiffChurch - …` d'OBS (après avoir créé les siennes).
 
