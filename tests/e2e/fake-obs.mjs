@@ -88,6 +88,7 @@ export function startFakeObs(port = 4466) {
           state.projector = d.monitorIndex ?? "window";
           break;
         case "GetSourceScreenshot":
+          if (state.shotFor) { r = { imageData: state.shotFor(d.sourceName, d.imageWidth ?? 1920) }; break; }
           {
             // Comme le vrai OBS : une image de la largeur demandée (ex. 480 px), en 16:9.
             const w = d.imageWidth ?? 1920, h = Math.round((w * 9) / 16);
