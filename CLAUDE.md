@@ -69,14 +69,14 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   espace = verset suivant, bandeau « Lecture suivie »). Rangée de caméras approuvée par l'utilisateur.
   La maquette v1 est devenue PUBLIQUE (partagée par l'utilisateur) : ne plus la modifier sans son accord.
 
-- **Maquette v4 « la régie en grand » (2026-11-13, EN ATTENTE de validation)** : https://claude.ai/artifact/VZqi6ZT9uSGycUEZsc2hcA
-  (copie `design/maquettes/v4/`). Demande de l'utilisateur : diapos trop petites pour être lues avant de les
-  afficher, trop d'onglets à droite, sensation d'étroitesse → refonte inspirée de **Spotify** (qu'il adore : fluidité,
-  effet de verre, interactions premium). Panneaux flottants arrondis sur fond très sombre, barres haut/bas en verre,
-  déroulé à gauche (réductible) + « Bibliothèque » (Bible, Médias, Textes) qui remplace les onglets, grande vue
-  centrale (moment = en-tête teinté + contenus en grand, présentations = grille de diapos lisibles, « Grandes
-  diapos »), à droite « À l'écran » / Ensuite / Caméras, commande en bas (Caméra, ◀, Suivant or). Recherche unique
-  en haut. + 3 propositions d'icône (le bleu nuit paraît noir dans la barre des tâches).
+- **Maquette v5 (2026-11-13, EN ATTENTE de validation)** : https://claude.ai/artifact/VZqi6ZT9uSGycUEZsc2hcA (copie
+  `design/maquettes/v5/`). La v4 « façon Spotify » a été REJETÉE : « un clone de Spotify, une app de musique, pas une
+  régie » ; fond trop sombre ; boutons principaux pas assez visibles. Gardé de la v4 : l'espace. Leçon : s'inspirer de
+  la *qualité* de Spotify (fluidité, finitions), JAMAIS de sa mise en page ni de ses codes (pochettes, ▶ au survol,
+  barres animées, en-têtes teintés). v5 = couleurs de la v3 ; trois zones : CHOISIR (déroulé) · VOIR (contenus du
+  moment en grand, diapos lisibles, « Ajouter : Verset / PowerPoint / Image / Texte » à la place des onglets de droite,
+  ouverts au centre) · DIFFUSER (à droite, toujours au même endroit : À l'écran, Suivant or très grand, Précédent,
+  Caméra seule, mise en page, Ensuite, caméras). + 3 propositions d'icône (le bleu nuit paraît noir dans la barre des tâches).
 
 ## Interface (régie v3 codée le 2026-11-13, d'après la maquette v3 validée)
 - `src/app/App.tsx` : Démarrage → Sources du jour → Régie. Une fois le culte commencé, la Régie reste montée ;
