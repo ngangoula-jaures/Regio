@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Regio · Régie v4</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&amp;family=Montserrat:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#060A18}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.app{transition:grid-template-columns .25s ease}
+.glass{background:rgba(16,24,54,.55);backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%)}
+.scroll{overflow-y:auto;scrollbar-width:thin;scrollbar-color:#2c3866 transparent}
+.ghost{transition:background .16s,color .16s,transform .16s}
+.ghost:hover{background:rgba(246,242,232,.08);color:#F6F2E8}
+.ghost:active{transform:scale(.97)}
+.moment{transition:background .16s}
+.moment:hover{background:rgba(246,242,232,.06)}
+.lib:hover{background:rgba(246,242,232,.06)}
+.lift{transition:transform .2s cubic-bezier(.2,.8,.2,1),background .2s,box-shadow .2s}
+.lift:hover{transform:translateY(-3px);background:#1B2550;box-shadow:0 14px 34px rgba(0,0,0,.35)}
+.lift:active{transform:translateY(-1px) scale(.99)}
+.fab{opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s}
+.lift:hover .fab{opacity:1;transform:none}
+.next{transition:transform .16s,background .16s,box-shadow .2s}
+.next:hover{background:#F2C86B;transform:scale(1.02);box-shadow:0 8px 28px rgba(232,180,76,.28)}
+.next:active{transform:scale(.98)}
+.round{transition:transform .16s,background .16s}
+.round:hover{transform:scale(1.06);background:#FFFFFF}
+.cam{transition:border-color .16s,transform .16s}
+.cam:hover{transform:translateY(-2px);border-color:#5a6896}
+.search:focus-within{background:rgba(246,242,232,.1);box-shadow:0 0 0 2px rgba(246,242,232,.55)}
+.verse:hover{background:rgba(246,242,232,.05)}
+.verse:hover .vadd{opacity:1}
+.vadd{opacity:0;transition:opacity .16s}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #F6F2E8;outline-offset:2px}
+.eq span{display:inline-block;width:3px;border-radius:2px;background:#F6F2E8;animation:eq 1s ease-in-out infinite}
+.eq span:nth-child(2){animation-delay:-.4s}.eq span:nth-child(3){animation-delay:-.7s}
+@keyframes eq{0%,100%{height:4px}50%{height:13px}}
+@media (max-width: 980px){.app{grid-template-columns:minmax(0,1fr)!important;height:auto!important}.app>*{grid-column:1!important}}
+</style>
+</helmet>
+
+<div class="app" style="height: 100vh; min-height: 820px; box-sizing: border-box; padding: 8px; display: grid; grid-template-columns: {{leftCol}} minmax(0, 1fr) 360px; grid-template-rows: 64px minmax(0, 1fr) 96px; gap: 8px; background: radial-gradient(1200px 600px at 18% -10%, rgba(52,78,170,.22), transparent 60%), #060A18; font-family: Inter, 'Segoe UI', sans-serif; color: #F6F2E8">
+
+  <!-- ================= Barre du haut (verre) ================= -->
+  <header class="glass" style="grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 0 14px 0 18px; border-radius: 14px">
+    <div style="display: flex; align-items: center; gap: 10px; min-width: 150px">
+      <svg width="30" height="30" viewBox="0 0 100 100" role="img" aria-label="Regio"><rect x="9.5" y="19.5" width="81" height="61" rx="15" fill="none" stroke="#F6F2E8" stroke-width="7"></rect><path d="M36.5 63 V43" fill="none" stroke="#F6F2E8" stroke-width="9" stroke-linecap="round"></path><path d="M36.5 51 C36.5 42 43.5 37 52.5 37" fill="none" stroke="#F6F2E8" stroke-width="9" stroke-linecap="round"></path><circle cx="62.5" cy="37" r="6" fill="#E8B44C"></circle></svg>
+      <span style="font-family: Sora, Inter, sans-serif; font-weight: 600; font-size: 19px; letter-spacing: -0.02em">regio</span>
+    </div>
+    <div style="display: flex; gap: 6px">
+      <button type="button" class="ghost" aria-label="Retour" onClick="{{goBack}}" style="width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(0,0,0,.28); color: #C9CEDD; display: grid; place-items: center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      </button>
+      <button type="button" class="ghost" aria-label="Suivant dans l'historique" style="width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(0,0,0,.28); color: #6F7898; display: grid; place-items: center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+      </button>
+    </div>
+    <span style="flex: 1"></span>
+    <label class="search" style="display: flex; align-items: center; gap: 12px; width: min(520px, 46vw); height: 46px; padding: 0 18px; border-radius: 999px; background: rgba(246,242,232,.07); transition: background .16s, box-shadow .16s">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9CEDD" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7.5"></circle><path d="m20.5 20.5-4.2-4.2"></path></svg>
+      <input type="search" aria-label="Rechercher" placeholder="Un verset (jn 3 16), un chant, une image…" style="flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font-size: 15px; color: #F6F2E8">
+      <span style="font-size: 12px; color: #9AA3BF; border: 1px solid #3A4568; border-radius: 6px; padding: 2px 7px">Ctrl K</span>
+    </label>
+    <span style="flex: 1"></span>
+    <span style="font-size: 13.5px; color: #9AA3BF; white-space: nowrap">Culte du dimanche 16 novembre</span>
+    <button type="button" class="ghost" style="display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 16px; border-radius: 999px; border: 0; background: rgba(0,0,0,.28); font-size: 14px; color: #F6F2E8; white-space: nowrap">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9CEDD" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><rect x="2.5" y="4" width="19" height="13" rx="2.5"></rect><path d="M8 21h8M12 17v4"></path></svg>
+      Télé de la salle
+      <span style="display: inline-flex; align-items: center; gap: 6px; color: #4CC38A; font-weight: 600"><span style="width: 7px; height: 7px; border-radius: 50%; background: #4CC38A"></span>affichée</span>
+    </button>
+  </header>
+
+  <!-- ================= Colonne gauche : déroulé + bibliothèque ================= -->
+  <nav aria-label="Déroulé du culte" style="grid-row: 2; min-height: 0; display: flex; flex-direction: column; border-radius: 14px; background: #0E1530; overflow: hidden">
+    <div style="display: flex; align-items: center; gap: 8px; padding: 18px 14px 10px 18px">
+      <button type="button" class="ghost" aria-label="{{collapseLabel}}" title="{{collapseLabel}}" onClick="{{toggleLeft}}" style="width: 34px; height: 34px; border: 0; border-radius: 8px; background: transparent; color: #C9CEDD; display: grid; place-items: center; flex: none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"></rect><path d="M9 3v18"></path></svg>
+      </button>
+      <sc-if value="{{leftWide}}" hint-placeholder-val="{{ true }}">
+        <h2 style="margin: 0; flex: 1; font-family: Sora, Inter, sans-serif; font-size: 17px; font-weight: 600">Déroulé</h2>
+        <button type="button" class="ghost" aria-label="Ajouter un moment" title="Ajouter un moment" style="width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; color: #C9CEDD; display: grid; place-items: center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>
+        </button>
+      </sc-if>
+    </div>
+    <sc-if value="{{leftWide}}" hint-placeholder-val="{{ true }}">
+      <p style="margin: 0 18px 8px; font-size: 12.5px; line-height: 1.5; color: #9AA3BF">↑ ↓ ou un clic : choisir un moment. Rien ne s'affiche tant que vous ne cliquez pas sur un contenu.</p>
+    </sc-if>
+    <div class="scroll" style="flex: 1; min-height: 0; padding: 4px 8px 8px; display: flex; flex-direction: column; gap: 2px">
+      <sc-for list="{{moments}}" as="mo" hint-placeholder-count="8">
+        <button type="button" class="moment" onClick="{{mo.pick}}" aria-current="{{mo.ariaCurrent}}" title="{{mo.name}}" style="display: flex; align-items: center; gap: 12px; padding: 8px; border: 0; border-radius: 10px; text-align: left; background: {{mo.bg}}">
+          <span style="position: relative; flex: none; width: 72px; border-radius: 7px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,.3)">
+            <dc-import name="Ecran" content="{{mo.cover}}" hint-size="72px,40.5px"></dc-import>
+          </span>
+          <sc-if value="{{leftWide}}" hint-placeholder-val="{{ true }}">
+            <span style="flex: 1; min-width: 0">
+              <span style="display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: {{mo.color}}">{{mo.name}}</span>
+              <span style="display: block; margin-top: 2px; font-size: 12.5px; color: #9AA3BF">{{mo.meta}}</span>
+            </span>
+            <sc-if value="{{mo.isLive}}" hint-placeholder-val="{{ false }}">
+              <span class="eq" aria-label="À l'écran" style="display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; margin-right: 6px"><span></span><span></span><span></span></span>
+            </sc-if>
+          </sc-if>
+        </button>
+      </sc-for>
+
+      <sc-if value="{{leftWide}}" hint-placeholder-val="{{ true }}">
+        <div style="margin: 14px 10px 6px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #6F7898">Bibliothèque</div>
+      </sc-if>
+      <sc-for list="{{libs}}" as="lb" hint-placeholder-count="3">
+        <button type="button" class="lib" onClick="{{lb.pick}}" aria-current="{{lb.ariaCurrent}}" title="{{lb.name}}" style="display: flex; align-items: center; gap: 12px; padding: 8px; border: 0; border-radius: 10px; text-align: left; background: {{lb.bg}}; transition: background .16s">
+          <span style="flex: none; width: 72px; height: 40.5px; border-radius: 7px; display: grid; place-items: center; background: {{lb.tile}}">
+            <sc-if value="{{lb.isBible}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F6F2E8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"></path><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"></path></svg></sc-if>
+            <sc-if value="{{lb.isMedia}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F6F2E8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"></path></svg></sc-if>
+            <sc-if value="{{lb.isText}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F6F2E8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3M9 20h6M12 4v16"></path></svg></sc-if>
+          </span>
+          <sc-if value="{{leftWide}}" hint-placeholder-val="{{ true }}">
+            <span style="flex: 1; min-width: 0">
+              <span style="display: block; font-size: 15px; font-weight: 600">{{lb.name}}</span>
+              <span style="display: block; margin-top: 2px; font-size: 12.5px; color: #9AA3BF">{{lb.meta}}</span>
+            </span>
+          </sc-if>
+        </button>
+      </sc-for>
+    </div>
+  </nav>
+
+  <!-- ================= Centre : la vue principale ================= -->
+  <main class="scroll" style="grid-row: 2; min-height: 0; border-radius: 14px; background: #0E1530; position: relative">
+
+    <!-- ---------- Vue « moment » ---------- -->
+    <sc-if value="{{isMomentView}}" hint-placeholder-val="{{ true }}">
+      <section style="padding: 34px 32px 26px; background: linear-gradient(180deg, {{headTint}} 0%, rgba(14,21,48,0) 100%)">
+        <div style="font-size: 12.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #C9CEDD">Moment du culte · {{selIndex}} / {{momentCount}}</div>
+        <h1 style="margin: 6px 0 0; font-family: Sora, Inter, sans-serif; font-weight: 700; font-size: 64px; line-height: 1.05; letter-spacing: -0.03em">{{selName}}</h1>
+        <div style="margin-top: 10px; font-size: 14px; color: #C9CEDD">{{selMeta}}</div>
+        <div style="margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+          <button type="button" class="round" aria-label="Afficher le 1er contenu de « {{selName}} »" title="Afficher le 1er contenu" onClick="{{showMoment}}" style="width: 56px; height: 56px; border-radius: 50%; border: 0; background: #F6F2E8; color: #0E1530; display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0,0,0,.35)">
+            <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4" fill="currentColor"></polygon></svg>
+          </button>
+          <button type="button" class="ghost" style="display: inline-flex; align-items: center; gap: 9px; height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(246,242,232,.22); background: transparent; font-size: 14px; font-weight: 600; color: #F6F2E8">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h20M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3M7 21l5-5 5 5"></path></svg>
+            Importer un PowerPoint
+          </button>
+          <button type="button" class="ghost" style="display: inline-flex; align-items: center; gap: 9px; height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(246,242,232,.22); background: transparent; font-size: 14px; font-weight: 600; color: #F6F2E8">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>
+            Ajouter un contenu
+          </button>
+          <button type="button" class="ghost" aria-label="Renommer ou supprimer ce moment" title="Plus d'options" style="width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; color: #C9CEDD; display: grid; place-items: center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg>
+          </button>
+          <span style="flex: 1"></span>
+          <div role="group" aria-label="Taille des vignettes" style="display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(0,0,0,.28)">
+            <button type="button" onClick="{{setSmall}}" aria-pressed="{{smallPressed}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 999px; font-size: 13px; font-weight: 600; background: {{smallBg}}; color: {{smallColor}}">Vue d'ensemble</button>
+            <button type="button" onClick="{{setBig}}" aria-pressed="{{bigPressed}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 999px; font-size: 13px; font-weight: 600; background: {{bigBg}}; color: {{bigColor}}">Grandes diapos</button>
+          </div>
+        </div>
+      </section>
+
+      <div style="padding: 4px 32px 40px; display: flex; flex-direction: column; gap: 30px">
+        <sc-for list="{{items}}" as="it" hint-placeholder-count="3">
+          <div>
+            <!-- Présentation : ses diapos en grand, lisibles -->
+            <sc-if value="{{it.isSlides}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px">
+                <span title="Faire glisser pour déplacer" style="color: #6F7898; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg></span>
+                <div style="flex: 1; min-width: 0">
+                  <h2 style="margin: 0; font-family: Sora, Inter, sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em">{{it.label}}</h2>
+                  <div style="margin-top: 3px; font-size: 13px; color: #9AA3BF">{{it.kind}}</div>
+                </div>
+                <sc-if value="{{it.isLive}}" hint-placeholder-val="{{ false }}">
+                  <span style="display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border-radius: 999px; background: #F6F2E8; color: #0E1530; font-size: 12px; font-weight: 700; letter-spacing: .04em">À L'ÉCRAN · {{it.liveSlide}}</span>
+                </sc-if>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax({{slideMin}}, 1fr)); gap: 16px">
+                <sc-for list="{{it.slides}}" as="sl" hint-placeholder-count="5">
+                  <button type="button" class="lift" onClick="{{sl.pick}}" aria-label="Afficher la diapo {{sl.num}}" aria-current="{{sl.ariaCurrent}}" style="position: relative; padding: 10px; border: 0; border-radius: 12px; background: {{sl.cardBg}}; text-align: left">
+                    <span style="display: block; border-radius: 8px; overflow: hidden; outline: {{sl.ring}}; outline-offset: 3px">
+                      <dc-import name="Ecran" content="{{sl.c}}" hint-size="100%,150px"></dc-import>
+                    </span>
+                    <span style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; font-size: 13px; color: #C9CEDD">
+                      <span style="font-weight: 600">Diapo {{sl.num}}</span>
+                      <sc-if value="{{sl.isLive}}" hint-placeholder-val="{{ false }}"><span class="eq" style="display: inline-flex; align-items: flex-end; gap: 2px; height: 14px"><span></span><span></span><span></span></span></sc-if>
+                    </span>
+                    <span class="fab" aria-hidden="true" style="position: absolute; right: 18px; bottom: 44px; width: 44px; height: 44px; border-radius: 50%; background: #F6F2E8; color: #0E1530; display: grid; place-items: center; box-shadow: 0 8px 20px rgba(0,0,0,.45)">
+                      <svg width="18" height="18" viewBox="0 0 24 24"><polygon points="7 4 20 12 7 20 7 4" fill="currentColor"></polygon></svg>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <!-- Contenu simple : une grande carte -->
+            <sc-if value="{{it.isSimple}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; align-items: center; gap: 12px">
+                <span title="Faire glisser pour déplacer" style="color: #6F7898; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg></span>
+                <button type="button" class="lift" onClick="{{it.pick}}" aria-current="{{it.ariaCurrent}}" style="position: relative; flex: 1; min-width: 0; display: flex; align-items: center; gap: 22px; padding: 12px; border: 0; border-radius: 14px; background: {{it.cardBg}}; text-align: left">
+                  <span style="flex: none; width: {{simpleW}}; border-radius: 9px; overflow: hidden; outline: {{it.ring}}; outline-offset: 3px">
+                    <dc-import name="Ecran" content="{{it.c}}" hint-size="100%,150px"></dc-import>
+                  </span>
+                  <span style="flex: 1; min-width: 0">
+                    <span style="display: block; font-family: Sora, Inter, sans-serif; font-size: 20px; font-weight: 600; letter-spacing: -0.01em">{{it.label}}</span>
+                    <span style="display: block; margin-top: 4px; font-size: 13.5px; color: #9AA3BF">{{it.kind}}</span>
+                    <sc-if value="{{it.isLive}}" hint-placeholder-val="{{ false }}">
+                      <span style="display: inline-flex; align-items: center; margin-top: 12px; height: 26px; padding: 0 11px; border-radius: 999px; background: #F6F2E8; color: #0E1530; font-size: 11.5px; font-weight: 700; letter-spacing: .04em">À L'ÉCRAN</span>
+                    </sc-if>
+                  </span>
+                  <span class="fab" aria-hidden="true" style="flex: none; margin-right: 10px; width: 48px; height: 48px; border-radius: 50%; background: #F6F2E8; color: #0E1530; display: grid; place-items: center; box-shadow: 0 8px 20px rgba(0,0,0,.45)">
+                    <svg width="20" height="20" viewBox="0 0 24 24"><polygon points="7 4 20 12 7 20 7 4" fill="currentColor"></polygon></svg>
+                  </span>
+                </button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ---------- Vue « Bible » ---------- -->
+    <sc-if value="{{isBibleView}}" hint-placeholder-val="{{ false }}">
+      <section style="padding: 34px 32px 22px; background: linear-gradient(180deg, rgba(70,92,170,.42) 0%, rgba(14,21,48,0) 100%)">
+        <div style="font-size: 12.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #C9CEDD">Bible · Louis Segond 1910</div>
+        <h1 style="margin: 6px 0 0; font-family: Sora, Inter, sans-serif; font-weight: 700; font-size: 64px; line-height: 1.05; letter-spacing: -0.03em">Jean 3</h1>
+        <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px">
+          <button type="button" class="ghost" style="height: 34px; padding: 0 14px; border-radius: 999px; border: 0; background: rgba(0,0,0,.28); font-size: 13.5px; color: #C9CEDD">Livres</button>
+          <button type="button" class="ghost" style="height: 34px; padding: 0 14px; border-radius: 999px; border: 0; background: rgba(0,0,0,.28); font-size: 13.5px; color: #C9CEDD">Jean</button>
+          <button type="button" class="ghost" style="height: 34px; padding: 0 14px; border-radius: 999px; border: 0; background: #F6F2E8; font-size: 13.5px; font-weight: 600; color: #0E1530">Chapitre 3</button>
+          <span style="align-self: center; margin-left: 6px; font-size: 13px; color: #9AA3BF">Un clic sur un verset l'affiche, puis Suivant (espace) passe au verset suivant.</span>
+        </div>
+      </section>
+      <div style="padding: 0 24px 40px; display: flex; flex-direction: column; gap: 2px">
+        <sc-for list="{{verses}}" as="v" hint-placeholder-count="5">
+          <div class="verse" style="display: flex; align-items: flex-start; gap: 8px; border-radius: 12px; background: {{v.bg}}; transition: background .16s">
+            <button type="button" onClick="{{v.pick}}" aria-current="{{v.ariaCurrent}}" style="flex: 1; display: flex; gap: 18px; padding: 16px 12px 16px 14px; border: 0; background: transparent; text-align: left">
+              <span style="flex: none; width: 28px; font-size: 14px; font-weight: 600; color: #9AA3BF; padding-top: 4px">{{v.num}}</span>
+              <span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 21px; line-height: 1.5; color: #F6F2E8">{{v.text}}</span>
+            </button>
+            <button type="button" class="vadd ghost" aria-label="Ajouter le verset {{v.num}} à {{selName}}" title="Ajouter à « {{selName}} »" style="flex: none; margin: 12px 10px 0 0; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(246,242,232,.22); background: transparent; font-size: 13px; color: #F6F2E8; white-space: nowrap">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>
+              {{selName}}
+            </button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ---------- Vue « Médias » ---------- -->
+    <sc-if value="{{isMediaView}}" hint-placeholder-val="{{ false }}">
+      <section style="padding: 34px 32px 22px; background: linear-gradient(180deg, rgba(150,96,60,.36) 0%, rgba(14,21,48,0) 100%)">
+        <div style="font-size: 12.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #C9CEDD">Bibliothèque</div>
+        <h1 style="margin: 6px 0 0; font-family: Sora, Inter, sans-serif; font-weight: 700; font-size: 64px; line-height: 1.05; letter-spacing: -0.03em">Médias</h1>
+        <div style="margin-top: 10px; font-size: 14px; color: #C9CEDD">Affiches, photos et présentations de l'église, toujours sous la main.</div>
+      </section>
+      <div style="padding: 4px 32px 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px">
+        <sc-for list="{{media}}" as="md" hint-placeholder-count="4">
+          <button type="button" class="lift" onClick="{{md.pick}}" style="position: relative; padding: 10px; border: 0; border-radius: 12px; background: #141C3E; text-align: left">
+            <span style="display: block; border-radius: 8px; overflow: hidden"><dc-import name="Ecran" content="{{md.c}}" hint-size="100%,140px"></dc-import></span>
+            <span style="display: block; margin-top: 10px; font-size: 14px; font-weight: 600">{{md.label}}</span>
+            <span style="display: block; margin-top: 2px; font-size: 12.5px; color: #9AA3BF">{{md.kind}}</span>
+            <span class="fab" aria-hidden="true" style="position: absolute; right: 18px; bottom: 60px; width: 44px; height: 44px; border-radius: 50%; background: #F6F2E8; color: #0E1530; display: grid; place-items: center; box-shadow: 0 8px 20px rgba(0,0,0,.45)"><svg width="18" height="18" viewBox="0 0 24 24"><polygon points="7 4 20 12 7 20 7 4" fill="currentColor"></polygon></svg></span>
+          </button>
+        </sc-for>
+        <button type="button" class="ghost" style="min-height: 200px; border-radius: 12px; border: 1.5px dashed #3A4568; background: transparent; display: grid; place-content: center; justify-items: center; gap: 10px; font-size: 14px; color: #C9CEDD">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>
+          Importer des images ou un PowerPoint
+          <span style="font-size: 12.5px; color: #9AA3BF">ou faites-les glisser ici</span>
+        </button>
+      </div>
+    </sc-if>
+
+    <!-- ---------- Vue « Textes » ---------- -->
+    <sc-if value="{{isTextView}}" hint-placeholder-val="{{ false }}">
+      <section style="padding: 34px 32px 22px; background: linear-gradient(180deg, rgba(60,130,120,.34) 0%, rgba(14,21,48,0) 100%)">
+        <div style="font-size: 12.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #C9CEDD">Bibliothèque</div>
+        <h1 style="margin: 6px 0 0; font-family: Sora, Inter, sans-serif; font-weight: 700; font-size: 64px; line-height: 1.05; letter-spacing: -0.03em">Nouveau texte</h1>
+      </section>
+      <div style="padding: 4px 32px 40px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start">
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <label style="display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; font-weight: 600; color: #C9CEDD">Titre
+            <input value="Culte de Noël" style="height: 50px; padding: 0 16px; border-radius: 12px; border: 1px solid #3A4568; background: #111933; font-size: 17px; font-weight: 500; color: #F6F2E8">
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; font-weight: 600; color: #C9CEDD">Texte
+            <textarea rows="4" style="padding: 14px 16px; border-radius: 12px; border: 1px solid #3A4568; background: #111933; font-size: 16px; line-height: 1.5; color: #F6F2E8; resize: vertical">Mercredi 24 décembre à 19 h</textarea>
+          </label>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px">
+            <button type="button" class="round" onClick="{{showText}}" style="height: 46px; padding: 0 22px; border-radius: 999px; border: 0; background: #F6F2E8; color: #0E1530; font-size: 14.5px; font-weight: 700">Afficher maintenant</button>
+            <button type="button" class="ghost" style="height: 46px; padding: 0 20px; border-radius: 999px; border: 1px solid rgba(246,242,232,.22); background: transparent; font-size: 14.5px; font-weight: 600; color: #F6F2E8">Ajouter à « {{selName}} »</button>
+          </div>
+        </div>
+        <div>
+          <div style="margin-bottom: 10px; font-size: 13.5px; font-weight: 600; color: #C9CEDD">Aperçu</div>
+          <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 18px 40px rgba(0,0,0,.4)"><dc-import name="Ecran" content="{{textPreview}}" hint-size="100%,220px"></dc-import></div>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+
+  <!-- ================= Droite : à l'écran, ensuite, caméras ================= -->
+  <aside aria-label="À l'écran" class="scroll" style="grid-row: 2; min-height: 0; border-radius: 14px; background: #0E1530; padding: 20px 18px; display: flex; flex-direction: column; gap: 22px">
+    <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px">
+        <h2 style="margin: 0; font-family: Sora, Inter, sans-serif; font-size: 16px; font-weight: 600">À l'écran</h2>
+        <span style="display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: #C9CEDD"><span class="eq" style="display: inline-flex; align-items: flex-end; gap: 2px; height: 13px"><span></span><span></span><span></span></span>dans la salle</span>
+      </div>
+      <div style="border-radius: 12px; overflow: hidden; outline: 2px solid #F6F2E8; outline-offset: 3px; box-shadow: 0 20px 44px rgba(0,0,0,.45)">
+        <dc-import name="Ecran" content="{{liveC}}" hint-size="100%,182px"></dc-import>
+      </div>
+      <div style="margin-top: 14px; font-family: Sora, Inter, sans-serif; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.25">{{liveTitle}}</div>
+      <div style="margin-top: 3px; font-size: 13.5px; color: #9AA3BF">{{liveSub}}</div>
+    </div>
+
+    <div>
+      <div style="margin-bottom: 10px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #9AA3BF">Ensuite</div>
+      <div style="display: flex; align-items: center; gap: 14px">
+        <span style="flex: none; width: 150px; border-radius: 9px; overflow: hidden; opacity: .92"><dc-import name="Ecran" content="{{nextC}}" hint-size="150px,84px"></dc-import></span>
+        <span style="min-width: 0">
+          <span style="display: block; font-size: 14.5px; font-weight: 600; line-height: 1.3">{{nextTitle}}</span>
+          <span style="display: block; margin-top: 3px; font-size: 12.5px; color: #9AA3BF">{{nextSub}}</span>
+        </span>
+      </div>
+    </div>
+
+    <div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #9AA3BF">Caméras</span>
+        <span style="font-size: 12px; color: #6F7898">un clic change l'image</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <sc-for list="{{cams}}" as="cm" hint-placeholder-count="3">
+          <button type="button" class="cam" onClick="{{cm.pick}}" aria-pressed="{{cm.pressed}}" style="padding: 6px; border-radius: 11px; border: {{cm.border}}; background: #141C3E; text-align: left">
+            <span style="display: block; border-radius: 7px; overflow: hidden"><dc-import name="Ecran" content="{{cm.c}}" hint-size="100%,80px"></dc-import></span>
+            <span style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 7px; padding: 0 2px">
+              <span style="min-width: 0; font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{cm.name}}</span>
+              <sc-if value="{{cm.on}}" hint-placeholder-val="{{ false }}"><span style="flex: none; width: 8px; height: 8px; border-radius: 50%; background: #F6F2E8"></span></sc-if>
+            </span>
+          </button>
+        </sc-for>
+        <button type="button" class="ghost" style="min-height: 110px; border-radius: 11px; border: 1.5px dashed #3A4568; background: transparent; display: grid; place-content: center; justify-items: center; gap: 6px; font-size: 12.5px; color: #C9CEDD">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>
+          Ajouter une caméra
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= Barre du bas (verre) : la commande ================= -->
+  <footer class="glass" style="grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 20px; padding: 0 18px; border-radius: 14px">
+    <div style="display: flex; align-items: center; gap: 14px; min-width: 0">
+      <span style="flex: none; width: 112px; border-radius: 8px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,.4)"><dc-import name="Ecran" content="{{liveC}}" hint-size="112px,63px"></dc-import></span>
+      <span style="min-width: 0">
+        <span style="display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{liveTitle}}</span>
+        <span style="display: block; margin-top: 2px; font-size: 12.5px; color: #9AA3BF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{liveSub}}</span>
+      </span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px">
+      <button type="button" class="ghost" onClick="{{cameraOnly}}" title="Revenir à la caméra (Échap)" style="display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 16px; border-radius: 999px; border: 0; background: rgba(0,0,0,.28); font-size: 14px; font-weight: 600; color: #C9CEDD">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 13 5.2 3.1a.5.5 0 0 0 .8-.4V8.3a.5.5 0 0 0-.8-.4L16 11"></path><rect x="2" y="6" width="14" height="12" rx="2.5"></rect></svg>
+        Caméra
+        <span style="font-size: 11.5px; color: #6F7898; font-weight: 500">Échap</span>
+      </button>
+      <button type="button" class="ghost" onClick="{{prev}}" aria-label="Précédent (flèche gauche)" title="Précédent (←)" style="width: 52px; height: 52px; border-radius: 50%; border: 0; background: rgba(0,0,0,.28); color: #F6F2E8; display: grid; place-items: center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+      </button>
+      <button type="button" class="next" onClick="{{next}}" style="display: inline-flex; align-items: center; gap: 14px; height: 60px; padding: 0 22px 0 28px; border-radius: 999px; border: 0; background: #E8B44C; color: #0E1530; text-align: left">
+        <span>
+          <span style="display: block; font-size: 17px; font-weight: 700; white-space: nowrap">{{nextWord}}</span>
+          <span style="display: block; font-size: 11.5px; font-weight: 500; opacity: .75">barre d'espace ou →</span>
+        </span>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+      </button>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end">
+      <div role="group" aria-label="Mise en page" style="display: inline-flex; padding: 4px; border-radius: 999px; background: rgba(0,0,0,.28)">
+        <button type="button" onClick="{{setLower}}" aria-pressed="{{lowerPressed}}" style="height: 38px; padding: 0 16px; border: 0; border-radius: 999px; font-size: 13.5px; font-weight: 600; background: {{lowerBg}}; color: {{lowerColor}}">Sur la caméra</button>
+        <button type="button" onClick="{{setFull}}" aria-pressed="{{fullPressed}}" style="height: 38px; padding: 0 16px; border: 0; border-radius: 999px; font-size: 13.5px; font-weight: 600; background: {{fullBg}}; color: {{fullColor}}">En plein écran</button>
+      </div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 1, view: 'moment', live: { m: 1, i: 0, s: 2 }, off: null, cam: 0, layout: 'full', leftWide: true, big: false };
+  }
+
+  data() {
+    const cam = { kind: 'cam' };
+    const glory = 'linear-gradient(135deg, #1c1640 0%, #3a2160 100%)';
+    const bless = 'linear-gradient(135deg, #2a1a10 0%, #4c2c16 100%)';
+    const slide = (bg, title, body) => ({ kind: 'slide', bg: bg, title: title, body: body });
+    return [
+      { name: "Écran d'attente", tint: 'rgba(70,92,170,.45)', items: [
+        { label: 'Bienvenue', kind: "Écran d'attente", c: { kind: 'standby', title: 'Bienvenue', body: 'Le culte commence bientôt' } } ] },
+      { name: 'Louange', tint: 'rgba(110,70,170,.5)', items: [
+        { label: 'À toi la gloire', slides: [
+          slide(glory, 'À toi la gloire', 'À toi la gloire\nCantique · Edmond Budry'),
+          slide(glory, 'Couplet 1', "Brillant de lumière,\nl'ange est descendu,\nil roule la pierre\ndu tombeau vaincu."),
+          slide(glory, 'Refrain', "À toi la gloire,\nô Ressuscité !\nÀ toi la victoire\npour l'éternité !"),
+          slide(glory, 'Couplet 2', "Vois-le paraître :\nc'est lui, c'est Jésus,\nton Sauveur, ton Maître !\nOh ! ne doute plus !"),
+          slide(glory, 'Refrain', "À toi la gloire,\nô Ressuscité !\nÀ toi la victoire\npour l'éternité !") ] },
+        { label: 'Grand Dieu, nous te bénissons', slides: [
+          slide(bless, 'Grand Dieu, nous te bénissons', 'Grand Dieu,\nnous te bénissons\nCantique'),
+          slide(bless, 'Strophe 1', "Grand Dieu, nous te bénissons,\nnous célébrons tes louanges !\nÉternel, nous t'exaltons\nde concert avec les anges,"),
+          slide(bless, 'Strophe 1 (fin)', "et prosternés devant toi,\nnous t'adorons, ô grand Roi !") ] },
+        { label: 'Caméra seule', kind: 'Caméra seule', c: cam } ] },
+      { name: 'Adoration', tint: 'rgba(60,110,170,.45)', items: [
+        { label: 'Caméra seule', kind: 'Caméra seule', c: cam },
+        { label: "Temps d'adoration", kind: 'Texte sur la caméra', c: { kind: 'lower', ref: "TEMPS D'ADORATION", text: 'Prenons un moment pour adorer ensemble' } } ] },
+      { name: 'Prédication', tint: 'rgba(170,110,60,.42)', items: [
+        { label: 'Le bon berger', kind: 'Texte plein écran', c: { kind: 'text', title: 'Le bon berger', body: 'Pasteur [NOM] · Jean 10' } },
+        { label: 'Jean 10:11', kind: 'Verset plein écran', c: { kind: 'verse', ref: 'JEAN 10:11 · LSG 1910', text: 'Je suis le bon berger. Le bon berger donne sa vie pour ses brebis.' } },
+        { label: 'Jean 10:14', kind: 'Verset sur la caméra', c: { kind: 'lower', ref: 'JEAN 10:14', text: 'Je suis le bon berger. Je connais mes brebis, et elles me connaissent,', serif: true } },
+        { label: 'Caméra seule', kind: 'Caméra seule', c: cam } ] },
+      { name: 'Offrandes et dîmes', tint: 'rgba(60,140,110,.4)', items: [
+        { label: 'Offrandes', kind: 'Texte plein écran', c: { kind: 'text', title: 'Offrandes et dîmes', body: 'Merci pour votre générosité' } } ] },
+      { name: 'Annonces', tint: 'rgba(170,80,90,.4)', items: [
+        { label: 'Culte de Noël', kind: 'Image', c: { kind: 'poster', title: 'Culte de Noël', body: 'Mercredi 24 décembre · 19 h' } },
+        { label: 'Retraite des jeunes', kind: 'Texte plein écran', c: { kind: 'text', title: 'Retraite des jeunes', body: 'Samedi 6 décembre · inscriptions à l’accueil' } } ] },
+      { name: 'Bénédiction', tint: 'rgba(70,92,170,.45)', items: [
+        { label: 'Nombres 6:24', kind: 'Verset plein écran', c: { kind: 'verse', ref: 'NOMBRES 6:24 · LSG 1910', text: "Que l'Éternel te bénisse, et qu'il te garde !" } },
+        { label: 'À dimanche prochain', kind: "Écran d'attente", c: { kind: 'standby', title: 'À dimanche prochain', body: 'Que Dieu vous bénisse' } } ] },
+    ];
+  }
+
+  slidesOf(M, p) { const it = M[p.m] && M[p.m].items[p.i]; return it && it.slides ? it.slides.length : 0; }
+  contentAt(M, p) { const it = M[p.m].items[p.i]; return it.slides ? it.slides[p.s || 0] : it.c; }
+  labelAt(M, p) {
+    const it = M[p.m].items[p.i]; const n = this.slidesOf(M, p);
+    return { title: it.label, sub: M[p.m].name + (n ? ' · diapo ' + ((p.s || 0) + 1) + ' / ' + n : ' · ' + it.kind) };
+  }
+  step(M, dir) {
+    const st = this.state; const live = st.off ? null : st.live;
+    const entry = (m, i) => ({ m: m, i: i, s: dir < 0 && M[m].items[i].slides ? M[m].items[i].slides.length - 1 : 0 });
+    if (dir > 0 && (!live || live.m !== st.sel)) return M[st.sel].items.length ? { m: st.sel, i: 0, s: 0 } : null;
+    if (!live) return null;
+    const n = this.slidesOf(M, live); const s = (live.s || 0) + dir;
+    if (n && s >= 0 && s < n) return { m: live.m, i: live.i, s: s };
+    const i = live.i + dir;
+    if (i >= 0 && i < M[live.m].items.length) return entry(live.m, i);
+    for (let m = live.m + dir; m >= 0 && m < M.length; m += dir) {
+      if (M[m].items.length) return entry(m, dir > 0 ? 0 : M[m].items.length - 1);
+    }
+    return null;
+  }
+  show(p) { this.setState({ live: p, sel: p.m, off: null, view: 'moment' }); }
+
+  renderVals() {
+    const M = this.data();
+    const st = this.state;
+    const sel = st.sel;
+    const wide = st.leftWide;
+    const live = st.off ? null : st.live;
+
+    // Ce qui est à l'écran
+    let liveC = st.off ? st.off.c : this.contentAt(M, live);
+    if (st.layout === 'lower' && (liveC.kind === 'verse' || liveC.kind === 'text')) {
+      liveC = { kind: 'lower', ref: liveC.kind === 'verse' ? liveC.ref.split(' · ')[0] : liveC.title.toUpperCase(), text: liveC.kind === 'verse' ? liveC.text : liveC.body, serif: liveC.kind === 'verse' };
+    }
+    const lab = st.off ? st.off : this.labelAt(M, live);
+    const nx = this.step(M, 1);
+    const nlab = nx ? this.labelAt(M, nx) : { title: 'Fin du déroulé', sub: '' };
+    const lastSlide = live && this.slidesOf(M, live) && (live.s || 0) < this.slidesOf(M, live) - 1;
+    const nextWord = st.off && st.off.verse ? 'Verset suivant'
+      : (!live || live.m !== sel) ? 'Afficher « ' + M[sel].name + ' »'
+      : lastSlide ? 'Diapo suivante' : 'Contenu suivant';
+
+    const moments = M.map((mo, m) => {
+      const first = mo.items[0];
+      const isSel = st.view === 'moment' && m === sel;
+      return {
+        name: mo.name,
+        meta: mo.items.length + (mo.items.length > 1 ? ' contenus' : ' contenu'),
+        cover: first ? (first.slides ? first.slides[0] : first.c) : { kind: 'standby', title: '', body: '' },
+        isLive: !!live && live.m === m,
+        bg: isSel ? 'rgba(246,242,232,.1)' : 'transparent',
+        color: !!live && live.m === m ? '#F6F2E8' : '#E6E3DA',
+        ariaCurrent: isSel ? 'true' : 'false',
+        pick: () => this.setState({ sel: m, view: 'moment' }),
+      };
+    });
+
+    const libDefs = [
+      { id: 'bible', name: 'Bible', meta: 'Louis Segond 1910', tile: 'linear-gradient(135deg,#2c3f8c,#18245a)' },
+      { id: 'media', name: 'Médias', meta: 'Affiches, photos, PowerPoint', tile: 'linear-gradient(135deg,#7a4a2c,#3e2416)' },
+      { id: 'text', name: 'Textes', meta: 'Annonces, titres', tile: 'linear-gradient(135deg,#2c6e64,#163a35)' },
+    ];
+    const libs = libDefs.map((l) => ({
+      name: l.name, meta: l.meta, tile: l.tile,
+      isBible: l.id === 'bible', isMedia: l.id === 'media', isText: l.id === 'text',
+      bg: st.view === l.id ? 'rgba(246,242,232,.1)' : 'transparent',
+      ariaCurrent: st.view === l.id ? 'true' : 'false',
+      pick: () => this.setState({ view: l.id }),
+    }));
+
+    const items = M[sel].items.map((it, i) => {
+      const isLive = !!live && live.m === sel && live.i === i;
+      return {
+        label: it.label,
+        kind: it.slides ? 'Présentation PowerPoint · ' + it.slides.length + ' diapos' : it.kind,
+        isSlides: !!it.slides,
+        isSimple: !it.slides,
+        isLive: isLive,
+        liveSlide: isLive ? 'DIAPO ' + ((live.s || 0) + 1) : '',
+        c: it.c,
+        ring: isLive ? '2px solid #F6F2E8' : '0 solid transparent',
+        cardBg: isLive ? '#1B2550' : '#141C3E',
+        ariaCurrent: isLive ? 'true' : 'false',
+        pick: () => this.show({ m: sel, i: i, s: 0 }),
+        slides: (it.slides || []).map((c, s) => {
+          const on = isLive && (live.s || 0) === s;
+          return {
+            c: c, num: s + 1, isLive: on,
+            ring: on ? '2px solid #F6F2E8' : '0 solid transparent',
+            cardBg: on ? '#1B2550' : '#141C3E',
+            ariaCurrent: on ? 'true' : 'false',
+            pick: () => this.show({ m: sel, i: i, s: s }),
+          };
+        }),
+      };
+    });
+
+    const verseTexts = [
+      [14, "Et comme Moïse éleva le serpent dans le désert, il faut de même que le Fils de l'homme soit élevé,"],
+      [15, 'afin que quiconque croit en lui ait la vie éternelle.'],
+      [16, "Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu'il ait la vie éternelle."],
+      [17, "Dieu, en effet, n'a pas envoyé son Fils dans le monde pour qu'il juge le monde, mais pour que le monde soit sauvé par lui."],
+      [18, "Celui qui croit en lui n'est point jugé ; mais celui qui ne croit pas est déjà jugé, parce qu'il n'a pas cru au nom du Fils unique de Dieu."],
+    ];
+    const verses = verseTexts.map((v) => {
+      const on = !!st.off && st.off.verse === v[0];
+      return {
+        num: v[0], text: v[1],
+        bg: on ? 'rgba(246,242,232,.1)' : 'transparent',
+        ariaCurrent: on ? 'true' : 'false',
+        pick: () => this.setState({ off: { verse: v[0], title: 'Jean 3:' + v[0], sub: 'Bible · lecture suivie', c: { kind: 'verse', ref: 'JEAN 3:' + v[0] + ' · LSG 1910', text: v[1] } } }),
+      };
+    });
+
+    const mediaDefs = [
+      { label: 'Culte de Noël', kind: 'Affiche', c: { kind: 'poster', title: 'Culte de Noël', body: 'Mercredi 24 décembre · 19 h' } },
+      { label: 'Baptêmes', kind: 'Affiche', c: { kind: 'poster', title: 'Baptêmes', body: 'Dimanche 30 novembre', bg: 'linear-gradient(135deg,#123a52,#1f6a7a)' } },
+      { label: 'À toi la gloire', kind: 'Présentation · 5 diapos', c: M[1].items[0].slides[2] },
+      { label: 'Bienvenue', kind: "Écran d'attente", c: M[0].items[0].c },
+    ];
+    const media = mediaDefs.map((d) => ({ label: d.label, kind: d.kind, c: d.c, pick: () => this.setState({ off: { title: d.label, sub: 'Médias', c: d.c } }) }));
+
+    const camDefs = [
+      { name: 'Caméscope (HDMI)', tint: 'a' },
+      { name: 'Téléphone 1', tint: 'b' },
+      { name: 'Webcam du PC', tint: 'c' },
+    ];
+    const cams = camDefs.map((c, k) => ({
+      name: c.name, c: { kind: 'cam', tint: c.tint }, on: st.cam === k,
+      pressed: st.cam === k ? 'true' : 'false',
+      border: st.cam === k ? '2px solid #F6F2E8' : '2px solid transparent',
+      pick: () => this.setState({ cam: k }),
+    }));
+    // La caméra choisie se voit dans les aperçus « caméra ».
+    const camTint = camDefs[st.cam].tint;
+    const withCam = (c) => (c.kind === 'cam' || c.kind === 'lower' ? Object.assign({}, c, { tint: camTint }) : c);
+
+    const pill = (on) => ({ bg: on ? '#F6F2E8' : 'transparent', color: on ? '#0E1530' : '#C9CEDD', pressed: on ? 'true' : 'false' });
+    const lower = pill(st.layout === 'lower'), full = pill(st.layout === 'full');
+    const small = pill(!st.big), big = pill(st.big);
+
+    return {
+      leftCol: wide ? '300px' : '104px',
+      leftWide: wide,
+      collapseLabel: wide ? 'Réduire le déroulé' : 'Agrandir le déroulé',
+      toggleLeft: () => this.setState({ leftWide: !wide }),
+      goBack: () => this.setState({ view: 'moment' }),
+      moments: moments,
+      libs: libs,
+      isMomentView: st.view === 'moment',
+      isBibleView: st.view === 'bible',
+      isMediaView: st.view === 'media',
+      isTextView: st.view === 'text',
+      headTint: M[sel].tint,
+      selIndex: sel + 1,
+      momentCount: M.length,
+      selName: M[sel].name,
+      selMeta: M[sel].items.length + (M[sel].items.length > 1 ? ' contenus' : ' contenu') + ' · cliquez sur un contenu pour l’afficher',
+      showMoment: () => this.show({ m: sel, i: 0, s: 0 }),
+      items: items.map((it) => Object.assign({}, it, { c: it.c ? withCam(it.c) : it.c })),
+      slideMin: st.big ? '360px' : '230px',
+      simpleW: st.big ? '360px' : '280px',
+      setSmall: () => this.setState({ big: false }), setBig: () => this.setState({ big: true }),
+      smallBg: small.bg, smallColor: small.color, smallPressed: small.pressed,
+      bigBg: big.bg, bigColor: big.color, bigPressed: big.pressed,
+      verses: verses,
+      media: media,
+      textPreview: { kind: 'text', title: 'Culte de Noël', body: 'Mercredi 24 décembre à 19 h' },
+      showText: () => this.setState({ off: { title: 'Culte de Noël', sub: 'Texte', c: { kind: 'text', title: 'Culte de Noël', body: 'Mercredi 24 décembre à 19 h' } } }),
+      liveC: withCam(liveC),
+      liveTitle: lab.title,
+      liveSub: lab.sub,
+      nextC: nx ? withCam(this.contentAt(M, nx)) : { kind: 'standby', title: '', body: '' },
+      nextTitle: nlab.title,
+      nextSub: nlab.sub,
+      nextWord: nextWord,
+      next: () => {
+        if (st.off && st.off.verse && st.off.verse < 18) {
+          const v = st.off.verse + 1; const t = verseTexts.find((x) => x[0] === v)[1];
+          this.setState({ off: { verse: v, title: 'Jean 3:' + v, sub: 'Bible · lecture suivie', c: { kind: 'verse', ref: 'JEAN 3:' + v + ' · LSG 1910', text: t } } });
+          return;
+        }
+        const p = this.step(M, 1); if (p) this.show(p);
+      },
+      prev: () => { const p = this.step(M, -1); if (p) this.show(p); },
+      cameraOnly: () => this.setState({ off: { title: 'Caméra seule', sub: camDefs[st.cam].name, c: { kind: 'cam' } } }),
+      cams: cams,
+      setLower: () => this.setState({ layout: 'lower' }), setFull: () => this.setState({ layout: 'full' }),
+      lowerBg: lower.bg, lowerColor: lower.color, lowerPressed: lower.pressed,
+      fullBg: full.bg, fullColor: full.color, fullPressed: full.pressed,
+    };
+  }
+}
+</script>
+</body>
+</html>

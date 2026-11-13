@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Regio · aperçu d'écran</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&amp;family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&amp;family=Montserrat:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; aspect-ratio: 16 / 9; container-type: inline-size; overflow: hidden; background: #0E1530; font-family: Inter, 'Segoe UI', sans-serif; color: #F6F2E8">
+
+  <!-- Caméra (image simulée) -->
+  <sc-if value="{{showCam}}" hint-placeholder-val="{{ false }}">
+    <svg viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%">
+      <rect width="160" height="90" fill="{{camBg}}"></rect>
+      <ellipse cx="80" cy="22" rx="70" ry="40" fill="{{camGlow}}" opacity=".55"></ellipse>
+      <rect x="0" y="66" width="160" height="24" fill="#000" opacity=".25"></rect>
+      <circle cx="80" cy="33" r="8.5" fill="#1b1714"></circle>
+      <path d="M61 72 C61 52 70 45 80 45 C90 45 99 52 99 72 Z" fill="#1b1714"></path>
+      <path d="M58 61 H102 L97 90 H63 Z" fill="#2b221c"></path>
+      <rect x="58" y="59" width="44" height="4" rx="1.5" fill="#3a2e25"></rect>
+    </svg>
+  </sc-if>
+
+  <!-- Écran d'attente -->
+  <sc-if value="{{isStandby}}" hint-placeholder-val="{{ true }}">
+    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.2cqw; background: radial-gradient(80% 70% at 50% 35%, #1A2550 0%, #0E1530 70%)">
+      <svg viewBox="0 0 100 100" aria-hidden="true" style="width: 15cqw; height: 15cqw"><rect x="9.5" y="19.5" width="81" height="61" rx="15" fill="none" stroke="#F6F2E8" stroke-width="7"></rect><path d="M36.5 63 V43" fill="none" stroke="#F6F2E8" stroke-width="9" stroke-linecap="round"></path><path d="M36.5 51 C36.5 42 43.5 37 52.5 37" fill="none" stroke="#F6F2E8" stroke-width="9" stroke-linecap="round"></path><circle cx="62.5" cy="37" r="6" fill="#E8B44C"></circle></svg>
+      <div style="font-family: Sora, Inter, sans-serif; font-weight: 600; font-size: 6.4cqw; letter-spacing: -0.02em">{{title}}</div>
+      <div style="font-size: 2.6cqw; color: #9AA3BF">{{body}}</div>
+    </div>
+  </sc-if>
+
+  <!-- Verset plein écran -->
+  <sc-if value="{{isVerse}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 3.5cqw; padding: 0 9cqw; background: radial-gradient(90% 80% at 50% 30%, #18224A 0%, #0E1530 75%)">
+      <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 5.2cqw; line-height: 1.35; text-align: center">{{text}}</div>
+      <div style="font-size: 2.2cqw; font-weight: 600; letter-spacing: .14em; color: #9AA3BF; text-align: center">{{ref}}</div>
+    </div>
+  </sc-if>
+
+  <!-- Texte plein écran -->
+  <sc-if value="{{isText}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.6cqw; padding: 0 8cqw; text-align: center; background: radial-gradient(90% 80% at 50% 30%, #18224A 0%, #0E1530 75%)">
+      <div style="font-family: Montserrat, Inter, sans-serif; font-weight: 800; font-size: 8cqw; line-height: 1.05; letter-spacing: -0.01em">{{title}}</div>
+      <div style="font-family: Montserrat, Inter, sans-serif; font-weight: 600; font-size: 3.4cqw; color: #C9CEDD">{{body}}</div>
+    </div>
+  </sc-if>
+
+  <!-- Diapo (PowerPoint importé) -->
+  <sc-if value="{{isSlide}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 7cqw; text-align: center; background: {{bg}}">
+      <div style="position: absolute; top: 4.5cqw; left: 5cqw; font-family: Montserrat, Inter, sans-serif; font-size: 2.1cqw; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.55)">{{title}}</div>
+      <div style="font-family: Montserrat, Inter, sans-serif; font-weight: 700; font-size: 5.8cqw; line-height: 1.32; white-space: pre-line; color: #FFFFFF">{{body}}</div>
+    </div>
+  </sc-if>
+
+  <!-- Affiche -->
+  <sc-if value="{{isPoster}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 1.6cqw; padding: 7cqw; background: {{posterBg}}">
+      <div style="font-family: Montserrat, Inter, sans-serif; font-size: 2.4cqw; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.75)">Église [NOM]</div>
+      <div style="font-family: Montserrat, Inter, sans-serif; font-weight: 800; font-size: 9cqw; line-height: 1; color: #FFFFFF">{{title}}</div>
+      <div style="font-family: Montserrat, Inter, sans-serif; font-weight: 600; font-size: 3.4cqw; color: rgba(255,255,255,.88)">{{body}}</div>
+    </div>
+  </sc-if>
+
+  <!-- Bandeau sur la caméra -->
+  <sc-if value="{{isLower}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; left: 5cqw; right: 5cqw; bottom: 5cqw; padding: 2.6cqw 3.6cqw; border-radius: 1.6cqw; background: rgba(14,21,48,.9)">
+      <div style="font-size: 1.9cqw; font-weight: 700; letter-spacing: .14em; color: #E8B44C">{{ref}}</div>
+      <div style="margin-top: .8cqw; font-family: {{lowerFont}}; font-size: 3.3cqw; line-height: 1.3">{{text}}</div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"content":{"editor":null,"default":{"kind":"standby","title":"Bienvenue","body":"Le culte commence bientôt"}},"$preview":{"width":640,"height":360}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const c = this.props.content || { kind: 'standby', title: 'Bienvenue', body: 'Le culte commence bientôt' };
+    const tints = {
+      a: { bg: '#2a211b', glow: '#c9a27a' },
+      b: { bg: '#1d2430', glow: '#8aa3c4' },
+      c: { bg: '#2a2622', glow: '#d8c3a5' },
+    };
+    const tint = tints[c.tint] || tints.a;
+    return {
+      showCam: c.kind === 'cam' || c.kind === 'lower',
+      camBg: tint.bg,
+      camGlow: tint.glow,
+      isStandby: c.kind === 'standby',
+      isVerse: c.kind === 'verse',
+      isText: c.kind === 'text',
+      isSlide: c.kind === 'slide',
+      isPoster: c.kind === 'poster',
+      isLower: c.kind === 'lower',
+      title: c.title || '',
+      body: c.body || '',
+      text: c.text || '',
+      ref: c.ref || '',
+      bg: c.bg || '#1c1640',
+      posterBg: c.bg || 'linear-gradient(135deg, #5a1e2a 0%, #a8462e 100%)',
+      lowerFont: c.serif ? "'Source Serif 4', Georgia, serif" : "Inter, 'Segoe UI', sans-serif",
+    };
+  }
+}
+</script>
+</body>
+</html>

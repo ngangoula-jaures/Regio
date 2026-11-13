@@ -69,6 +69,15 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   espace = verset suivant, bandeau « Lecture suivie »). Rangée de caméras approuvée par l'utilisateur.
   La maquette v1 est devenue PUBLIQUE (partagée par l'utilisateur) : ne plus la modifier sans son accord.
 
+- **Maquette v4 « la régie en grand » (2026-11-13, EN ATTENTE de validation)** : https://claude.ai/artifact/VZqi6ZT9uSGycUEZsc2hcA
+  (copie `design/maquettes/v4/`). Demande de l'utilisateur : diapos trop petites pour être lues avant de les
+  afficher, trop d'onglets à droite, sensation d'étroitesse → refonte inspirée de **Spotify** (qu'il adore : fluidité,
+  effet de verre, interactions premium). Panneaux flottants arrondis sur fond très sombre, barres haut/bas en verre,
+  déroulé à gauche (réductible) + « Bibliothèque » (Bible, Médias, Textes) qui remplace les onglets, grande vue
+  centrale (moment = en-tête teinté + contenus en grand, présentations = grille de diapos lisibles, « Grandes
+  diapos »), à droite « À l'écran » / Ensuite / Caméras, commande en bas (Caméra, ◀, Suivant or). Recherche unique
+  en haut. + 3 propositions d'icône (le bleu nuit paraît noir dans la barre des tâches).
+
 ## Interface (régie v3 codée le 2026-11-13, d'après la maquette v3 validée)
 - `src/app/App.tsx` : Démarrage → Sources du jour → Régie. Une fois le culte commencé, la Régie reste montée ;
   « Ajouter une caméra » ouvre les Sources PAR-DESSUS (`.overlay`, raccourcis de la régie désactivés).
