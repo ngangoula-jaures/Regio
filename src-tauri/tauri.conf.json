@@ -14,7 +14,8 @@
       {
         "title": "Regio — Régie du culte",
         "width": 1366,
-        "height": 820
+        "height": 820,
+        "dragDropEnabled": false
       }
     ],
     "security": {
