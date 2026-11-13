@@ -78,7 +78,8 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   ouverts au centre) · DIFFUSER (à droite, toujours au même endroit : À l'écran, Suivant or très grand, Précédent,
   Caméra seule, mise en page, Ensuite). **Caméras EN GRAND en haut du centre, toujours visibles** (retour de
   l'utilisateur : on regarde les caméras avant de choisir) ; un clic met la caméra à l'écran (un bandeau reste, un plein
-  écran s'efface) ; touches 1, 2, 3. + 3 propositions d'icône (le bleu nuit paraît noir dans la barre des tâches).
+  écran s'efface) ; touches 1 à 6. Jusqu'à 6 caméras visibles d'un coup : 1–3 = une rangée, nom dessous ;
+  4 = une rangée de 4 ; 5–6 = deux rangées de 3, nom sur l'image. + 3 propositions d'icône (le bleu nuit paraît noir dans la barre des tâches).
 
 ## Interface (régie v3 codée le 2026-11-13, d'après la maquette v3 validée)
 - `src/app/App.tsx` : Démarrage → Sources du jour → Régie. Une fois le culte commencé, la Régie reste montée ;
