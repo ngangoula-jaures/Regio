@@ -86,6 +86,14 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   (supprimer android/ et ios/) → `make_ico.py src-tauri/icons/icon.ico` → copier regio-icon-32.png en 32x32.png.
   `src-tauri/build.rs` surveille `icons/` : sans ça, l'ancienne icône restait intégrée dans regio.exe.
 
+- **Maquette du direct, Phase 2 (2026-11-13, EN ATTENTE de validation)** : https://claude.ai/artifact/GHd8FoYJ1VgrRpfMtUtgHH
+  (copie `design/maquettes/direct/`). **Facebook d'abord** (choix de l'utilisateur) : clé de stream PERSISTANTE (configurée
+  une fois), RTMPS direct depuis OBS ; Facebook exige encore un clic « Passer en direct » dans sa page Vidéo en direct
+  (Regio le rappelle ; automatisation possible plus tard via l'API Facebook). En-tête : Diffuser sur Facebook →
+  [Facebook · 720p] Passer en direct → ● EN DIRECT 00:12:34 + voyant santé (popover détails) + Terminer. Assistant 3
+  étapes (Où ? / La clé / Test de connexion → qualité conseillée), confirmation, rappel du clic Facebook, alertes
+  connexion faible (480p auto) / coupée (reconnexion, l'enregistrement continue), vumètre SON, résumé de fin.
+
 ## Interface (régie v5 codée le 2026-11-13, d'après la maquette v5 validée)
 - `src/app/App.tsx` : Démarrage → Sources du jour → Régie. Une fois le culte commencé, la Régie reste montée ;
   « Ajouter une caméra » ouvre les Sources PAR-DESSUS (`.overlay`, raccourcis de la régie désactivés).
