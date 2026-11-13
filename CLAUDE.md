@@ -57,6 +57,13 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
 - Identité visuelle conçue en parallèle : nom → logo (3 pistes, lisible en 16 px, monochrome possible,
   non confessionnel) → charte (palette, typos, ton) → déclinaisons. Un seul système de design (tokens).
 
+- **Maquette v2 de la régie (2026-11-13, en attente de validation)** : https://claude.ai/artifact/XzemCVvaSXtL28etX3CfvG
+  (copie `design/maquettes/v2/`). Suite aux retours de l'utilisateur sur la v1 codée : « mode Présentateur »
+  (À l'écran + Ensuite côte à côte), ◀ Précédent / Suivant ▶ (← → espace), rangée de CAMÉRAS cliquables pendant
+  le culte (manquait !), écrans nommés « Votre ordinateur » / « Télé / projecteur » (pas « Écran 1/2 »),
+  mise en page « Sur la caméra / En plein écran » sans doublon de « Caméra seule ».
+  La maquette v1 est devenue PUBLIQUE (partagée par l'utilisateur) : ne plus la modifier sans son accord.
+
 ## Interface (codée le 2026-11-13 d'après les maquettes)
 - `src/app/App.tsx` enchaîne : Démarrage (`StartupScreen`) → Sources du jour (`SourcesScreen`) → Régie
   (`RegieScreen` + `ContentPanels`). En mode navigateur, `ConnectScreen` d'abord (connexion manuelle à OBS).

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Regio · Régie v2</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600&amp;family=Inter:wght@400;500;600&amp;family=Source+Serif+4:opsz,wght@8..60,400&amp;family=Montserrat:wght@600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E1530}
+button{font:inherit;color:inherit}
+.hov:hover{background:#1E2848}
+.cam:hover{border-color:#3A4775}
+.next:hover{background:#F2C86B}
+.hov:focus-visible,.cam:focus-visible,.next:focus-visible{outline:3px solid #F6F2E8;outline-offset:2px}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; min-height: 900px; box-sizing: border-box; background: #0E1530; font-family: Inter, 'Segoe UI', sans-serif; color: #F6F2E8; display: flex; flex-direction: column">
+
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 12px 20px; background: #18213F; border-bottom: 1px solid #253055">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <svg width="30" height="30" viewBox="0 0 100 100" role="img" aria-label="Regio"><rect x="9.5" y="19.5" width="81" height="61" rx="15" fill="none" stroke="#F6F2E8" stroke-width="7"></rect><path d="M36.5 63 V43" fill="none" stroke="#F6F2E8" stroke-width="9" stroke-linecap="round"></path><path d="M36.5 51 C36.5 42 43.5 37 52.5 37" fill="none" stroke="#F6F2E8" stroke-width="9" stroke-linecap="round"></path><circle cx="62.5" cy="37" r="6" fill="#E8B44C"></circle></svg>
+      <span style="font-family: Sora, Inter, sans-serif; font-weight: 600; font-size: 18px; letter-spacing: -0.02em">regio</span>
+    </div>
+    <span style="font-size: 14px; color: #9AA3BF">Culte du dimanche 16 novembre</span>
+    <span style="flex: 1"></span>
+    <button type="button" class="hov" onClick="{{toggleRoom}}" aria-expanded="{{roomOpen}}" style="display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #253055; background: #111933; cursor: pointer; font-size: 14px">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2" fill="none" stroke="#C9CEDD" stroke-width="1.75"></rect><path d="M8 20h8M12 16v4" stroke="#C9CEDD" stroke-width="1.75" stroke-linecap="round"></path></svg>
+      <span>Télé de la salle</span>
+      <span style="display: inline-flex; align-items: center; gap: 6px; color: #4CC38A; font-weight: 600"><span style="width: 7px; height: 7px; border-radius: 50%; background: #4CC38A"></span>affichée</span>
+    </button>
+  </header>
+
+  <div style="flex: 1; display: flex; flex-wrap: wrap; min-height: 0">
+
+    <nav aria-label="Déroulé du culte" style="flex: 1 0 260px; max-width: 290px; box-sizing: border-box; border-right: 1px solid #253055; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 0 8px 10px">
+        <h2 style="margin: 0; font-family: Sora, Inter, sans-serif; font-size: 16px; font-weight: 600">Déroulé</h2>
+        <span style="font-size: 12px; color: #9AA3BF">{{progress}}</span>
+      </div>
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+        <button type="button" class="hov" onClick="{{r.pick}}" style="{{r.style}}">
+          <span style="{{r.num}}">{{r.n}}</span>
+          <span style="flex: 1; min-width: 0; text-align: left">
+            <span style="display: block; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.label}}</span>
+            <span style="display: block; font-size: 12px; color: #9AA3BF">{{r.moment}}</span>
+          </span>
+          <sc-if value="{{r.isCur}}" hint-placeholder-val="{{ false }}"><span style="font-size: 10.5px; font-weight: 600; padding: 3px 7px; border-radius: 99px; background: #F6F2E8; color: #0E1530">À L'ÉCRAN</span></sc-if>
+          <sc-if value="{{r.isNext}}" hint-placeholder-val="{{ false }}"><span style="font-size: 10.5px; font-weight: 600; padding: 3px 7px; border-radius: 99px; border: 1px solid #3A4568; color: #C9CEDD">ENSUITE</span></sc-if>
+        </button>
+      </sc-for>
+    </nav>
+
+    <main style="flex: 999 1 600px; min-width: 0; box-sizing: border-box; padding: 18px 24px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap">
+        <div style="flex: 1.7 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; justify-content: space-between">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: #F6F2E8">À L'ÉCRAN</span>
+            <span style="font-size: 12.5px; color: #9AA3BF">{{curLabel}}</span>
+          </div>
+          <div style="border-radius: 12px; overflow: hidden; outline: 2px solid #F6F2E8">
+            <dc-import name="Ecran" item="{{cur}}" cam="{{cam}}" hint-size="100%,300px"></dc-import>
+          </div>
+        </div>
+        <div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; justify-content: space-between">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: #9AA3BF">ENSUITE</span>
+            <span style="font-size: 12.5px; color: #9AA3BF">{{nextLabel}}</span>
+          </div>
+          <div style="border-radius: 12px; overflow: hidden; outline: 1px solid #253055; opacity: 0.85">
+            <dc-import name="Ecran" item="{{nxt}}" cam="{{cam}}" hint-size="100%,170px"></dc-import>
+          </div>
+          <sc-if value="{{hasLayout}}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top: 6px; padding: 12px 14px; border-radius: 12px; background: #18213F; border: 1px solid #253055; display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 12.5px; color: #9AA3BF">Ce qui est à l'écran s'affiche :</span>
+              <div role="radiogroup" aria-label="Mise en page" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: #111933">
+                <button type="button" role="radio" aria-checked="{{isLower}}" onClick="{{setLower}}" style="{{segLower}}">Sur la caméra</button>
+                <button type="button" role="radio" aria-checked="{{isFull}}" onClick="{{setFull}}" style="{{segFull}}">En plein écran</button>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap">
+        <button type="button" class="hov" onClick="{{prev}}" style="min-height: 64px; padding: 0 20px; border-radius: 12px; border: 1px solid #253055; background: #18213F; cursor: pointer; display: flex; align-items: center; gap: 12px">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6" fill="none" stroke="#F6F2E8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <span style="display: flex; flex-direction: column; align-items: flex-start"><span style="font-size: 16px; font-weight: 600">Précédent</span><span style="font-size: 12px; color: #9AA3BF">touche ←</span></span>
+        </button>
+        <button type="button" class="hov" onClick="{{cameraOnly}}" style="flex: 1 1 160px; min-height: 64px; padding: 0 20px; border-radius: 12px; border: 1px solid #253055; background: #18213F; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center">
+          <span style="font-size: 16px; font-weight: 600">Revenir à la caméra</span><span style="font-size: 12px; color: #9AA3BF">touche Échap</span>
+        </button>
+        <button type="button" class="next" onClick="{{next}}" style="flex: 2 1 260px; min-height: 64px; padding: 0 24px; border-radius: 12px; border: 0; background: #E8B44C; color: #0E1530; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 14px">
+          <span style="display: flex; flex-direction: column; align-items: flex-start"><span style="font-size: 18px; font-weight: 600">Suivant</span><span style="font-size: 12px; opacity: 0.75">barre d'espace ou touche →</span></span>
+          <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="#0E1530" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </button>
+      </div>
+
+      <section aria-label="Caméras" style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: baseline; gap: 10px">
+          <h2 style="margin: 0; font-family: Sora, Inter, sans-serif; font-size: 15px; font-weight: 600">Caméras</h2>
+          <span style="font-size: 12.5px; color: #9AA3BF">Un clic change l'image, même pendant un verset</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px">
+          <sc-for list="{{cams}}" as="c" hint-placeholder-count="2">
+            <button type="button" class="cam" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="{{c.style}}">
+              <div style="border-radius: 8px; overflow: hidden">
+                <dc-import name="Ecran" item="{{camOnly}}" cam="{{c.id}}" hint-size="100%,110px"></dc-import>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+                <span style="font-size: 14px; font-weight: 600">{{c.name}}</span>
+                <sc-if value="{{c.on}}" hint-placeholder-val="{{ false }}"><span style="font-size: 10.5px; font-weight: 600; padding: 3px 7px; border-radius: 99px; background: #F6F2E8; color: #0E1530">À L'ÉCRAN</span></sc-if>
+              </div>
+            </button>
+          </sc-for>
+          <button type="button" class="cam" style="border-radius: 12px; border: 1px dashed #3A4568; background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 150px; color: #C9CEDD">
+            <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="#C9CEDD" stroke-width="1.75" stroke-linecap="round"></path></svg>
+            <span style="font-size: 14px">Ajouter une caméra</span>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <aside aria-label="Bible et contenus" style="flex: 1 0 320px; max-width: 360px; box-sizing: border-box; border-left: 1px solid #253055; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+      <div role="tablist" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: #111933">
+        <button type="button" role="tab" aria-selected="true" style="flex: 1; min-height: 38px; border: 0; border-radius: 8px; background: #253055; font-size: 14px; font-weight: 600; cursor: pointer">Bible</button>
+        <button type="button" role="tab" aria-selected="false" style="flex: 1; min-height: 38px; border: 0; border-radius: 8px; background: transparent; color: #9AA3BF; font-size: 14px; cursor: pointer">Médias</button>
+        <button type="button" role="tab" aria-selected="false" style="flex: 1; min-height: 38px; border: 0; border-radius: 8px; background: transparent; color: #9AA3BF; font-size: 14px; cursor: pointer">Texte</button>
+      </div>
+      <label for="ref2" style="font-size: 12.5px; color: #9AA3BF">Chercher un passage</label>
+      <input id="ref2" type="text" value="Jean 3 16" readonly="readonly" style="min-height: 44px; box-sizing: border-box; padding: 0 14px; border-radius: 8px; border: 1px solid #3A4568; background: #111933; color: #F6F2E8; font: inherit; font-size: 15px">
+      <sc-for list="{{verses}}" as="v" hint-placeholder-count="2">
+        <div style="padding: 12px 14px; border-radius: 12px; background: #18213F; border: 1px solid #253055; display: flex; flex-direction: column; gap: 10px">
+          <div style="font-size: 13px; font-weight: 600; color: #C9CEDD">{{v.ref}}</div>
+          <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.5">{{v.text}}</div>
+          <div style="display: flex; gap: 8px">
+            <button type="button" class="hov" onClick="{{v.show}}" style="flex: 1; min-height: 38px; border-radius: 8px; border: 1px solid #253055; background: transparent; font-size: 13px; font-weight: 600; cursor: pointer">Afficher</button>
+            <button type="button" class="hov" style="flex: 1; min-height: 38px; border-radius: 8px; border: 1px solid #253055; background: transparent; font-size: 13px; cursor: pointer">Ajouter au déroulé</button>
+          </div>
+        </div>
+      </sc-for>
+    </aside>
+  </div>
+
+  <sc-if value="{{roomOpen}}" hint-placeholder-val="{{ false }}">
+    <div role="dialog" aria-label="Où s'affiche l'image de la salle ?" style="position: absolute; right: 20px; top: 62px; width: 460px; padding: 20px; border-radius: 16px; background: #18213F; border: 1px solid #253055; box-shadow: 0 16px 48px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-family: Sora, Inter, sans-serif; font-size: 17px; font-weight: 600">Où s'affiche l'image de la salle ?</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+        <button type="button" class="cam" onClick="{{pickPc}}" aria-pressed="{{onPc}}" style="{{roomPcStyle}}">
+          <svg width="64" height="44" viewBox="0 0 64 44" aria-hidden="true"><rect x="10" y="4" width="44" height="28" rx="3" fill="none" stroke="#C9CEDD" stroke-width="2"></rect><path d="M4 38h56" stroke="#C9CEDD" stroke-width="3" stroke-linecap="round"></path></svg>
+          <span style="font-size: 14px; font-weight: 600">Votre ordinateur</span>
+          <span style="font-size: 12px; color: #9AA3BF; text-align: center">l'écran où vous utilisez Regio</span>
+        </button>
+        <button type="button" class="cam" onClick="{{pickTv}}" aria-pressed="{{onTv}}" style="{{roomTvStyle}}">
+          <svg width="64" height="44" viewBox="0 0 64 44" aria-hidden="true"><rect x="4" y="2" width="56" height="34" rx="3" fill="none" stroke="#C9CEDD" stroke-width="2"></rect><path d="M22 42h20M32 36v6" stroke="#C9CEDD" stroke-width="2" stroke-linecap="round"></path></svg>
+          <span style="font-size: 14px; font-weight: 600">Télé / projecteur</span>
+          <span style="font-size: 12px; color: #9AA3BF; text-align: center">branché en HDMI · 1024 × 768</span>
+        </button>
+      </div>
+      <button type="button" class="hov" onClick="{{pickWin}}" style="min-height: 40px; border-radius: 8px; border: 1px solid #253055; background: transparent; cursor: pointer; font-size: 13px">Essayer dans une fenêtre (sans télé)</button>
+      <p style="margin: 0; font-size: 12.5px; color: #9AA3BF; line-height: 1.5">Pas de télé dans la liste ? Branchez-la en HDMI, puis appuyez sur Windows + P et choisissez « Étendre ». Regio l'utilisera tout seul.</p>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { idx: 4, over: null, cam: 'pc', room: false, screen: 'tv' };
+  }
+  items() {
+    return [
+      { moment: 'Accueil', label: 'Écran d’attente', kind: 'standby' },
+      { moment: 'Louange', label: 'Louange', kind: 'camera' },
+      { moment: 'Prière', label: 'Prière d’ouverture', kind: 'camera' },
+      { moment: 'Lecture', label: 'Psaume 23:1', kind: 'full', ref: 'PSAUME 23:1 · LSG 1910', text: 'L’Éternel est mon berger : je ne manquerai de rien.' },
+      { moment: 'Prédication', label: 'Jean 3:16', kind: 'lower', ref: 'JEAN 3:16', text: 'Car Dieu a tant aimé le monde qu’il a donné son Fils unique…' },
+      { moment: 'Prédication', label: 'Romains 8:28', kind: 'full', ref: 'ROMAINS 8:28 · LSG 1910', text: 'Nous savons, du reste, que toutes choses concourent au bien de ceux qui aiment Dieu.' },
+      { moment: 'Offrandes', label: 'Offrandes et dîmes', kind: 'full', ref: 'OFFRANDES ET DÎMES', text: 'Mobile Money : [VOTRE NUMÉRO]\nVirement : [VOS COORDONNÉES]' },
+      { moment: 'Annonces', label: 'Réunion de prière', kind: 'full', ref: 'ANNONCE', text: 'Réunion de prière mercredi à 18 h 30' },
+      { moment: 'Bénédiction', label: 'Bénédiction', kind: 'camera' },
+    ];
+  }
+  renderVals() {
+    const items = this.items();
+    const { idx, over, cam, room, screen } = this.state;
+    const cur = over || items[idx];
+    const nxt = items[idx + 1] || { kind: 'standby' };
+    const seg = (on) => 'flex: 1; min-height: 36px; border: 0; border-radius: 8px; font-size: 13px; cursor: pointer; ' + (on ? 'background: #253055; color: #F6F2E8; font-weight: 600;' : 'background: transparent; color: #9AA3BF;');
+    const isText = cur.kind === 'lower' || cur.kind === 'full';
+    const roomCard = (on) => 'display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 10px; border-radius: 12px; cursor: pointer; background: #111933; border: ' + (on ? '2px solid #F6F2E8' : '1px solid #253055') + ';';
+    const camDef = [{ id: 'pc', name: 'Caméra du PC' }, { id: 'phone', name: 'Téléphone' }];
+    return {
+      rows: items.map((it, i) => {
+        const isCur = i === idx && !over;
+        const done = i < idx;
+        return {
+          n: i + 1, label: it.label, moment: it.moment, isCur, isNext: i === idx + 1,
+          pick: () => this.setState({ idx: i, over: null }),
+          style: 'display: flex; align-items: center; gap: 10px; width: 100%; min-height: 50px; padding: 6px 10px; border-radius: 10px; cursor: pointer; border: 1px solid ' + (isCur ? '#3A4775' : 'transparent') + '; background: ' + (isCur ? '#253055' : 'transparent') + '; opacity: ' + (done ? '0.55' : '1') + ';',
+          num: 'flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600; ' + (isCur ? 'background: #F6F2E8; color: #0E1530;' : 'border: 1.5px solid #3A4568; color: #C9CEDD;'),
+        };
+      }),
+      progress: (idx + 1) + ' sur ' + items.length,
+      cur, nxt, cam,
+      camOnly: { kind: 'camera' },
+      curLabel: over ? 'Hors déroulé · ' + (cur.label || 'Caméra') : items[idx].moment + ' · ' + items[idx].label,
+      nextLabel: items[idx + 1] ? items[idx + 1].moment + ' · ' + items[idx + 1].label : 'Fin du culte',
+      hasLayout: isText,
+      isLower: cur.kind === 'lower' ? 'true' : 'false',
+      isFull: cur.kind === 'full' ? 'true' : 'false',
+      segLower: seg(cur.kind === 'lower'),
+      segFull: seg(cur.kind === 'full'),
+      setLower: () => this.setState({ over: { ...cur, kind: 'lower' } }),
+      setFull: () => this.setState({ over: { ...cur, kind: 'full' } }),
+      prev: () => this.setState({ idx: Math.max(0, idx - 1), over: null }),
+      next: () => this.setState({ idx: Math.min(items.length - 1, idx + 1), over: null }),
+      cameraOnly: () => this.setState({ over: { kind: 'camera', label: 'Caméra' } }),
+      cams: camDef.map((c) => ({
+        ...c, on: cam === c.id,
+        pick: () => this.setState({ cam: c.id }),
+        style: 'display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 12px; cursor: pointer; text-align: left; background: #18213F; border: ' + (cam === c.id ? '2px solid #F6F2E8' : '1px solid #253055') + ';',
+      })),
+      verses: [
+        { ref: 'Jean 3:16', text: 'Car Dieu a tant aimé le monde qu’il a donné son Fils unique, afin que quiconque croit en lui ne périsse point.' },
+        { ref: 'Jean 3:17', text: 'Dieu, en effet, n’a pas envoyé son Fils dans le monde pour qu’il juge le monde, mais pour que le monde soit sauvé par lui.' },
+      ].map((v) => ({ ...v, show: () => this.setState({ over: { kind: 'lower', label: v.ref, ref: v.ref.toUpperCase(), text: v.text } }) })),
+      roomOpen: room,
+      toggleRoom: () => this.setState({ room: !room }),
+      onPc: screen === 'pc' ? 'true' : 'false',
+      onTv: screen === 'tv' ? 'true' : 'false',
+      roomPcStyle: roomCard(screen === 'pc'),
+      roomTvStyle: roomCard(screen === 'tv'),
+      pickPc: () => this.setState({ screen: 'pc', room: false }),
+      pickTv: () => this.setState({ screen: 'tv', room: false }),
+      pickWin: () => this.setState({ screen: 'win', room: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>
