@@ -26,3 +26,4 @@ dist-ssr
 # Certificat HTTPS auto-signé (caméra téléphone)
 .cert/
 *.tsbuildinfo
+src-tauri/resources/

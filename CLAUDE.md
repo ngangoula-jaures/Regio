@@ -178,7 +178,14 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 - **OBS embarqué et automatique (`src-tauri/src/obs.rs`)** — fait et validé le 2026-11-13 :
   - OBS **33.0.1 portable** (version figée, empreinte SHA-256 vérifiée) dans
     `%LOCALAPPDATA%\org.regio.app\obs\33.0.1\` ; téléchargé une fois au 1er lancement (224 Mo, ~30 s).
-    TODO installeur : l'embarquer (installation hors ligne) + vérifier le runtime Visual C++ sur PC vierge.
+    **Installeur (2026-11-13)** : `scripts/build-installer.sh` (WSL) → `scripts/fetch-installer-deps.sh` (OBS zip,
+    empreinte vérifiée ; vc_redist.x64.exe, signature Microsoft vérifiée ; dans `src-tauri/resources/`, HORS git) puis
+    `tauri build --config src-tauri/tauri.installer.conf.json` → `C:\dev\regio\src-tauri\target\release\bundle\nsis\
+    Regio_<v>_x64-setup.exe` (≈ 243 Mo, NSIS, par utilisateur, sans droits admin). Au 1er lancement, `obs.rs` déballe
+    l'OBS livré (`resources/obs/…zip`, empreinte revérifiée) au lieu de le télécharger, puis supprime l'archive.
+    `installer-hooks.nsh` (UTF-8 avec BOM !) installe le runtime Visual C++ s'il manque (registre 64 et 32 bits).
+    WebView2 : bootstrapper embarqué (Internet requis seulement si WebView2 manque, rare). Pas encore signé (SignPath).
+    Reste : test sur PC vierge (Windows Sandbox à activer).
   - Configuré AVANT lancement : `portable_mode.txt`, WebSocket sur **4466** (≠ 4455 d'un OBS installé),
     mot de passe généré une fois (`regio-obs.json`), `global.ini`/`user.ini` créés une seule fois
     (FirstRun, pas de mises à jour, pas de confirmation de fermeture, démarrage dans la zone de notification).

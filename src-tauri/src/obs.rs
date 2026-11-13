@@ -97,7 +97,7 @@ impl ObsManager {
         let exe = root.join("bin").join("64bit").join("obs64.exe");
 
         if !exe.exists() {
-            self.download_and_install(&base, &root).await?;
+            self.install(&app, &base, &root).await?;
         }
 
         // Un OBS laissé par un Regio fermé de force (ou planté) tournerait encore, caché : il occuperait
@@ -177,8 +177,24 @@ impl ObsManager {
         }
     }
 
-    async fn download_and_install(&self, base: &Path, root: &Path) -> Result<(), String> {
+    /// Installe OBS : depuis l'archive livrée avec l'installeur de Regio (hors ligne) si elle est là,
+    /// sinon en la téléchargeant. Dans les deux cas, l'empreinte SHA-256 est vérifiée.
+    async fn install(&self, app: &AppHandle, base: &Path, root: &Path) -> Result<(), String> {
         fs::create_dir_all(base).map_err(|e| e.to_string())?;
+        if let Some(bundled) = bundled_zip(app) {
+            self.set(ObsState::Installing);
+            let check = bundled.clone();
+            let ok = tauri::async_runtime::spawn_blocking(move || sha256_file(&check)).await.map_err(|e| e.to_string())?;
+            if ok.as_deref() == Ok(OBS_SHA256) {
+                // Une fois OBS en place, l'archive livrée ne sert plus : on libère 224 Mo (si on a le droit).
+                return self.extract(&bundled, base, root, true).await;
+            }
+            // Archive livrée abîmée : on se rabat sur le téléchargement.
+        }
+        self.download_and_install(base, root).await
+    }
+
+    async fn download_and_install(&self, base: &Path, root: &Path) -> Result<(), String> {
         let zip_path = base.join(format!("OBS-Studio-{OBS_VERSION}.zip"));
 
         // Téléchargement avec progression et empreinte calculée au fil de l'eau.
@@ -208,11 +224,15 @@ impl ObsManager {
             return Err("Le fichier téléchargé est corrompu (empreinte incorrecte). Réessayez.".into());
         }
 
-        // Extraction dans un dossier temporaire, renommé seulement si tout s'est bien passé.
+        self.extract(&zip_path, base, root, true).await
+    }
+
+    /// Extraction dans un dossier temporaire, renommé seulement si tout s'est bien passé.
+    async fn extract(&self, zip_path: &Path, base: &Path, root: &Path, delete_zip: bool) -> Result<(), String> {
         self.set(ObsState::Installing);
         let tmp = base.join(format!("{OBS_VERSION}.tmp"));
         let _ = fs::remove_dir_all(&tmp);
-        let zip_for_task = zip_path.clone();
+        let zip_for_task = zip_path.to_path_buf();
         let tmp_for_task = tmp.clone();
         tauri::async_runtime::spawn_blocking(move || -> Result<(), String> {
             let f = fs::File::open(&zip_for_task).map_err(|e| e.to_string())?;
@@ -227,9 +247,24 @@ impl ObsManager {
         let _ = fs::remove_dir_all(root);
         fs::rename(&content, root).map_err(|e| e.to_string())?;
         let _ = fs::remove_dir_all(&tmp);
-        let _ = fs::remove_file(&zip_path);
+        if delete_zip {
+            let _ = fs::remove_file(zip_path);
+        }
         Ok(())
     }
+}
+
+/// Archive d'OBS livrée avec l'installeur (`resources/obs/…zip`, voir scripts/fetch-installer-deps.sh).
+fn bundled_zip(app: &AppHandle) -> Option<PathBuf> {
+    let p = app.path().resource_dir().ok()?.join("resources").join("obs").join(format!("OBS-Studio-{OBS_VERSION}-Windows-x64.zip"));
+    p.exists().then_some(p)
+}
+
+fn sha256_file(path: &Path) -> Result<String, String> {
+    let mut f = fs::File::open(path).map_err(|e| e.to_string())?;
+    let mut hasher = Sha256::new();
+    std::io::copy(&mut f, &mut hasher).map_err(|e| e.to_string())?;
+    Ok(hasher.finalize().iter().map(|b| format!("{b:02x}")).collect())
 }
 
 fn find_obs_root(dir: &Path) -> Option<PathBuf> {
