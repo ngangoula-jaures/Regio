@@ -59,7 +59,7 @@ export function startFakeObs(port = 4466) {
         }
         case "SetSceneItemEnabled": items(d.sceneName).find((x) => x.sceneItemId === d.sceneItemId).sceneItemEnabled = d.sceneItemEnabled; break;
         case "GetInputPropertiesListPropertyItems":
-          r = { propertyItems: [{ itemName: "Cam Link 4K", itemValue: "camlink:1", itemEnabled: true }, { itemName: "Webcam intégrée", itemValue: "int:0", itemEnabled: true }] };
+          r = { propertyItems: [{ itemName: "Cam Link 4K", itemValue: "camlink:1", itemEnabled: true }, { itemName: "Webcam intégrée HP TrueVision HD Camera", itemValue: "int:0", itemEnabled: true }] };
           break;
         case "GetMonitorList":
           r = { monitors: [{ monitorIndex: 0, monitorWidth: 1920, monitorHeight: 1080, monitorPositionX: 0, monitorPositionY: 0 }, { monitorIndex: 1, monitorWidth: 1280, monitorHeight: 720, monitorPositionX: 1920, monitorPositionY: 0 }] };
@@ -68,7 +68,12 @@ export function startFakeObs(port = 4466) {
           state.projector = d.monitorIndex ?? "window";
           break;
         case "GetSourceScreenshot":
-          r = { imageData: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==" };
+          {
+            // Comme le vrai OBS : une image de la largeur demandée (ex. 480 px), en 16:9.
+            const w = d.imageWidth ?? 1920, h = Math.round((w * 9) / 16);
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="#2a3355"/></svg>`;
+            r = { imageData: "data:image/svg+xml;base64," + Buffer.from(svg).toString("base64") };
+          }
           break;
         case "BroadcastCustomEvent":
           for (const c of clients) c.send(JSON.stringify({ op: 5, d: { eventType: "CustomEvent", eventIntent: 1, eventData: d.eventData } }));

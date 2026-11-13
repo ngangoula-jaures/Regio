@@ -16,7 +16,7 @@ interface Layer {
 
 /** Le contenu couvre-t-il tout l'écran (la caméra n'est plus visible) ? */
 function covers(c: Content): boolean {
-  return c.kind === "image" || c.kind === "standby" || ((c.kind === "verse" || c.kind === "text") && c.layout === "full");
+  return c.kind === "image" || c.kind === "slides" || c.kind === "standby" || ((c.kind === "verse" || c.kind === "text") && c.layout === "full");
 }
 
 export default function Render() {
@@ -36,6 +36,8 @@ export default function Render() {
     const show = (id: number, content: Content) => {
       if (id === lastId.current) return;
       lastId.current = id;
+      // Diapo suivante chargée d'avance : le passage à la diapo suivante est instantané.
+      if (content.kind === "slides" && content.slides[content.index + 1]) new Image().src = content.slides[content.index + 1];
       // Si le nouveau contenu couvre l'écran, l'ancien reste opaque dessous pendant le fondu
       // (sinon la caméra « clignoterait » entre deux versets). Sinon l'ancien s'efface.
       const leave: Layer["state"] = covers(content) ? "hold" : "out";
@@ -165,6 +167,12 @@ function ContentView({ content }: { content: Content }) {
       return (
         <div className="image">
           <img src={content.src} alt={content.name} />
+        </div>
+      );
+    case "slides":
+      return (
+        <div className="image">
+          <img src={content.slides[content.index]} alt={content.name} />
         </div>
       );
     case "standby":

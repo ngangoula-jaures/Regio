@@ -5,7 +5,8 @@
 // - CHOISIR un moment (clic dans le déroulé, ↑ / ↓) : ses contenus s'ouvrent à droite, RIEN ne change à l'écran ;
 // - AFFICHER (clic sur un contenu, Suivant / espace / →, Précédent / ←) : contenu suivant du moment choisi
 //   (son 1er contenu si on vient d'en choisir un autre), puis le moment d'après ;
-// - pendant une lecture biblique, Suivant / Précédent passent de verset en verset.
+// - pendant une lecture biblique, Suivant / Précédent passent de verset en verset ;
+// - une présentation (PowerPoint importé) est UN contenu : Suivant / Précédent passent de diapo en diapo.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
@@ -25,6 +26,8 @@ type Mode = "items" | "reading";
 interface Pos {
   m: number;
   i: number;
+  /** Diapo affichée, si le contenu est une présentation. */
+  s?: number;
 }
 
 export function RegieScreen({ studio, active = true, onSources }: { studio: Studio; active?: boolean; onSources: () => void }) {
@@ -45,18 +48,32 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   const [newName, setNewName] = useState("");
 
   const moments = lib?.moments ?? [];
+  /** Contenu à cette position (pour une présentation : la bonne diapo). */
+  const contentAt = (p: Pos): Content | null => {
+    const c = moments[p.m]?.items[p.i]?.content;
+    return !c ? null : c.kind === "slides" ? { ...c, index: Math.min(p.s ?? 0, c.slides.length - 1) } : c;
+  };
+  const slideCount = (p: Pos | null) => {
+    const c = p ? moments[p.m]?.items[p.i]?.content : null;
+    return c?.kind === "slides" ? c.slides.length : 0;
+  };
+  /** Libellé d'une position : « Louange · Chants · 3/24 ». */
+  const posLabel = (p: Pos) => {
+    const n = slideCount(p);
+    return `${moments[p.m]?.name} · ${moments[p.m]?.items[p.i]?.label ?? t("kinds.camera")}${n ? ` · ${(p.s ?? 0) + 1}/${n}` : ""}`;
+  };
 
   // ---------- Afficher ----------
   const showPos = useCallback(
     (p: Pos, m: Mode) => {
-      const item = moments[p.m]?.items[p.i];
+      const content = contentAt(p);
       setLive(p);
       setSel(p.m);
       setTab("moment");
       setReading(null);
       setOffPlan(false);
       setMode(m);
-      studio.show(item ? item.content : { kind: "none" });
+      studio.show(content ?? { kind: "none" });
     },
     [moments, studio.show], // eslint-disable-line react-hooks/exhaustive-deps
   );
@@ -100,11 +117,17 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
     // Moment choisi différent de celui à l'écran : Suivant affiche son 1er contenu.
     if (dir > 0 && (!live || live.m !== sel)) return sel < moments.length ? { kind: "pos", pos: { m: sel, i: 0 } } : null;
     if (!live) return null;
+    // Présentation à l'écran : diapo suivante / précédente.
+    const n = slideCount(live);
+    const s = (live.s ?? 0) + dir;
+    if (n && s >= 0 && s < n) return { kind: "pos", pos: { ...live, s } };
+    // En reculant dans une présentation, on arrive sur sa dernière diapo.
+    const at = (m: number, i: number): Pos => ({ m, i, s: dir < 0 ? Math.max(0, slideCount({ m, i }) - 1) : 0 });
     const i = live.i + dir;
-    if (i >= 0 && i < len(live.m)) return { kind: "pos", pos: { m: live.m, i } };
+    if (i >= 0 && i < len(live.m)) return { kind: "pos", pos: at(live.m, i) };
     // Au bout du moment : moment voisin (les moments vides sont sautés).
     for (let m = live.m + dir; m >= 0 && m < moments.length; m += dir) {
-      if (len(m) > 0) return { kind: "pos", pos: { m, i: dir > 0 ? 0 : len(m) - 1 } };
+      if (len(m) > 0) return { kind: "pos", pos: at(m, dir > 0 ? 0 : len(m) - 1) };
     }
     return null;
   };
@@ -156,18 +179,21 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
     ? null
     : nextTarget.kind === "verse"
       ? { content: verseContent(bible!, nextTarget.r, readLayout), label: refLabel(bible!, nextTarget.r) }
-      : {
-          content: moments[nextTarget.pos.m]?.items[nextTarget.pos.i]?.content ?? { kind: "none" },
-          label: `${moments[nextTarget.pos.m]?.name} · ${moments[nextTarget.pos.m]?.items[nextTarget.pos.i]?.label ?? t("kinds.camera")}`,
-        };
+      : { content: contentAt(nextTarget.pos) ?? { kind: "none" }, label: posLabel(nextTarget.pos) };
   const curLabel =
     mode === "reading" && reading && bible
       ? refLabel(bible, reading)
       : offPlan || !live
         ? t("regie.offPlan")
-        : `${moments[live.m]?.name} · ${moments[live.m]?.items[live.i]?.label ?? t("kinds.camera")}`;
+        : posLabel(live);
   const nextWord =
-    mode === "reading" ? t("regie.nextVerse") : !live || live.m !== sel ? t("regie.showMoment", { name: moments[sel]?.name ?? "" }) : t("regie.nextItem");
+    mode === "reading"
+      ? t("regie.nextVerse")
+      : !live || live.m !== sel
+        ? t("regie.showMoment", { name: moments[sel]?.name ?? "" })
+        : !offPlan && (live.s ?? 0) < slideCount(live) - 1
+          ? t("regie.nextSlide")
+          : t("regie.nextItem");
 
   const canLayout = cur.kind === "verse" || cur.kind === "text";
   const setLayout = (layout: "lower" | "full") => {
@@ -220,14 +246,14 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
     }));
     if (live && live.m === m) {
       const i = live.i === from ? to : live.i > from && live.i <= to ? live.i - 1 : live.i < from && live.i >= to ? live.i + 1 : live.i;
-      setLive({ m, i });
+      setLive({ ...live, i });
     }
   };
 
   const removeItem = (idx: number) => {
     const m = sel;
     update((l) => ({ ...l, moments: l.moments.map((x, i) => (i === m ? { ...x, items: x.items.filter((_, j) => j !== idx) } : x)) }));
-    if (live && live.m === m && live.i >= idx) setLive(live.i === idx ? null : { m, i: live.i - 1 });
+    if (live && live.m === m && live.i >= idx) setLive(live.i === idx ? null : { ...live, i: live.i - 1 });
   };
 
   const deleteMoment = () => {
@@ -398,11 +424,13 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
           tab={tab}
           setTab={setTab}
           liveIndex={!offPlan && live && live.m === sel ? live.i : null}
+          liveSlide={live?.s ?? 0}
           camera={camera}
           bible={bible}
           reading={mode === "reading" ? reading : null}
           storeImage={(d) => storeImage(d, studio.server?.localBase ?? "")}
-          onShowItem={(i) => showPos({ m: sel, i }, "items")}
+          onShowItem={(i, s) => showPos({ m: sel, i, s }, "items")}
+          localBase={studio.server?.localBase ?? ""}
           onShowOther={showOther}
           onRead={(r) => read(r)}
           onDeleteMoment={deleteMoment}

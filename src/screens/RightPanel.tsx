@@ -1,13 +1,15 @@
 // Panneau de droite de la régie : l'onglet du moment sélectionné, la Bible, les médias, le texte.
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronRight, GripVertical, ImagePlus, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { Check, ChevronRight, GripVertical, ImagePlus, Pencil, Plus, Presentation, Search, Trash2, X } from "lucide-react";
 import { t } from "../i18n";
 import type { Content } from "../shared/content";
 import { MiniScreen } from "../components/MiniScreen";
 import { OT_COUNT, parseReference, refLabel, searchWords, type Bible, type Passage } from "../bible/bible";
 import { kindLabel, uid, type Library, type MediaEntry, type Moment, type PlanItem } from "../app/library";
 import { loadImageAsDataUrl } from "../app/images";
+import { PRESENTATION_ACCEPT, importErrorKind, importPresentation } from "../shared/storage";
+import { inTauri } from "../shared/server";
 
 export type Tab = "moment" | "bible" | "media" | "text";
 
@@ -30,8 +32,12 @@ export const verseContent = (bible: Bible, p: Reading, layout: "lower" | "full")
 function MomentTab(props: {
   moment: Moment;
   liveIndex: number | null;
+  liveSlide: number;
   camera: string | null;
-  onShow: (i: number) => void;
+  onShow: (i: number, slide?: number) => void;
+  importing: { name: string; done: number; total: number } | null;
+  importError: string | null;
+  onImport: (file: File) => void;
   onRename: (name: string) => void;
   onDelete: () => void;
   onRemoveItem: (i: number) => void;
@@ -142,7 +148,15 @@ function MomentTab(props: {
             >
               <GripVertical size={16} strokeWidth={1.75} />
             </button>
-            <button type="button" className="item-main" onClick={() => props.onShow(i)} aria-current={props.liveIndex === i ? "true" : undefined}>
+            <button
+              type="button"
+              className="item-main"
+              onClick={(e) => {
+                props.onShow(i);
+                // Clic souris : pas de cadre de focus qui resterait affiché pendant la navigation au clavier.
+                if (e.detail > 0) e.currentTarget.blur();
+              }}
+              aria-current={props.liveIndex === i ? "true" : undefined}>
               <span className="item-thumb">
                 <MiniScreen content={it.content} camera={props.camera} />
               </span>
@@ -152,12 +166,76 @@ function MomentTab(props: {
               </span>
               {props.liveIndex === i && <span className="plan-badge">{t("regie.onScreen")}</span>}
             </button>
+            {it.content.kind === "slides" && (
+              <SlideStrip slides={it.content.slides} current={props.liveIndex === i ? props.liveSlide : null} onPick={(k) => props.onShow(i, k)} />
+            )}
             <button type="button" className="icon-btn" aria-label={t("regie.removeItem", { name: it.label })} title={t("regie.removeItem", { name: it.label })} onClick={() => props.onRemoveItem(i)}>
               <X size={15} strokeWidth={2} />
             </button>
           </div>
         ))}
       </div>
+      {inTauri && (
+        <>
+          {props.importing ? (
+            <div className="import-progress" role="status">
+              <span>
+                {props.importing.total
+                  ? t("panels.importProgress", { name: props.importing.name, done: props.importing.done, total: props.importing.total })
+                  : t("panels.importStarting", { name: props.importing.name })}
+              </span>
+              <span className="bar">
+                <span style={{ width: `${props.importing.total ? (100 * props.importing.done) / props.importing.total : 4}%` }} />
+              </span>
+            </div>
+          ) : (
+            <label className="file-drop import-btn">
+              <Presentation size={20} strokeWidth={1.75} />
+              <span>{t("panels.importPpt", { name: moment.name })}</span>
+              <input
+                type="file"
+                accept={PRESENTATION_ACCEPT}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = "";
+                  if (f) props.onImport(f);
+                }}
+              />
+            </label>
+          )}
+          {props.importError && <p className="banner banner-error">{props.importError}</p>}
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Vignettes des diapos d'une présentation : un clic affiche cette diapo. */
+function SlideStrip({ slides, current, onPick }: { slides: string[]; current: number | null; onPick: (k: number) => void }) {
+  const strip = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (current === null) return;
+    strip.current?.querySelector(`[data-slide="${current}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+  }, [current]);
+  return (
+    <div className="slide-strip" ref={strip}>
+      {slides.map((src, k) => (
+        <button
+          key={k}
+          type="button"
+          data-slide={k}
+          className={current === k ? "is-live" : ""}
+          aria-label={t("panels.slideN", { n: k + 1 })}
+          aria-current={current === k ? "true" : undefined}
+          onClick={(e) => {
+            onPick(k);
+            if (e.detail > 0) e.currentTarget.blur();
+          }}
+        >
+          <img src={src} alt="" loading="lazy" />
+          <span>{k + 1}</span>
+        </button>
+      ))}
     </div>
   );
 }
@@ -420,11 +498,13 @@ export function RightPanel(props: {
   tab: Tab;
   setTab: (t: Tab) => void;
   liveIndex: number | null;
+  liveSlide: number;
+  localBase: string;
   camera: string | null;
   bible: Bible | null;
   reading: Reading | null;
   storeImage: (dataUrl: string) => Promise<string>;
-  onShowItem: (i: number) => void;
+  onShowItem: (i: number, slide?: number) => void;
   onShowOther: (c: Content) => void;
   onRead: (r: Reading) => void;
   onDeleteMoment: () => void;
@@ -434,12 +514,31 @@ export function RightPanel(props: {
   const { lib, update, sel } = props;
   const moment = lib.moments[sel];
   const [toast, setToast] = useState<string | null>(null);
+  const [importing, setImporting] = useState<{ name: string; done: number; total: number } | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
   const addToMoment = (m: number, content: Content, label: string) => {
     const item: PlanItem = { id: uid(), label, content };
     update((l) => ({ ...l, moments: l.moments.map((x, i) => (i === m ? { ...x, items: [...x.items, item] } : x)) }));
     setToast(t("panels.added", { name: lib.moments[m]?.name ?? "" }));
     window.setTimeout(() => setToast(null), 1800);
+  };
+
+  /** PowerPoint → UN contenu « présentation » ajouté au moment choisi. */
+  const importPpt = async (file: File) => {
+    const m = sel;
+    const name = file.name.replace(/\.[^.]+$/, "");
+    setImportError(null);
+    setImporting({ name, done: 0, total: 0 });
+    try {
+      const r = await importPresentation(file, props.localBase, (done, total) => setImporting({ name, done, total }));
+      addToMoment(m, { kind: "slides", name: r.name, slides: r.slides, index: 0 }, r.name);
+    } catch (e) {
+      const kind = importErrorKind(e);
+      setImportError(kind === "OTHER" ? t("panels.importFailed", { message: String(e instanceof Error ? e.message : e) }) : t(`panels.importError${kind}`));
+    } finally {
+      setImporting(null);
+    }
   };
 
   const tabs: Array<{ id: Tab; label: string }> = [
@@ -468,8 +567,12 @@ export function RightPanel(props: {
         <MomentTab
           moment={moment}
           liveIndex={props.liveIndex}
+          liveSlide={props.liveSlide}
           camera={props.camera}
           onShow={props.onShowItem}
+          importing={importing}
+          importError={importError}
+          onImport={importPpt}
           onRename={(name) => update((l) => ({ ...l, moments: l.moments.map((x, i) => (i === sel ? { ...x, name } : x)) }))}
           onDelete={props.onDeleteMoment}
           onRemoveItem={props.onRemoveItem}

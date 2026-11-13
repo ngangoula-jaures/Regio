@@ -22,7 +22,7 @@ const check = async (cond, msg) => (cond ? console.log("✓", msg) : fail(msg));
 const enabledCams = () => obs.state.items[SCENE].filter((i) => i.sceneItemEnabled && i.sourceName.startsWith("Regio - Caméra")).map((i) => i.sourceName);
 
 try {
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "fr-FR" });
+  const ctx = await browser.newContext({ viewport: { width: 1366, height: 820 }, locale: "fr-FR" }); // taille de la fenêtre de l'application
   const app = await ctx.newPage();
   app.on("pageerror", (e) => errors.push("régie : " + e.message));
   app.on("request", (r) => {
@@ -164,6 +164,16 @@ try {
   await app.waitForSelector(".cam-tile.is-on:has-text('Cam Link 4K')");
   const en2 = enabledCams();
   await check(en2.length === 1 && en2[0].includes("Cam Link 4K"), "rangée des caméras : un clic change la caméra à l'écran");
+  await app.click(".cam-tile:has-text('Webcam intégrée')"); // nom long + badge « À l'écran »
+  await app.waitForSelector(".cam-tile.is-on:has-text('Webcam intégrée')");
+  const overlap = await app.$$eval(".cam-tile", (tiles) =>
+    tiles.some((a, i) => tiles.slice(i + 1).some((b) => {
+      const r = a.getBoundingClientRect(), q = b.getBoundingClientRect();
+      return r.left < q.right - 1 && q.left < r.right - 1 && r.top < q.bottom - 1 && q.top < r.bottom - 1;
+    })));
+  await check(!overlap, "rangée des caméras : aucune vignette ne déborde sur sa voisine (nom de caméra long)");
+  await app.click(".cam-tile:has-text('Cam Link 4K')");
+  await app.waitForSelector(".cam-tile.is-on:has-text('Cam Link 4K')");
 
   await app.click(".room-btn");
   await app.waitForSelector("text=Votre ordinateur");

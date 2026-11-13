@@ -6,7 +6,9 @@ export type Content =
   | { kind: "none" } // caméra seule
   | { kind: "verse"; layout: Layout; reference: string; text: string; version: string }
   | { kind: "text"; layout: Layout; title: string; body: string }
-  | { kind: "image"; src: string; name: string } // src = data URL (Phase 0)
+  | { kind: "image"; src: string; name: string } // src = adresse de l'image (médias)
+  // Présentation importée (PowerPoint) : une image par diapo ; `index` = diapo affichée.
+  | { kind: "slides"; name: string; slides: string[]; index: number }
   | { kind: "standby"; title: string; subtitle: string }; // écran d'attente / logo
 
 /** Identifiant de chaque affichage : permet à la page render de lancer un fondu à chaque changement. */

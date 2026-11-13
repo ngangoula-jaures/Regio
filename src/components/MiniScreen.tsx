@@ -5,7 +5,7 @@ import { Video } from "lucide-react";
 import type { Content } from "../shared/content";
 
 export function MiniScreen({ content, camera }: { content: Content; camera?: string | null }) {
-  const showsCamera = content.kind === "none" || (content.kind !== "image" && content.kind !== "standby" && content.layout === "lower");
+  const showsCamera = content.kind === "none" || (content.kind !== "image" && content.kind !== "slides" && content.kind !== "standby" && content.layout === "lower");
   return (
     <div className="mini" aria-hidden="true">
       {showsCamera && (camera ? <img className="mini-cam" src={camera} alt="" /> : <div className="mini-nocam"><Video strokeWidth={1.5} /></div>)}
@@ -36,6 +36,11 @@ export function MiniScreen({ content, camera }: { content: Content; camera?: str
       {content.kind === "image" && (
         <div className="mini-image">
           <img src={content.src} alt="" />
+        </div>
+      )}
+      {content.kind === "slides" && (
+        <div className="mini-image">
+          <img src={content.slides[content.index]} alt="" />
         </div>
       )}
       {content.kind === "standby" && (

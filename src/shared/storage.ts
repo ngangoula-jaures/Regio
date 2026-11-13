@@ -29,3 +29,34 @@ export async function storeImage(dataUrl: string, localBase: string): Promise<st
   const file = await invoke<string>("save_media", { base64, ext: "jpg" });
   return `${localBase}/media/${file}`;
 }
+
+/** Formats de présentation que PowerPoint sait ouvrir. */
+export const PRESENTATION_ACCEPT = ".pptx,.ppt,.pptm,.ppsx,.pps,.ppsm,.potx,.odp";
+
+/** Erreurs connues de l'import (traduites par l'interface). */
+export type ImportError = "NOPOWERPOINT" | "FORMAT" | "EMPTY" | "TIMEOUT" | "OTHER";
+
+/**
+ * Import « fidèle » d'une présentation : PowerPoint exporte chaque diapo en image HD (application
+ * de bureau uniquement). `onProgress(done, total)` suit l'avancement. Renvoie les adresses des images.
+ */
+export async function importPresentation(
+  file: File,
+  localBase: string,
+  onProgress: (done: number, total: number) => void,
+): Promise<{ name: string; slides: string[] }> {
+  const { listen } = await import("@tauri-apps/api/event");
+  const stop = await listen<{ done: number; total: number }>("pptx-progress", (e) => onProgress(e.payload.done, e.payload.total));
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const r = await invoke<{ name: string; slides: string[] }>("import_pptx", bytes, { headers: { "x-file-name": encodeURIComponent(file.name) } });
+    return { name: r.name || file.name, slides: r.slides.map((f) => `${localBase}/media/${f}`) };
+  } finally {
+    stop();
+  }
+}
+
+export function importErrorKind(e: unknown): ImportError {
+  const msg = String(e instanceof Error ? e.message : e);
+  return (["NOPOWERPOINT", "FORMAT", "EMPTY", "TIMEOUT"] as const).find((k) => msg === k) ?? "OTHER";
+}

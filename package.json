@@ -12,7 +12,8 @@
     "test:phone": "node tests/e2e/phone-camera.test.mjs",
     "test:regie": "node tests/e2e/regie.test.mjs",
     "test:multiphone": "node tests/e2e/multi-phone.test.mjs",
-    "test:e2e": "npm run -s test:regie && npm run -s test:phone && npm run -s test:multiphone",
+    "test:slides": "node tests/e2e/slides.test.mjs",
+    "test:e2e": "npm run -s test:regie && npm run -s test:slides && npm run -s test:phone && npm run -s test:multiphone",
     "tauri": "tauri"
   },
   "dependencies": {

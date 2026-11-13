@@ -1,4 +1,5 @@
 mod obs;
+mod pptx;
 mod server;
 mod storage;
 
@@ -30,7 +31,7 @@ pub fn run() {
             app.manage(obs);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![server_info, obs_status, storage::load_data, storage::save_data, storage::save_media])
+        .invoke_handler(tauri::generate_handler![server_info, obs_status, storage::load_data, storage::save_data, storage::save_media, pptx::import_pptx])
         .build(tauri::generate_context!())
         .expect("erreur au lancement de Regio");
 

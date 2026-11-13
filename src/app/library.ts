@@ -29,7 +29,7 @@ export interface Library {
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
-export type KindKey = "standby" | "camera" | "lower" | "full" | "fullText" | "poster";
+export type KindKey = "standby" | "camera" | "lower" | "full" | "fullText" | "poster" | "slides";
 export function kindOf(c: Content): KindKey {
   switch (c.kind) {
     case "standby":
@@ -38,13 +38,15 @@ export function kindOf(c: Content): KindKey {
       return "camera";
     case "image":
       return "poster";
+    case "slides":
+      return "slides";
     case "verse":
       return c.layout === "lower" ? "lower" : "full";
     case "text":
       return c.layout === "lower" ? "lower" : "fullText";
   }
 }
-export const kindLabel = (c: Content) => t(`kinds.${kindOf(c)}` as MessageKey);
+export const kindLabel = (c: Content) => (c.kind === "slides" ? t("kinds.slides", { n: c.slides.length }) : t(`kinds.${kindOf(c)}` as MessageKey));
 
 export function standby(): Content {
   return { kind: "standby", title: t("defaults.standbyTitle"), subtitle: t("defaults.standbySubtitle") };

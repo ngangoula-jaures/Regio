@@ -59,11 +59,16 @@ pub fn save_media(app: AppHandle, base64: String, ext: String) -> Result<String,
         _ => return Err("format d'image non pris en charge".into()),
     };
     let bytes = decode_base64(&base64).ok_or("image illisible")?;
-    let mut id = [0u8; 12];
-    getrandom::getrandom(&mut id).map_err(|e| e.to_string())?;
-    let file = format!("{}.{ext}", id.iter().map(|b| format!("{b:02x}")).collect::<String>());
+    let file = format!("{}.{ext}", random_hex(12));
     fs::write(media_dir(&app)?.join(&file), bytes).map_err(|e| e.to_string())?;
     Ok(file)
+}
+
+/// Identifiant aléatoire en hexadécimal (`n` octets → 2n caractères).
+pub fn random_hex(n: usize) -> String {
+    let mut id = vec![0u8; n];
+    getrandom::getrandom(&mut id).expect("générateur aléatoire indisponible");
+    id.iter().map(|b| format!("{b:02x}")).collect()
 }
 
 fn decode_base64(s: &str) -> Option<Vec<u8>> {

@@ -90,6 +90,17 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   abréviations), recherche par mots. Livres › Chapitres › chapitre entier.
 - **Images importées** : réduites en JPEG puis enregistrées comme fichiers (`save_media` →
   `%APPDATA%\org.regio.app\media\`), servies à OBS par le serveur local `/media/<fichier>` (noms filtrés).
+- **Import PowerPoint « fidèle »** (fait le 2026-11-13, validé dans la vraie application) : bouton « Importer un PowerPoint
+  dans <moment> » (application de bureau seulement). Le fichier part en octets bruts (`invoke` + en-tête `x-file-name`)
+  vers `src-tauri/src/pptx.rs`, qui lance `pptx_export.ps1` (passé en `-EncodedCommand` : Windows PowerShell 5.1 lit
+  les .ps1 sans BOM en ANSI ; attention, ses variables ignorent la casse) → PowerPoint par COM, invisible, exporte
+  chaque diapo en JPEG 1920 × 1080 max (diapos masquées sautées) → médias. Progression : événement `pptx-progress`.
+  Abandon après 90 s sans nouvelles (mot de passe…). Erreurs : NOPOWERPOINT / FORMAT / EMPTY / TIMEOUT.
+  **Une présentation = UN contenu** `{ kind: "slides", slides, index }` (choix de l'utilisateur) : Suivant / Précédent
+  = diapo par diapo, puis contenu suivant ; en reculant on arrive sur la dernière diapo ; vignettes cliquables
+  (`SlideStrip`). Diapo suivante préchargée par la page d'affichage. Test : `npm run test:slides` ; export réel :
+  `scripts/win.sh cargo test --manifest-path src-tauri\Cargo.toml --lib pptx -- --include-ignored`
+  (présentation de test `C:\dev\regio-test\Chants test.pptx`). Reste : mode « modifiable » (sans PowerPoint).
 - Caméras pendant le culte : `src/screens/CameraRow.tsx` (vignettes, un clic = caméra à l'écran).
 - **Plusieurs téléphones** (max `MAX_PHONES` = 4) : numéros « 1 », « 2 »… (salle de signalisation + source OBS
   `Regio - Téléphone QR <n>` chacun) ; il y a toujours UN numéro libre avec son QR code (« Ajouter un téléphone (n) »).
@@ -106,7 +117,7 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   Aperçus réduits : `src/components/MiniScreen.tsx` (même mise en page que la sortie projetée).
 - Pas encore fait (ne pas l'afficher comme si ça marchait) : direct sur les
   réseaux, vumètre, « musique hors direct », bascule auto sur le logo si une caméra se débranche,
-  import PowerPoint, plusieurs déroulés / modèles de culte.
+  import PowerPoint sans PowerPoint (mode « modifiable »), plusieurs déroulés / modèles de culte.
 
 ## Architecture
 
@@ -210,6 +221,11 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   « os error 4551 »). Les PC des églises l'ont souvent actif → **l'installeur distribué doit être signé**
   (cible : SignPath Foundation, gratuit pour l'open source, sur candidature).
 - PowerShell : stratégie `RemoteSigned` (CurrentUser) en place ; depuis WSL, utiliser `npm.cmd`/`npx.cmd`.
+- Fenêtre Tauri : `dragDropEnabled: false` (sinon WebView2 bloque le glisser-déposer HTML sous Windows).
+- Piloter la VRAIE application (vérifs de mise en page, import) : lancer `regio.exe` avec
+  `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333`, puis un script Node Windows
+  (`playwright-core` via `createRequire("C:/dev/regio/package.json")`, `chromium.connectOverCDP`). Le navigateur
+  sans interface des tests ne reproduit pas toujours les tailles réelles (fenêtre 1366 × 820, zoom 125 %).
 - Ne jamais lancer `pkill -f "<motif>"` dans une commande qui contient elle-même ce motif (elle se tue).
 
 ## Conventions
