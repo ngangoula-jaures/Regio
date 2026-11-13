@@ -85,6 +85,19 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   - Mode navigateur (`npm run dev`) : le plugin Vite `server/phone-bridge.ts` joue ce rôle (HTTPS 8443,
     certificat dans `.cert/`, sans clé) ; il est désactivé en `vite --mode tauri` (`npm run dev:tauri`).
   - Test sous Windows, application lancée : `scripts/win.sh node tests/e2e/rust-server.test.mjs`.
+- **OBS embarqué et automatique (`src-tauri/src/obs.rs`)** — fait et validé le 2026-11-13 :
+  - OBS **33.0.1 portable** (version figée, empreinte SHA-256 vérifiée) dans
+    `%LOCALAPPDATA%\org.regio.app\obs\33.0.1\` ; téléchargé une fois au 1er lancement (224 Mo, ~30 s).
+    TODO installeur : l'embarquer (installation hors ligne) + vérifier le runtime Visual C++ sur PC vierge.
+  - Configuré AVANT lancement : `portable_mode.txt`, WebSocket sur **4466** (≠ 4455 d'un OBS installé),
+    mot de passe généré une fois (`regio-obs.json`), `global.ini`/`user.ini` créés une seule fois
+    (FirstRun, pas de mises à jour, pas de confirmation de fermeture, démarrage dans la zone de notification).
+  - Lancé avec `--portable --minimize-to-tray --disable-shutdown-check --disable-updater --multi`.
+  - Surveillé : relance auto après plantage (~5 s, testé) ; arrêt après 5 plantages en 2 min (message clair) ;
+    fermé quand Regio se ferme (testé).
+  - Interface : commande Tauri `obs_status` (`src/shared/engine.ts`) → écran de démarrage (`Startup.tsx`) avec
+    progression, puis connexion automatique ; reconnexion auto et **réouverture de la projection** après un
+    redémarrage d'OBS. Le panneau de connexion manuelle n'existe plus qu'en mode navigateur.
 - **Stockage** : SQLite (Bible, médiathèque, déroulés) — à partir de la Phase 1.
 - Plus tard : affichage différent projecteur / direct (scène dédiée par sortie), relais multi-plateformes.
 
@@ -110,7 +123,8 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 - **Phase 0 (en cours)** : prototype technique — piloter OBS, caméra (webcam/téléphone), projection HDMI,
   fondus caméra ↔ verset/affiche/texte sans écran noir. ✅ Validé sur le vrai matériel le 2026-11-11
   (webcam du PC, téléphone, versets/textes/images). Caméra téléphone QR code (WebRTC) validée sur le vrai
-  téléphone le 2026-11-11 : latence bien meilleure que Larix. Reste : encapsulation Tauri sur Windows.
+  téléphone le 2026-11-11 : latence bien meilleure que Larix. Application Windows + serveur intégré (2026-11-12),
+  OBS embarqué automatique (2026-11-13). Reste : maquettes de la nouvelle interface, puis 1er installeur.
 - **Phase 1** : remplacer PowerPoint — diapos, éditeur, import .pptx, Bible complète, médiathèque, déroulé du culte.
 - **Phase 2** : le direct — sources du jour, Aperçu/Direct, enregistrement, diffusion 1 plateforme, santé du direct.
 - **Phase 3** : multidiffusion (relais), bandeaux sur le direct, plusieurs écrans, écran retour prédicateur.

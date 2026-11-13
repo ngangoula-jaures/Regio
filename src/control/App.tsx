@@ -13,7 +13,9 @@ import { readCustomEvent, type Content, type Layout } from "../shared/content";
 import { SAMPLE_VERSES } from "../shared/bible-sample";
 import { loadImageAsDataUrl } from "./images";
 import { PhoneQr } from "./PhoneQr";
-import { getServerInfo } from "../shared/server";
+import { getServerInfo, inTauri } from "../shared/server";
+import { getEngineState, type EngineState } from "../shared/engine";
+import { Startup } from "./Startup";
 import "./App.css";
 
 const SETTINGS_KEY = "regio.obs";
@@ -81,16 +83,21 @@ export default function App() {
     setMonitors(mons);
   }, []);
 
-  const connect = async () => {
+  // Dernière projection ouverte : rouverte automatiquement si OBS redémarre (jamais de salle sans image).
+  const projectorRef = useRef<{ kind: "monitor"; index: number } | { kind: "window" } | null>(null);
+
+  const connect = async (target: ConnectionSettings = settings) => {
     setStatus({ kind: "connecting" });
     setNotice(null);
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    if (!inTauri) localStorage.setItem(SETTINGS_KEY, JSON.stringify(target));
     try {
       obs.current.localBase = (await getServerInfo()).localBase;
-      const label = await obs.current.connect(settings);
+      const label = await obs.current.connect(target);
       await obs.current.ensureSetup();
       setStatus({ kind: "on", label });
       await refreshSources();
+      const proj = projectorRef.current;
+      if (proj) await (proj.kind === "monitor" ? obs.current.project(proj.index) : obs.current.projectWindowed()).catch(() => {});
       // La page de sortie répondra « hello » si elle est bien chargée dans OBS.
       setRenderOnline(false);
       await obs.current.broadcast({ type: "regio.ping" });
@@ -98,6 +105,35 @@ export default function App() {
       setStatus({ kind: "error", message: e instanceof Error ? e.message : String(e) });
     }
   };
+
+  // Application de bureau : suivre le moteur vidéo embarqué et s'y connecter automatiquement.
+  const [engine, setEngine] = useState<EngineState | null>(null);
+  const statusRef = useRef(status);
+  statusRef.current = status;
+  useEffect(() => {
+    if (!inTauri) return;
+    let alive = true;
+    let lastAttempt = 0;
+    const tick = async () => {
+      try {
+        const e = await getEngineState();
+        if (!alive) return;
+        setEngine(e);
+        const st = statusRef.current.kind;
+        if (e.state === "running" && st !== "on" && st !== "connecting" && Date.now() - lastAttempt > 2000) {
+          lastAttempt = Date.now();
+          await connect({ host: "127.0.0.1", port: e.port, password: e.password });
+        }
+      } catch {
+        /* commande indisponible : on réessaie */
+      }
+      if (alive) window.setTimeout(tick, 700);
+    };
+    tick();
+    return () => {
+      alive = false;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Répondre à la page de sortie quand elle (re)démarre, et détecter la déconnexion.
   useEffect(() => {
@@ -210,7 +246,11 @@ export default function App() {
       )}
 
       {!connected ? (
-        <ConnectPanel settings={settings} onChange={setSettings} onConnect={connect} status={status} />
+        inTauri ? (
+          <Startup engine={engine} connectError={status.kind === "error" ? status.message : null} />
+        ) : (
+          <ConnectPanel settings={settings} onChange={setSettings} onConnect={() => connect()} status={status} />
+        )
       ) : (
         <main className="grid">
           {/* ---- Colonne gauche : matériel ---- */}
@@ -253,13 +293,19 @@ export default function App() {
               <h2>🖥️ Écran de projection</h2>
               <div className="list">
                 {monitors.map((m) => (
-                  <button key={m.index} className="row" onClick={() => run(() => obs.current.project(m.index))}>
+                  <button key={m.index} className="row" onClick={() => run(() => {
+                      projectorRef.current = { kind: "monitor", index: m.index };
+                      return obs.current.project(m.index);
+                    })}>
                     Projeter sur {m.label}
                   </button>
                 ))}
               </div>
               <div className="actions">
-                <button onClick={() => run(() => obs.current.projectWindowed())}>Tester dans une fenêtre</button>
+                <button onClick={() => run(() => {
+                    projectorRef.current = { kind: "window" };
+                    return obs.current.projectWindowed();
+                  })}>Tester dans une fenêtre</button>
                 <button onClick={() => run(refreshSources)}>↻ Actualiser</button>
               </div>
               <p className="muted small">Branchez le projecteur en HDMI et choisissez « Étendre » (Windows + P).</p>
