@@ -10,7 +10,7 @@
 // - une présentation (PowerPoint importé) est UN contenu : Suivant / Précédent passent de diapo en diapo.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, ChevronUp, RefreshCw, Video } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, ChevronUp, MonitorPause, RefreshCw, Video, X } from "lucide-react";
 import { RegioLockup } from "../components/Logo";
 import { MiniScreen } from "../components/MiniScreen";
 import { longDate, t } from "../i18n";
@@ -18,10 +18,10 @@ import type { Content, Layout } from "../shared/content";
 
 const LAYOUT_KEY = "regio.layout";
 import { loadBible, refLabel, type Bible } from "../bible/bible";
-import { uid, useLibrary } from "../app/library";
+import { standby, uid, useLibrary } from "../app/library";
 import { usePolledImage, type Camera, type Studio } from "../app/useStudio";
 import { storeImage } from "../shared/storage";
-import { CameraStrip } from "./CameraStrip";
+import { CameraStrip, cameraLabel } from "./CameraStrip";
 import { TemplateChooser } from "./TemplateChooser";
 import { useLive } from "../app/useLive";
 import { HealthPanel, LiveBanners, LiveConfirmDialog, LiveEndedDialog, LiveHeader, LiveSetupDialog, LiveStopDialog, SoundMeter } from "./LiveControls";
@@ -187,6 +187,35 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   useEffect(() => {
     if (studio.keptAudio && !cams.some((c) => c.source === studio.keptAudio)) studio.keepAudio(null).catch(() => {});
   }, [camKeys, studio.keptAudio]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Mode répétition : la télé montre le 1er écran d'attente du Programme (personnalisé par l'église ou le streamer).
+  const holdContent = lib?.moments.flatMap((m) => m.items).find((it) => it.content.kind === "standby")?.content;
+  useEffect(() => {
+    studio.setHoldContent(holdContent ?? standby());
+  }, [JSON.stringify(holdContent)]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ---------- Jamais d'écran noir : la caméra à l'écran a disparu ----------
+  // Téléphone déconnecté, caméra USB/HDMI débranchée : après 4 s (le Wi-Fi revient souvent tout seul), Regio
+  // bascule sur une autre caméra utilisée, sinon affiche « Nous revenons dans un instant » ; l'opérateur est prévenu.
+  const [lost, setLost] = useState<{ name: string; to: string | null } | null>(null);
+  const camNames = useRef(new Map<string, string>());
+  for (const c of cams) camNames.current.set(c.source, cameraLabel(c));
+  const fallback = useRef({ cams, covered: false, showOther });
+  fallback.current = { cams, covered: covers(studio.current), showOther };
+  const watchReady = studio.cameras !== null && studio.server !== null;
+  useEffect(() => {
+    const main = studio.mainCamera;
+    if (!watchReady || !main || cams.some((c) => c.source === main)) return;
+    const timer = window.setTimeout(() => {
+      const { cams: now, covered: isCovered, showOther: show } = fallback.current;
+      if (now.some((c) => c.source === main)) return; // revenue entre-temps
+      const other = now[0] ?? null;
+      studio.chooseMain(other?.source ?? null).catch(() => {});
+      if (!other && !isCovered) show({ kind: "standby", title: t("regie.fallbackTitle"), subtitle: "" });
+      setLost({ name: camNames.current.get(main) ?? "", to: other ? cameraLabel(other) : null });
+    }, 4000);
+    return () => window.clearTimeout(timer);
+  }, [camKeys, studio.mainCamera, watchReady]); // eslint-disable-line react-hooks/exhaustive-deps
+
   /** Un clic (ou touche 1 à 6) met la caméra à l'écran : un bandeau reste par-dessus, un plein écran s'efface. */
   const pickCamera = (cam: Camera) => {
     studio.chooseMain(cam.source).catch(() => {});
@@ -264,9 +293,13 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   const mainFetcher = useCallback(() => (studio.mainCamera ? studio.cameraShot(studio.mainCamera) : Promise.reject()), [studio.mainCamera]); // eslint-disable-line react-hooks/exhaustive-deps
   const camera = usePolledImage(studio.mainCamera ? mainFetcher : null, 2000);
 
-  // Le téléphone peut se connecter pendant le culte : on surveille.
+  // Les téléphones vont et viennent, une caméra USB/HDMI peut être débranchée : on surveille.
   useEffect(() => {
-    const id = window.setInterval(() => studio.refreshServer().catch(() => {}), 3000);
+    let n = 0;
+    const id = window.setInterval(() => {
+      studio.refreshServer().catch(() => {});
+      if (++n % 2 === 0) studio.detectCameras().catch(() => {});
+    }, 3000);
     studio.refreshServer().catch(() => {});
     studio.preparePhones().catch(() => {});
     return () => window.clearInterval(id);
@@ -334,8 +367,20 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
         <span className="topbar-date">{t("common.serviceOf", { date: longDate() })}</span>
         <span className="spacer" />
         {studio.link.kind !== "on" && <span className="pill pill-warn">{t("regie.engineLost")}</span>}
+        <button
+          type="button"
+          className={`btn rehearsal-btn ${studio.rehearsal ? "is-on" : ""}`}
+          aria-pressed={studio.rehearsal}
+          disabled={stream.phase === "live" || stream.phase === "starting"}
+          title={stream.phase === "live" ? t("regie.rehearsalLive") : t("regie.rehearsalHelp")}
+          onClick={() => studio.setRehearsal(!studio.rehearsal).catch(() => {})}
+        >
+          <MonitorPause size={18} strokeWidth={1.9} />
+          {t("regie.rehearsal")}
+        </button>
         <RoomButton studio={studio} />
         <LiveHeader
+          blocked={studio.rehearsal}
           live={stream}
           onSetup={() => setLiveDlg("setup")}
           onConfirm={() => setLiveDlg("confirm")}
@@ -344,6 +389,18 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
           toggleHealth={() => setHealthOpen((o) => !o)}
         />
       </header>
+
+      {studio.rehearsal && (
+        <div className="rehearsal-bar" role="status">
+          <MonitorPause size={18} strokeWidth={1.9} />
+          <span>
+            <strong>{t("regie.rehearsalOn")}</strong> {t("regie.rehearsalOnHelp")}
+          </span>
+          <button type="button" className="btn btn-sm" onClick={() => studio.setRehearsal(false).catch(() => {})}>
+            {t("regie.rehearsalEnd")}
+          </button>
+        </div>
+      )}
 
       <div className="regie-body">
         {/* ============ 1. CHOISIR : le déroulé ============ */}
@@ -408,6 +465,14 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
 
         {/* ============ 2. VOIR : caméras en grand (fixes), puis les contenus ============ */}
         <div className="center">
+          {lost && (
+            <p className="banner banner-warn lost-banner" role="alert">
+              <span style={{ flex: 1 }}>{lost.to ? t("regie.camLostTo", { name: lost.name, to: lost.to }) : t("regie.camLostNone", { name: lost.name })}</span>
+              <button type="button" className="icon-btn" aria-label={t("live.close")} onClick={() => setLost(null)}>
+                <X size={15} />
+              </button>
+            </p>
+          )}
           <CameraStrip studio={studio} cams={cams} covered={covered} onPick={pickCamera} onAdd={onSources} />
           <ContentArea
             view={view}

@@ -30,6 +30,13 @@ try {
   await app.waitForFunction(() => parseFloat(document.querySelector(".vu > span > span")?.style.width || "0") > 30, null, { timeout: 5000 });
   await check((await app.textContent(".sound")).includes("le son arrive"), "vumètre : les niveaux sonores du moteur vidéo s'affichent");
 
+  // --- Entrée son : la table de mixage (interface audio USB), choisie dans Regio et retenue ---
+  await app.click(".sound-input-btn");
+  await app.click(".sound-menu >> text=Entrée ligne (Focusrite USB Audio)");
+  await app.waitForSelector(".sound-input-btn:has-text('Focusrite')");
+  const soundIn = () => obs.state.inputs.find((i) => i.inputName === "Regio - Son")?.settings.device_id;
+  await check(soundIn() === "focusrite", "entrée son choisie dans Regio : la table de mixage (le moteur vidéo l'utilise)");
+
   // --- Assistant (une seule fois) ---
   await app.click("text=Diffuser sur Facebook");
   await check(await app.isVisible("role=dialog[name='Diffuser sur Facebook']"), "assistant ouvert");
@@ -47,6 +54,23 @@ try {
   await app.waitForSelector(".live-target:has-text('Facebook · 720p')");
   await check(await app.isVisible("button:has-text('Passer en direct')"), "réglé : « Facebook · 720p » et « Passer en direct » en haut à droite");
 
+  // --- Mode répétition : la télé garde l'écran d'attente, le direct est bloqué ---
+  const holdItem = () => obs.state.items["Regio - Salle"]?.find((i) => i.sourceName === "Regio - Attente salle");
+  const salle = obs.state.items["Regio - Salle"]?.map((i) => i.sourceName) ?? [];
+  await check(salle.includes("Regio - Sortie") && holdItem() && !holdItem().sceneItemEnabled, `scène de la télé : la sortie de la régie + l'écran d'attente masqué (${salle.join(", ")})`);
+  await app.click("button.rehearsal-btn");
+  await app.waitForSelector(".rehearsal-bar");
+  await check(holdItem().sceneItemEnabled && (await app.isDisabled("button.live-go")), "« Répétition » : la télé affiche l'écran d'attente, « Passer en direct » est bloqué");
+  const hold = await app.context().newPage();
+  const holdUrl = obs.state.inputs.find((i) => i.inputName === "Regio - Attente salle").settings.url.replace("port=4455", "port=4471");
+  await hold.goto(holdUrl);
+  await hold.waitForSelector(".layer.in .standby-title:has-text('Bienvenue')", { timeout: 6000 });
+  await check(true, "la page d'attente de la télé montre l'écran d'attente du Programme");
+  await hold.close();
+  await app.click(".rehearsal-bar >> text=Terminer la répétition");
+  await app.waitForSelector(".rehearsal-bar", { state: "detached" });
+  await check(!holdItem().sceneItemEnabled && !(await app.isDisabled("button.live-go")), "fin de la répétition : la télé montre de nouveau la régie, le direct est possible");
+
   // --- Passer en direct : l'enregistrement est DEMANDÉ (décoché par défaut) ---
   await app.click("button.live-go");
   await check(await app.isVisible("role=dialog[name='Passer en direct sur Facebook ?']"), "confirmation avant de passer en direct");
@@ -58,6 +82,7 @@ try {
   await check(obs.state.service?.streamServiceSettings?.server === "rtmps://live-api-s.facebook.com:443/rtmp/" && obs.state.service.streamServiceSettings.key === "FB-1234567890123456-0-AbCdEfGh",
     "le moteur vidéo envoie vers Facebook (RTMPS) avec la clé");
   await check(!!obs.state.record, "l'enregistrement a démarré (demandé)");
+  await check(await app.isDisabled("button.rehearsal-btn"), "pendant le direct, le mode répétition n'est pas proposé");
   await check(await app.isVisible("text=Dernière étape, sur Facebook"), "rappel : le dernier clic se fait sur Facebook");
   await app.click(".fb-step >> text=C'est fait");
   await app.waitForSelector(".live-health:has-text('Connexion bonne')", { timeout: 6000 });
@@ -103,6 +128,7 @@ try {
   await app.waitForSelector(".live-target:has-text('Facebook · 720p')");
   await app.click("button.live-go");
   await check(await app.isChecked(".record-choice input"), "après redémarrage : réglages retenus, dernier choix « enregistrer » coché");
+  await check((await app.textContent(".sound-input-btn")).includes("Focusrite") && soundIn() === "focusrite", "après redémarrage : l'entrée son choisie est retenue et réappliquée");
   await check(errors.length === 0, `aucune erreur de page ${errors.join(" | ")}`);
   console.log("TOUS LES TESTS PASSENT");
 } catch (e) {

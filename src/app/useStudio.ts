@@ -6,6 +6,7 @@ import { ObsController, PHONE_QR_PREFIX, type ConnectionSettings, type Monitor }
 import { readCustomEvent, type Content } from "../shared/content";
 import { getServerInfo, inTauri, type ServerInfo } from "../shared/server";
 import { getEngineState, type EngineState } from "../shared/engine";
+import { standby } from "./library";
 
 export type Link = { kind: "off" } | { kind: "connecting" } | { kind: "on" } | { kind: "error"; message: string };
 export type Projection = { kind: "monitor"; index: number } | { kind: "window" } | { kind: "none" };
@@ -45,8 +46,25 @@ export function loadBrowserSettings(): ConnectionSettings {
   return { host: "localhost", port: 4455, password: "" };
 }
 
+/** Entrée son choisie (identifiant + nom affiché), retenue d'un culte à l'autre. */
+const SOUND_KEY = "regio.sound.device";
+const loadSound = (): { id: string; name: string | null } => {
+  try {
+    return { id: "default", name: null, ...JSON.parse(localStorage.getItem(SOUND_KEY) ?? "{}") };
+  } catch {
+    return { id: "default", name: null };
+  }
+};
+
 export function useStudio() {
   const obs = useRef(new ObsController());
+  const [sound, setSound] = useState(loadSound);
+  obs.current.soundDevice = sound.id;
+  const chooseSound = useCallback(async (id: string, name: string) => {
+    setSound({ id, name });
+    localStorage.setItem(SOUND_KEY, JSON.stringify({ id, name }));
+    await obs.current.setSoundDevice(id);
+  }, []);
   const [link, setLink] = useState<Link>({ kind: "off" });
   const linkRef = useRef(link);
   linkRef.current = link;
@@ -69,6 +87,33 @@ export function useStudio() {
       setError(e instanceof Error ? e.message : String(e));
     }
   }, []);
+
+  // ---------- Mode répétition : la télé garde l'écran d'attente, le direct est bloqué ----------
+  const [rehearsal, setRehearsalState] = useState(false);
+  // Tant que la régie n'a pas donné celui de son Programme : l'écran d'attente par défaut.
+  const holdRef = useRef<{ id: number; content: Content }>({ id: 0, content: standby() });
+  const sendHold = useCallback(() => {
+    if (linkRef.current.kind !== "on") return;
+    obs.current.broadcast({ type: "regio.hold", id: holdRef.current.id, content: holdRef.current.content }).catch(() => {});
+  }, []);
+  const setRehearsal = useCallback(
+    async (on: boolean) => {
+      setRehearsalState(on);
+      holdRef.current = { ...holdRef.current, id: holdRef.current.id + 1 };
+      sendHold();
+      await obs.current.setRehearsal(on);
+    },
+    [sendHold],
+  );
+  /** Écran d'attente montré sur la télé pendant une répétition (le 1er du Programme). */
+  const setHoldContent = useCallback(
+    (content: Content) => {
+      if (JSON.stringify(content) === JSON.stringify(holdRef.current.content)) return;
+      holdRef.current = { id: holdRef.current.id + 1, content };
+      sendHold();
+    },
+    [sendHold],
+  );
 
   // ---------- Projection dans la salle ----------
   const [monitors, setMonitors] = useState<Monitor[]>([]);
@@ -272,6 +317,7 @@ export function useStudio() {
         setRenderOnline(true);
         const { id, content } = currentRef.current;
         obs.current.broadcast({ type: "regio.show", id, content }).catch(() => {});
+        obs.current.broadcast({ type: "regio.hold", id: holdRef.current.id, content: holdRef.current.content }).catch(() => {});
       }
     };
     const onClose = () => setLink((l) => (l.kind === "on" ? { kind: "error", message: "connexion perdue" } : l));
@@ -295,6 +341,12 @@ export function useStudio() {
   return {
     /** Accès direct au moteur vidéo (le direct, le vumètre). */
     controller: obs.current,
+    rehearsal,
+    setRehearsal,
+    setHoldContent,
+    /** Entrée son (table de mixage USB, micro…) : « default » = celle de Windows. */
+    sound,
+    chooseSound,
     link,
     engine,
     error,

@@ -38,7 +38,7 @@ try {
   await app.waitForSelector("button:has-text('Choisir les caméras du jour'):not([disabled])", { timeout: 8000 });
   await check(await app.isVisible("text=Écran 2 · 1280 × 720"), "démarrage : écran de la salle trouvé (écran 2)");
   await check(await app.isVisible("text=2 caméra(s) trouvée(s)"), "démarrage : 2 caméras trouvées");
-  await check(obs.state.projector === 1, "projection ouverte toute seule sur l'écran de la salle (jamais sur l'écran principal)");
+  await check(obs.state.projector === 1 && obs.state.projectorSource === "Regio - Salle", "projection ouverte toute seule sur l'écran de la salle (jamais sur l'écran principal), scène « Salle »");
   await check(!obs.state.scenes.some((n) => n.startsWith("DiffChurch")) && !obs.state.inputs.some((i) => i.inputName.startsWith("DiffChurch")), "anciennes sources « DiffChurch » supprimées");
 
   const overlay = obs.state.inputs.find((i) => i.inputName === "Regio - Contenu");

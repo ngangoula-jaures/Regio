@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "../components/Modal";
-import { Radio, X } from "lucide-react";
+import { ChevronDown, Mic, Radio, X } from "lucide-react";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { t } from "../i18n";
 import { inTauri } from "../shared/server";
@@ -26,7 +26,7 @@ const fmt = (n: number, digits = 1) => n.toLocaleString(undefined, { maximumFrac
 
 // ---------------------------------------------------------------- En-tête
 
-export function LiveHeader(props: { live: Live; onSetup: () => void; onConfirm: () => void; onStop: () => void; healthOpen: boolean; toggleHealth: () => void }) {
+export function LiveHeader(props: { live: Live; blocked?: boolean; onSetup: () => void; onConfirm: () => void; onStop: () => void; healthOpen: boolean; toggleHealth: () => void }) {
   const { live } = props;
   if (!live.loaded) return null;
   if (live.phase === "unset")
@@ -42,7 +42,7 @@ export function LiveHeader(props: { live: Live; onSetup: () => void; onConfirm: 
         <button type="button" className="btn live-target" onClick={props.onSetup} title={t("live.settingsTitle")}>
           <strong>Facebook</strong> · {t(`live.q${live.settings!.quality}`)}
         </button>
-        <button type="button" className="btn live-go" onClick={props.onConfirm} disabled={live.restarting}>
+        <button type="button" className="btn live-go" onClick={props.onConfirm} disabled={live.restarting || props.blocked} title={props.blocked ? t("regie.rehearsalNoLive") : undefined}>
           <span className="live-dot-static" />
           {t("live.goLive")}
         </button>
@@ -357,6 +357,53 @@ export function LiveBanners({ live, fbStep, onFbDone }: { live: Live; fbStep: bo
   );
 }
 
+/** Choix de l'entrée son : table de mixage (interface audio USB), micro du PC… — retenu d'un culte à l'autre. */
+function SoundInput({ studio }: { studio: Studio }) {
+  const [open, setOpen] = useState(false);
+  const [devices, setDevices] = useState<Array<{ id: string; name: string }> | null>(null);
+  const wrap = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    studio.controller.listSoundDevices().then(setDevices).catch(() => setDevices([]));
+    const close = (e: MouseEvent) => !wrap.current?.contains(e.target as Node) && setOpen(false);
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open, studio.controller]);
+  const current = studio.sound.id === "default" ? t("live.soundDefault") : (studio.sound.name ?? t("live.soundDefault"));
+  return (
+    <div className="menu-wrap sound-input" ref={wrap}>
+      <button type="button" className="sound-input-btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} title={t("live.soundInputHelp")}>
+        <Mic size={15} strokeWidth={1.9} />
+        <span>
+          {t("live.soundInput")} <strong>{current}</strong>
+        </span>
+        <ChevronDown size={15} strokeWidth={2} />
+      </button>
+      {open && (
+        <div className="menu sound-menu" role="menu" data-own-keys>
+          <div className="menu-title">{t("live.soundInputHelp")}</div>
+          {devices === null && <div className="menu-title">…</div>}
+          {devices?.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={studio.sound.id === d.id}
+              onClick={() => {
+                studio.chooseSound(d.id, d.id === "default" ? t("live.soundDefault") : d.name).catch(() => {});
+                setOpen(false);
+              }}
+            >
+              <Mic size={15} strokeWidth={1.75} />
+              {d.id === "default" ? t("live.soundDefault") : d.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Vumètre : niveaux envoyés par le moteur vidéo (~20 fois/s), affichés sans faire redessiner la régie. */
 export function SoundMeter({ studio }: { studio: Studio }) {
   const left = useRef<HTMLSpanElement>(null);
@@ -401,6 +448,7 @@ export function SoundMeter({ studio }: { studio: Studio }) {
         <strong className="muted">{t("live.sound")}</strong>
         <span className={silent ? "sound-none" : ""}>{silent ? t("live.soundNone") : t("live.soundOk")}</span>
       </div>
+      <SoundInput studio={studio} />
       <div className="vu" aria-hidden="true">
         <span>
           <span ref={left} />

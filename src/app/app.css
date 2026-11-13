@@ -516,3 +516,20 @@ button.cam:hover { border-color: #3a4775; }
 .moment .plan-badge { font-size: 0; width: 10px; height: 10px; padding: 0; border-radius: 50%; flex: none; }
 .text-form .row-2 { flex-wrap: wrap; }
 .text-form .row-2 .btn { flex: 1 1 auto; min-width: 0; white-space: normal; }
+.lost-banner { flex: none; margin: 12px 28px 0; }
+.sound-input { min-width: 0; }
+.sound-input-btn { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; min-height: 34px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--regio-nuit-3); background: var(--regio-nuit); color: var(--regio-texte-doux); font-size: var(--regio-texte-sm); text-align: left; }
+.sound-input-btn:hover { border-color: #5a6896; color: var(--regio-ivoire); }
+.sound-input-btn span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sound-input-btn strong { color: var(--regio-ivoire); font-weight: 600; }
+.sound-menu { left: 0; right: 0; min-width: 0; max-height: 300px; overflow-y: auto; }
+.sound-menu button { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- Mode répétition (orange = « attention », jamais le rouge du direct) ---------- */
+.rehearsal-btn { min-height: 42px; gap: 8px; padding: 0 14px; font-weight: 600; background: var(--regio-nuit-profonde); }
+.rehearsal-btn.is-on { border-color: var(--regio-attention); color: var(--regio-attention); background: rgba(245, 180, 81, .12); }
+.rehearsal-bar { flex: none; display: flex; align-items: center; gap: 12px; padding: 10px 24px; background: rgba(245, 180, 81, .14); border-bottom: 1px solid rgba(245, 180, 81, .4); color: var(--regio-attention); font-size: var(--regio-texte-md); }
+.rehearsal-bar span { flex: 1; min-width: 0; }
+.rehearsal-bar strong { color: var(--regio-attention); }
+.rehearsal-bar .btn { border-color: rgba(245, 180, 81, .55); color: var(--regio-ivoire); }
+@media (max-width: 1280px) { .rehearsal-btn { padding: 0 10px; } }

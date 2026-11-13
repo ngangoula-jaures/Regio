@@ -70,10 +70,19 @@ export function startFakeObs(port = 4466) {
         }
         case "SetSceneItemEnabled": items(d.sceneName).find((x) => x.sceneItemId === d.sceneItemId).sceneItemEnabled = d.sceneItemEnabled; break;
         case "GetInputPropertiesListPropertyItems":
+          // Comme OBS : la liste dépend de la source (micros pour une capture audio, caméras pour une source vidéo).
+          if (state.inputs.find((i) => i.inputName === d.inputName)?.inputKind === "wasapi_input_capture") {
+            r = { propertyItems: [{ itemName: "Par défaut", itemValue: "default", itemEnabled: true }, { itemName: "Microphone (USB-Audio-1.0)", itemValue: "usb1", itemEnabled: true }, { itemName: "Entrée ligne (Focusrite USB Audio)", itemValue: "focusrite", itemEnabled: true }] };
+            break;
+          }
           r = { propertyItems: [{ itemName: "Cam Link 4K", itemValue: "camlink:1", itemEnabled: true }, { itemName: "Webcam intégrée HP TrueVision HD Camera", itemValue: "int:0", itemEnabled: true }] };
           break;
         case "GetMonitorList":
           r = { monitors: [{ monitorIndex: 0, monitorWidth: 1920, monitorHeight: 1080, monitorPositionX: 0, monitorPositionY: 0 }, { monitorIndex: 1, monitorWidth: 1280, monitorHeight: 720, monitorPositionX: 1920, monitorPositionY: 0 }] };
+          break;
+        case "OpenSourceProjector":
+          state.projector = d.monitorIndex ?? "window";
+          state.projectorSource = d.sourceName;
           break;
         case "OpenVideoMixProjector":
           state.projector = d.monitorIndex ?? "window";

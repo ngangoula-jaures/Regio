@@ -321,6 +321,16 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   (cible : SignPath Foundation, gratuit pour l'open source, sur candidature).
 - PowerShell : stratégie `RemoteSigned` (CurrentUser) en place ; depuis WSL, utiliser `npm.cmd`/`npx.cmd`.
 - Fenêtre Tauri : `dragDropEnabled: false` (sinon WebView2 bloque le glisser-déposer HTML sous Windows).
+- **Fiabilité du dimanche (2026-11-13)** :
+  - **Caméra perdue** (téléphone déconnecté, USB/HDMI débranchée ; la régie re-détecte les caméras toutes les 6 s) :
+    après 4 s, bascule sur une autre caméra utilisée, sinon écran « Nous revenons dans un instant » (si rien ne couvre
+    déjà l'image) ; bandeau orange pour l'opérateur. Fond de secours = bleu nuit Regio. Test : `test:multiphone`.
+  - **Entrée son choisie dans Regio** (bouton « Entrée : … » sous le vumètre, `listSoundDevices`/`setSoundDevice`,
+    `localStorage regio.sound.device`) : table de mixage USB, micro… Test : `test:live`.
+  - **Mode répétition** (bouton « Répétition » de l'en-tête) : la télé projette la scène `Regio - Salle` = la sortie
+    (scène imbriquée) + `Regio - Attente salle` (page render `&hold=1`, message `regio.hold`, montre le 1er écran
+    d'attente du Programme) affichée en répétition ; « Passer en direct » bloqué ; impossible pendant un direct.
+    Projection = `OpenSourceProjector` de `Regio - Salle` (le direct part toujours de `Regio - Sortie`). Vérifié sur le vrai OBS.
 - **Mise en page robuste** (2026-11-13) : aucun contenu ne doit élargir sa colonne (image 3000 px, nom de fichier à rallonge,
   champ) → `grid-template-columns: minmax(0, 1fr)` / `min-width: 0` partout (sinon la fenêtre se décale) ; fenêtre
   minimale 1100 × 680 (`tauri.conf.json`) ; en dessous de 1280 / 1200 px, la date et les indications de touches

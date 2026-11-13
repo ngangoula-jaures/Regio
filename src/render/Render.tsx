@@ -29,6 +29,8 @@ export default function Render() {
     const params = new URLSearchParams(window.location.search);
     const port = params.get("port") ?? "4455";
     const password = params.get("password") ?? undefined;
+    // Page « attente » de la télé (mode répétition) : n'affiche QUE l'écran d'attente envoyé par la régie.
+    const hold = params.get("hold") === "1";
     const ws = new OBSWebSocket();
     let stopped = false;
     let retry: number | undefined;
@@ -51,7 +53,7 @@ export default function Render() {
     ws.on("CustomEvent", (event) => {
       const msg = readCustomEvent(event);
       if (!msg) return;
-      if (msg.type === "regio.show") show(msg.id, msg.content);
+      if (msg.type === (hold ? "regio.hold" : "regio.show")) show(msg.id, msg.content);
       if (msg.type === "regio.ping") ws.call("BroadcastCustomEvent", { eventData: { type: "regio.hello" } }).catch(() => {});
     });
 

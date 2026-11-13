@@ -99,6 +99,13 @@ try {
   await app.waitForSelector(".sound-state:has-text(\"Son : suit l'image\")");
   await check(await until(() => mutes()["Regio - Son"] === false && !item("Regio - Téléphone QR 1").sceneItemEnabled),
     "« Libérer » : le son suit de nouveau l'image (caméra du PC → son du PC)");
+  // --- Jamais d'écran noir : le téléphone à l'écran se déconnecte → bascule automatique + message ---
+  await app.click(".cam-tile:has-text('Téléphone 2')");
+  await app.waitForSelector(".cam-tile.is-on:has-text('Téléphone 2')");
+  await phoneB.context().close();
+  await app.waitForSelector("text=« Téléphone 2 » s'est déconnectée : Regio a basculé sur", { timeout: 20000 });
+  const onAfter = obs.state.items["Regio - Sortie"].filter((i) => i.sceneItemEnabled && i.sourceName.startsWith("Regio - Caméra")).map((i) => i.sourceName);
+  await check(onAfter.length === 1, `téléphone à l'écran déconnecté : Regio bascule tout seul sur une autre caméra (${onAfter.join(", ")}) et prévient`);
   console.log("TOUS LES TESTS PASSENT");
   clearInterval(syncReceivers);
 } catch (e) {

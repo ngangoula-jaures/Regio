@@ -28,12 +28,19 @@ export interface PingMessage {
   type: "regio.ping";
 }
 
-export type BusMessage = ShowMessage | HelloMessage | PingMessage;
+/** Mode répétition : ce que la télé de la salle affiche à la place de la régie (l'écran d'attente). */
+export interface HoldMessage {
+  type: "regio.hold";
+  id: number;
+  content: Content;
+}
+
+export type BusMessage = ShowMessage | HelloMessage | PingMessage | HoldMessage;
 
 export function isBusMessage(data: unknown): data is BusMessage {
   if (typeof data !== "object" || data === null) return false;
   const t = (data as { type?: unknown }).type;
-  return t === "regio.show" || t === "regio.hello" || t === "regio.ping";
+  return t === "regio.show" || t === "regio.hello" || t === "regio.ping" || t === "regio.hold";
 }
 
 /**

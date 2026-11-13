@@ -16,6 +16,13 @@ const FIXED = new Set([BACKGROUND, OVERLAY, SOUND]);
 /** Préfixe des caméras téléphone « sans application » (QR code + WebRTC). */
 export const PHONE_QR_PREFIX = "Regio - Téléphone QR";
 
+/** Scène montrée sur la télé de la salle : la sortie de la régie, que le mode répétition peut couvrir. */
+export const ROOM_SCENE = "Regio - Salle";
+/** Écran d'attente posé sur la télé en mode répétition (page render en mode « hold »). */
+export const ROOM_HOLD = "Regio - Attente salle";
+
+/** Fond de secours (aucune caméra) : le bleu nuit de Regio, #0E1530 (OBS : ABGR). */
+const BACKGROUND_COLOR = 0xff30150e;
 export const CANVAS_W = 1920;
 export const CANVAS_H = 1080;
 
@@ -95,6 +102,25 @@ export class ObsController {
     await this.ws.disconnect();
   }
 
+  // ---------------------------------------------------------------- L'entrée son
+
+  /** Périphérique d'enregistrement du son (« default » = celui choisi dans Windows). */
+  soundDevice = "default";
+
+  /** Micros et interfaces audio du PC (table de mixage USB…), le 1er = « Par défaut ». */
+  async listSoundDevices(): Promise<Array<{ id: string; name: string }>> {
+    const { propertyItems } = await this.ws.call("GetInputPropertiesListPropertyItems", { inputName: SOUND, propertyName: "device_id" });
+    return (propertyItems as Array<{ itemName: string; itemValue: string }>).map((i) => ({ id: String(i.itemValue), name: i.itemName }));
+  }
+
+  async setSoundDevice(id: string): Promise<void> {
+    this.soundDevice = id;
+    const { inputSettings } = await this.ws.call("GetInputSettings", { inputName: SOUND });
+    if ((inputSettings as { device_id?: string }).device_id !== id) {
+      await this.ws.call("SetInputSettings", { inputName: SOUND, inputSettings: { device_id: id } });
+    }
+  }
+
   // ---------------------------------------------------------------- Le direct
 
   /** Destination du direct : Facebook, avec la clé de stream de l'église. */
@@ -167,10 +193,14 @@ export class ObsController {
         sceneName: SCENE,
         inputName: BACKGROUND,
         inputKind: "color_source_v3",
-        inputSettings: { color: 0xff1a1410, width: CANVAS_W, height: CANVAS_H }, // ABGR
+        inputSettings: { color: BACKGROUND_COLOR, width: CANVAS_W, height: CANVAS_H },
       });
     } else {
       await this.ensureInScene(BACKGROUND);
+      const { inputSettings } = await this.ws.call("GetInputSettings", { inputName: BACKGROUND });
+      if ((inputSettings as { color?: number }).color !== BACKGROUND_COLOR) {
+        await this.ws.call("SetInputSettings", { inputName: BACKGROUND, inputSettings: { color: BACKGROUND_COLOR } });
+      }
     }
 
     const overlaySettings = {
@@ -200,15 +230,17 @@ export class ObsController {
     // Le son : sans lui, ni le direct ni l'enregistrement n'ont de son (OBS n'en crée pas toujours au 1er lancement).
     if (!(await this.inputExists(SOUND))) {
       await this.ws
-        .call("CreateInput", { sceneName: SCENE, inputName: SOUND, inputKind: "wasapi_input_capture", inputSettings: { device_id: "default" } })
+        .call("CreateInput", { sceneName: SCENE, inputName: SOUND, inputKind: "wasapi_input_capture", inputSettings: { device_id: this.soundDevice } })
         .catch(() => {}); // pas Windows (développement) : pas de capture sonore
     } else {
+      await this.setSoundDevice(this.soundDevice).catch(() => {});
       const id = await this.ensureInScene(SOUND).catch(() => null);
       if (id !== null) await this.ws.call("SetSceneItemEnabled", { sceneName: SCENE, sceneItemId: id, sceneItemEnabled: true }).catch(() => {});
     }
 
     await this.reorder();
     await this.ws.call("SetCurrentProgramScene", { sceneName: SCENE });
+    await this.ensureRoomScene();
     await this.removeLegacy();
   }
 
@@ -255,6 +287,39 @@ export class ObsController {
     if (existing) return existing.sceneItemId;
     const { sceneItemId } = await this.ws.call("CreateSceneItem", { sceneName: SCENE, sourceName });
     return sceneItemId;
+  }
+
+  /**
+   * Scène de la télé : [haut] écran d'attente (masqué, sauf en répétition) · [bas] la sortie de la régie.
+   * Le direct, lui, part toujours de la scène de sortie : la répétition ne touche qu'à la télé.
+   */
+  private async ensureRoomScene() {
+    const { scenes } = await this.ws.call("GetSceneList");
+    if (!(scenes as Array<{ sceneName: string }>).some((sc) => sc.sceneName === ROOM_SCENE)) await this.ws.call("CreateScene", { sceneName: ROOM_SCENE });
+    const items = async () => (await this.ws.call("GetSceneItemList", { sceneName: ROOM_SCENE })).sceneItems as Array<{ sceneItemId: number; sourceName: string; sceneItemEnabled: boolean }>;
+    if (!(await items()).some((i) => i.sourceName === SCENE)) await this.ws.call("CreateSceneItem", { sceneName: ROOM_SCENE, sourceName: SCENE });
+    const holdSettings = { url: `${this.renderUrl()}&hold=1`, width: CANVAS_W, height: CANVAS_H, shutdown: false, reroute_audio: false };
+    if (!(await this.inputExists(ROOM_HOLD))) {
+      await this.ws.call("CreateInput", { sceneName: ROOM_SCENE, inputName: ROOM_HOLD, inputKind: "browser_source", inputSettings: holdSettings, sceneItemEnabled: this.rehearsal });
+    } else {
+      const { inputSettings } = await this.ws.call("GetInputSettings", { inputName: ROOM_HOLD });
+      if ((inputSettings as { url?: string }).url !== holdSettings.url) await this.ws.call("SetInputSettings", { inputName: ROOM_HOLD, inputSettings: holdSettings });
+      if (!(await items()).some((i) => i.sourceName === ROOM_HOLD)) await this.ws.call("CreateSceneItem", { sceneName: ROOM_SCENE, sourceName: ROOM_HOLD });
+      await this.setRehearsal(this.rehearsal);
+    }
+    // L'écran d'attente au-dessus de la sortie.
+    const hold = (await items()).find((i) => i.sourceName === ROOM_HOLD);
+    const list = await items();
+    if (hold) await this.ws.call("SetSceneItemIndex", { sceneName: ROOM_SCENE, sceneItemId: hold.sceneItemId, sceneItemIndex: list.length - 1 });
+  }
+
+  /** Mode répétition : la télé affiche l'écran d'attente (true) ou la régie (false). */
+  rehearsal = false;
+  async setRehearsal(on: boolean): Promise<void> {
+    this.rehearsal = on;
+    const { sceneItems } = await this.ws.call("GetSceneItemList", { sceneName: ROOM_SCENE });
+    const hold = (sceneItems as Array<{ sceneItemId: number; sourceName: string; sceneItemEnabled: boolean }>).find((i) => i.sourceName === ROOM_HOLD);
+    if (hold && hold.sceneItemEnabled !== on) await this.ws.call("SetSceneItemEnabled", { sceneName: ROOM_SCENE, sceneItemId: hold.sceneItemId, sceneItemEnabled: on });
   }
 
   /** Fond tout en bas, contenu tout en haut, caméras entre les deux. */
@@ -450,15 +515,13 @@ export class ObsController {
 
   /** Ouvre la sortie (programme) en plein écran sur le moniteur choisi (ex. projecteur HDMI). */
   async project(monitorIndex: number): Promise<void> {
-    await this.ws.call("OpenVideoMixProjector", {
-      videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM",
-      monitorIndex,
-    });
+    // La télé montre la scène « Salle » (la régie, ou l'écran d'attente en répétition).
+    await this.ws.call("OpenSourceProjector", { sourceName: ROOM_SCENE, monitorIndex });
   }
 
   /** Projection dans une fenêtre (pour tester sans second écran). */
   async projectWindowed(): Promise<void> {
-    await this.ws.call("OpenVideoMixProjector", { videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM" });
+    await this.ws.call("OpenSourceProjector", { sourceName: ROOM_SCENE });
   }
 
   /** Recharge la page de sortie dans OBS (vide le cache). */
