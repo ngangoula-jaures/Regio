@@ -88,6 +88,33 @@ export default function Render() {
   );
 }
 
+/**
+ * Taille de police adaptée à la longueur : un long passage rétrécit pour tenir à l'écran,
+ * sans jamais descendre sous `min` (au-delà, il faudra découper en plusieurs écrans).
+ */
+function fit(text: string, base: number, comfortable: number, min: number): number {
+  const len = text.length;
+  return len <= comfortable ? base : Math.max(min, Math.round(base * Math.sqrt(comfortable / len)));
+}
+
+// Échelle de projection (charte) : 1080 px de haut → verset 6 %, référence 3,5 %, titre 9 %, bandeau 4 %.
+const VERSE = 65;
+const VERSE_MIN = 43;
+const TITLE = 97;
+const BAND = 43;
+const BAND_MIN = 32;
+
+function Mark({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+      <rect x="9.5" y="19.5" width="81" height="61" rx="15" fill="none" stroke="#f6f2e8" strokeWidth="7" />
+      <path d="M36.5 63 V43" fill="none" stroke="#f6f2e8" strokeWidth="9" strokeLinecap="round" />
+      <path d="M36.5 51 C36.5 42 43.5 37 52.5 37" fill="none" stroke="#f6f2e8" strokeWidth="9" strokeLinecap="round" />
+      <circle cx="62.5" cy="37" r="6" fill="#e8b44c" />
+    </svg>
+  );
+}
+
 function ContentView({ content }: { content: Content }) {
   switch (content.kind) {
     case "none":
@@ -95,29 +122,43 @@ function ContentView({ content }: { content: Content }) {
     case "verse":
       return content.layout === "full" ? (
         <div className="full">
-          <blockquote className="verse-text">{content.text}</blockquote>
-          <div className="verse-ref">
-            {content.reference} <span className="version">· {content.version}</span>
+          <blockquote className="verse-text" style={{ fontSize: fit(content.text, VERSE, 140, VERSE_MIN) }}>
+            {content.text}
+          </blockquote>
+          <div className="ref">
+            {content.reference.toUpperCase()} · {content.version.toUpperCase()}
           </div>
         </div>
       ) : (
         <div className="lower">
-          <div className="lower-title">
-            {content.reference} <span className="version">· {content.version}</span>
+          <div className="lower-ref">{content.reference.toUpperCase()}</div>
+          <div className="lower-body scripture" style={{ fontSize: fit(content.text, BAND, 120, BAND_MIN) }}>
+            {content.text}
           </div>
-          <div className="lower-body">{content.text}</div>
         </div>
       );
     case "text":
       return content.layout === "full" ? (
         <div className="full">
-          {content.title && <h1 className="text-title">{content.title}</h1>}
-          {content.body && <p className="text-body">{content.body}</p>}
+          {content.title && (
+            <h1 className="text-title" style={{ fontSize: fit(content.title, TITLE, 26, 64) }}>
+              {content.title}
+            </h1>
+          )}
+          {content.body && (
+            <p className="text-body" style={{ fontSize: fit(content.body, 54, 120, 38) }}>
+              {content.body}
+            </p>
+          )}
         </div>
       ) : (
         <div className="lower">
-          {content.title && <div className="lower-title">{content.title}</div>}
-          {content.body && <div className="lower-body">{content.body}</div>}
+          {content.title && <div className="lower-ref">{content.title.toUpperCase()}</div>}
+          {content.body && (
+            <div className="lower-body" style={{ fontSize: fit(content.body, BAND, 120, BAND_MIN) }}>
+              {content.body}
+            </div>
+          )}
         </div>
       );
     case "image":
@@ -129,8 +170,9 @@ function ContentView({ content }: { content: Content }) {
     case "standby":
       return (
         <div className="full standby">
-          <h1 className="text-title">{content.title}</h1>
-          {content.subtitle && <p className="text-body">{content.subtitle}</p>}
+          <Mark size={190} />
+          <h1 className="standby-title">{content.title}</h1>
+          {content.subtitle && <p className="standby-sub">{content.subtitle}</p>}
         </div>
       );
   }

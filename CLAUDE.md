@@ -53,9 +53,25 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   « or profond » #8F6210 et « ardoise foncée » #535B78 (contrastes vérifiés) ; nom en minuscules dans le logo.
 - **Maquettes v1 (2026-11-13)** : https://claude.ai/artifact/QZoyQWWfoTvzNFdpw4v6QH (toile « Design », 3 écrans
   cliquables : Démarrage → Sources du jour → Régie interactive). Copie de référence : `design/maquettes/`.
-  En attente de validation par l'utilisateur avant de coder la nouvelle interface.
+  **Validées le 2026-11-13 et codées** (voir « Interface » ci-dessous).
 - Identité visuelle conçue en parallèle : nom → logo (3 pistes, lisible en 16 px, monochrome possible,
   non confessionnel) → charte (palette, typos, ton) → déclinaisons. Un seul système de design (tokens).
+
+## Interface (codée le 2026-11-13 d'après les maquettes)
+- `src/app/App.tsx` enchaîne : Démarrage (`StartupScreen`) → Sources du jour (`SourcesScreen`) → Régie
+  (`RegieScreen` + `ContentPanels`). En mode navigateur, `ConnectScreen` d'abord (connexion manuelle à OBS).
+- `src/app/useStudio.ts` = **tout l'état** (moteur vidéo, contenu à l'écran, projection, caméras, téléphone) ;
+  les écrans n'en sont que l'affichage. Projection ouverte automatiquement sur le 1er écran NON principal ;
+  1re caméra détectée = caméra principale ; téléphone connecté sans caméra principale = principal.
+- **Textes : jamais en dur.** `src/i18n/fr.ts` (référence) + `src/i18n/en.ts` (TypeScript vérifie qu'il ne
+  manque rien) ; `t("cle.sous_cle", { var })`. Langue : `localStorage["regio.lang"]` sinon langue du système.
+- Styles : `src/design/base.css` (boutons, pastilles, champs…) + `src/app/app.css` (écrans), uniquement via les
+  jetons. Polices embarquées via Fontsource (`src/design/fonts.ts`), icônes `lucide-react`. Aucun accès Internet
+  (vérifié par le test). Sortie projetée : `src/render/` (échelle de la charte, taille auto des longs textes).
+- Déroulé : `src/app/plan.ts` = **déroulé d'exemple** en attendant la Phase 1 (préparation + SQLite).
+  Bible : échantillon de 3 versets (`src/shared/bible-sample.ts`) en attendant la Bible complète.
+- Pas encore fait (ne pas l'afficher comme si ça marchait) : direct sur les réseaux, vumètre, « musique hors
+  direct », bascule automatique sur le logo si une caméra se débranche, page du téléphone au nouveau style.
 
 ## Architecture
 
@@ -143,13 +159,14 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 - Tauri (Rust) se compile côté Windows (Rust + Node installés sous Windows) — pas dans WSL
   (pas de webkit2gtk ni de sudo ici).
 - Vérifier avec `npm run build` (tsc + vite) avant de rendre la main.
-- Tests de bout en bout (serveur de dev lancé) : `npm run test:e2e` = `test:regie` (régie ↔ faux OBS
-  `tests/e2e/fake-obs.mjs`) + `test:phone` (caméra téléphone WebRTC avec caméra simulée). Le faux OBS
+- Tests de bout en bout (serveur de dev lancé) : `npm run test:e2e` = `test:regie` (parcours complet
+  Démarrage → Sources → Régie ↔ faux OBS `tests/e2e/fake-obs.mjs`, 18 vérifications) + `test:phone` (caméra téléphone WebRTC avec caméra simulée). Le faux OBS
   doit reproduire le comportement RÉEL d'OBS (ex. CustomEvent sans enveloppe `eventData`).
 - **Compilation Windows (Tauri)** : le code reste dans WSL (source de vérité, git, tests). Windows ne sait
   pas compiler depuis un chemin WSL → `scripts/win.sh` synchronise le code vers `C:\dev\regio`
   (sans node_modules/target/.git) puis y lance la commande Windows : `scripts/win.sh npx.cmd tauri dev`,
   `scripts/win.sh npx.cmd tauri build`. Ne jamais modifier la copie Windows à la main (écrasée à chaque synchro).
+  Le script relance `npm ci` côté Windows dès que `package-lock.json` change.
   Validé le 2026-11-12 : `regio.exe` compile (≈ 1 min 20 s en debug après le 1er build).
 - Outils Windows installés : Rust 1.99 (MSVC), Node 26, Git 2.56, Build Tools VS 2022, WebView2.
 - Smart App Control : DÉSACTIVÉ sur le PC de dev le 2026-11-12 (il bloquait les exécutables de compilation,

@@ -29,7 +29,10 @@ export interface ConnectionSettings {
 
 export interface Monitor {
   index: number;
-  label: string;
+  width: number;
+  height: number;
+  /** Écran principal de Windows (celui de l'opérateur) : jamais utilisé pour la projection automatique. */
+  primary: boolean;
 }
 
 export interface VideoDevice {
@@ -238,16 +241,16 @@ export class ObsController {
       }));
   }
 
-  /** Crée (ou met à jour) une source caméra pour un périphérique, et l'active. */
-  async useVideoDevice(device: VideoDevice): Promise<string> {
+  /** Crée (ou met à jour) une source caméra pour un périphérique ; l'affiche si `activate`. */
+  async useVideoDevice(device: VideoDevice, activate = true): Promise<string> {
     const name = `${CAMERA_PREFIX} : ${device.name}`;
     const settings = { video_device_id: device.id, active: true, deactivate_when_not_showing: false };
     if (!(await this.inputExists(name))) {
-      await this.ws.call("CreateInput", { sceneName: SCENE, inputName: name, inputKind: "dshow_input", inputSettings: settings });
+      await this.ws.call("CreateInput", { sceneName: SCENE, inputName: name, inputKind: "dshow_input", inputSettings: settings, sceneItemEnabled: false });
     } else {
       await this.ws.call("SetInputSettings", { inputName: name, inputSettings: settings });
     }
-    await this.activateCamera(name);
+    if (activate) await this.activateCamera(name);
     return name;
   }
 
@@ -255,7 +258,7 @@ export class ObsController {
    * Téléphone « sans application » : OBS charge une page qui reçoit la caméra du téléphone en WebRTC.
    * Le téléphone ouvre simplement une page web (QR code). Le son du téléphone arrive dans OBS.
    */
-  async usePhoneQr(cam = "1"): Promise<string> {
+  async usePhoneQr(cam = "1", activate = true): Promise<string> {
     const name = `${PHONE_QR_PREFIX} ${cam}`;
     const settings = {
       url: `${this.localBase}/receiver.html?cam=${encodeURIComponent(cam)}`,
@@ -267,12 +270,28 @@ export class ObsController {
       reroute_audio: true, // le son du téléphone apparaît dans le mélangeur audio d'OBS
     };
     if (!(await this.inputExists(name))) {
-      await this.ws.call("CreateInput", { sceneName: SCENE, inputName: name, inputKind: "browser_source", inputSettings: settings });
+      await this.ws.call("CreateInput", { sceneName: SCENE, inputName: name, inputKind: "browser_source", inputSettings: settings, sceneItemEnabled: false });
     } else {
-      await this.ws.call("SetInputSettings", { inputName: name, inputSettings: settings });
+      const { inputSettings } = await this.ws.call("GetInputSettings", { inputName: name });
+      // Ne pas réécrire l'adresse si elle est identique : cela rechargerait la page et couperait le téléphone.
+      if ((inputSettings as { url?: string }).url !== settings.url) await this.ws.call("SetInputSettings", { inputName: name, inputSettings: settings });
     }
-    await this.activateCamera(name);
+    if (activate) await this.activateCamera(name);
     return name;
+  }
+
+  /** Masque toutes les caméras : le fond de secours s'affiche. */
+  async deactivateCameras(): Promise<void> {
+    for (const it of await this.sceneItems()) {
+      if (it.sourceName === BACKGROUND || it.sourceName === OVERLAY || !it.sceneItemEnabled) continue;
+      await this.ws.call("SetSceneItemEnabled", { sceneName: SCENE, sceneItemId: it.sceneItemId, sceneItemEnabled: false });
+    }
+  }
+
+  /** Vignette d'une source (aperçu d'une caméra). */
+  async sourceShot(sourceName: string, width = 480): Promise<string> {
+    const { imageData } = await this.ws.call("GetSourceScreenshot", { sourceName, imageFormat: "jpg", imageWidth: width, imageCompressionQuality: 70 });
+    return imageData;
   }
 
   /** Affiche cette caméra (ajustée au cadre 16:9) et masque les autres caméras de la scène. */
@@ -305,9 +324,11 @@ export class ObsController {
 
   async listMonitors(): Promise<Monitor[]> {
     const { monitors } = await this.ws.call("GetMonitorList");
-    return (monitors as Array<{ monitorIndex: number; monitorName: string; monitorWidth: number; monitorHeight: number; monitorPositionX: number }>).map((m) => ({
+    return (monitors as Array<{ monitorIndex: number; monitorWidth: number; monitorHeight: number; monitorPositionX: number; monitorPositionY: number }>).map((m) => ({
       index: m.monitorIndex,
-      label: `Écran ${m.monitorIndex + 1} — ${m.monitorWidth}×${m.monitorHeight}${m.monitorPositionX === 0 ? " (principal ?)" : ""}`,
+      width: m.monitorWidth,
+      height: m.monitorHeight,
+      primary: m.monitorPositionX === 0 && m.monitorPositionY === 0,
     }));
   }
 

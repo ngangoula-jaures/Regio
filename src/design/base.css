@@ -1,0 +1,77 @@
+/* Regio — styles de base de l'interface de régie (s'appuie sur tokens.css). */
+@import "./tokens.css";
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--regio-nuit);
+  color: var(--regio-ivoire);
+  font-family: var(--regio-font-ui);
+  font-size: var(--regio-texte-md);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--regio-ivoire); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--regio-font-titre); font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+p { margin: 0; }
+.muted { color: var(--regio-ardoise); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--regio-nuit-3); border-radius: 99px; border: 2px solid var(--regio-nuit); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ---- Boutons ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 18px; border-radius: var(--regio-rayon-sm);
+  border: 1px solid var(--regio-nuit-3); background: transparent; color: var(--regio-ivoire);
+  font-weight: 600; font-size: var(--regio-texte-md); text-decoration: none; white-space: nowrap;
+  transition: background .15s, border-color .15s;
+}
+.btn:hover { background: var(--regio-survol); border-color: #3a4775; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn:disabled:hover { background: transparent; border-color: var(--regio-nuit-3); }
+.btn-primary { background: var(--regio-or); border-color: var(--regio-or); color: var(--regio-nuit); }
+.btn-primary:hover { background: #f2c86b; border-color: #f2c86b; }
+.btn-lg { min-height: 52px; padding: 0 26px; font-size: var(--regio-texte-lg); border-radius: 10px; }
+.btn-sm { min-height: 36px; padding: 0 12px; font-size: var(--regio-texte-sm); font-weight: 500; }
+.btn-quiet { border-color: transparent; color: var(--regio-texte-doux); }
+
+/* ---- Pastilles d'état ---- */
+.pill {
+  display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 99px;
+  font-size: var(--regio-texte-sm); background: var(--regio-nuit-profonde); color: var(--regio-texte-doux); white-space: nowrap;
+}
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill-ok::before { background: var(--regio-pret); }
+.pill-warn { color: var(--regio-attention); background: rgba(245, 180, 81, .12); }
+.pill-live { color: var(--regio-direct); background: rgba(255, 107, 107, .14); font-weight: 600; }
+.pill-neutral::before { background: var(--regio-bord-fort); }
+
+/* ---- Cartes et champs ---- */
+.card { background: var(--regio-nuit-2); border: 1px solid var(--regio-nuit-3); border-radius: var(--regio-rayon-lg); }
+.field { display: grid; gap: 6px; }
+.field label { font-size: 12.5px; color: var(--regio-ardoise); }
+.input {
+  width: 100%; min-height: 44px; padding: 0 14px; border-radius: var(--regio-rayon-sm);
+  border: 1px solid var(--regio-bord-fort); background: var(--regio-nuit-profonde); color: var(--regio-ivoire);
+}
+textarea.input { padding: 10px 14px; min-height: 84px; resize: vertical; line-height: 1.45; }
+.input::placeholder { color: #7c86a6; }
+
+/* ---- Sélecteur segmenté ---- */
+.segmented { display: inline-flex; gap: 4px; padding: 4px; border-radius: 10px; background: var(--regio-nuit-profonde); }
+.segmented button {
+  min-height: 36px; padding: 0 14px; border: 0; border-radius: 8px; background: transparent;
+  color: var(--regio-ardoise); font-size: var(--regio-texte-sm);
+}
+.segmented button[aria-pressed="true"], .segmented button[aria-selected="true"] { background: var(--regio-nuit-3); color: var(--regio-ivoire); font-weight: 600; }
+.segmented button:disabled { opacity: .4; cursor: default; }
+
+.banner { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; font-size: var(--regio-texte-md); line-height: 1.45; }
+.banner-info { background: var(--regio-nuit-profonde); color: var(--regio-ardoise); }
+.banner-error { background: rgba(255, 107, 107, .12); color: #ffb3b3; }

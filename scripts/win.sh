@@ -24,9 +24,11 @@ rsync -a --delete \
 [ "${1:-}" = "sync" ] && { echo "Synchronisé vers $WIN_DIR"; exit 0; }
 [ $# -eq 0 ] && { echo "Usage : scripts/win.sh sync | <commande Windows…>"; exit 1; }
 
-# Installer les dépendances Windows si besoin (binaires natifs propres à Windows).
-if [ ! -d "$WIN_DIR_WSL/node_modules" ] && [ "$1" != "npm.cmd" ]; then
-  powershell.exe -NoProfile -Command "\$env:Path=[Environment]::GetEnvironmentVariable('Path','Machine')+';'+[Environment]::GetEnvironmentVariable('Path','User'); Set-Location '$WIN_DIR'; npm.cmd ci --no-audit --no-fund"
+# Installer les dépendances Windows si besoin : première fois, ou liste des dépendances modifiée.
+LOCK_HASH="$(sha256sum "$ROOT/package-lock.json" | cut -d' ' -f1)"
+STAMP="$WIN_DIR_WSL/node_modules/.regio-lock-hash"
+if [ "$1" != "npm.cmd" ] && [ "$(cat "$STAMP" 2>/dev/null)" != "$LOCK_HASH" ]; then
+  powershell.exe -NoProfile -Command "\$env:Path=[Environment]::GetEnvironmentVariable('Path','Machine')+';'+[Environment]::GetEnvironmentVariable('Path','User'); Set-Location '$WIN_DIR'; npm.cmd ci --no-audit --no-fund" && echo "$LOCK_HASH" > "$STAMP"
 fi
 
 exec powershell.exe -NoProfile -Command "\$env:Path=[Environment]::GetEnvironmentVariable('Path','Machine')+';'+[Environment]::GetEnvironmentVariable('Path','User'); Set-Location '$WIN_DIR'; $*; exit \$LASTEXITCODE"

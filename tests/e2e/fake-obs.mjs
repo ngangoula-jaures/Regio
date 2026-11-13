@@ -57,7 +57,10 @@ export function startFakeObs(port = 4466) {
           r = { propertyItems: [{ itemName: "Cam Link 4K", itemValue: "camlink:1", itemEnabled: true }, { itemName: "Webcam intégrée", itemValue: "int:0", itemEnabled: true }] };
           break;
         case "GetMonitorList":
-          r = { monitors: [{ monitorIndex: 0, monitorWidth: 1920, monitorHeight: 1080, monitorPositionX: 0 }, { monitorIndex: 1, monitorWidth: 1280, monitorHeight: 720, monitorPositionX: 1920 }] };
+          r = { monitors: [{ monitorIndex: 0, monitorWidth: 1920, monitorHeight: 1080, monitorPositionX: 0, monitorPositionY: 0 }, { monitorIndex: 1, monitorWidth: 1280, monitorHeight: 720, monitorPositionX: 1920, monitorPositionY: 0 }] };
+          break;
+        case "OpenVideoMixProjector":
+          state.projector = d.monitorIndex ?? "window";
           break;
         case "GetSourceScreenshot":
           r = { imageData: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==" };

@@ -10,6 +10,10 @@
   --regio-or: #e8b44c;            /* accent unique : lumière, sélection, action principale */
   --regio-ivoire: #f6f2e8;        /* texte sur fond sombre, fonds clairs */
   --regio-ardoise: #9aa3bf;       /* texte secondaire sur fond sombre (7,2:1) */
+  --regio-nuit-profonde: #111933; /* champs, zones en creux */
+  --regio-survol: #1e2848;        /* survol des éléments cliquables */
+  --regio-bord-fort: #3a4568;     /* bordures de champs, éléments inactifs */
+  --regio-texte-doux: #c9cedd;    /* texte légèrement atténué (12,1:1) */
 
   /* Variantes pour fonds clairs (ivoire) */
   --regio-or-profond: #8f6210;    /* or lisible sur ivoire (4,8:1) */
@@ -24,10 +28,10 @@
   --regio-attention-clair: #a35a00;
 
   /* --- Typographies (polices embarquées, hors ligne) --- */
-  --regio-font-titre: "Sora", "Segoe UI", system-ui, sans-serif;
-  --regio-font-ui: "Inter", "Segoe UI", system-ui, sans-serif;
-  --regio-font-ecritures: "Source Serif 4", Georgia, "Times New Roman", serif;
-  --regio-font-annonces: "Montserrat", "Segoe UI", system-ui, sans-serif;
+  --regio-font-titre: "Sora Variable", "Sora", "Segoe UI", system-ui, sans-serif;
+  --regio-font-ui: "Inter Variable", "Inter", "Segoe UI", system-ui, sans-serif;
+  --regio-font-ecritures: "Source Serif 4 Variable", "Source Serif 4", Georgia, "Times New Roman", serif;
+  --regio-font-annonces: "Montserrat Variable", "Montserrat", "Segoe UI", system-ui, sans-serif;
 
   /* Échelle de l'interface (px) */
   --regio-texte-xs: 12px;
