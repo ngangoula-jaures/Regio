@@ -14,7 +14,9 @@ import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, ChevronUp, RefreshCw, Vid
 import { RegioLockup } from "../components/Logo";
 import { MiniScreen } from "../components/MiniScreen";
 import { longDate, t } from "../i18n";
-import type { Content } from "../shared/content";
+import type { Content, Layout } from "../shared/content";
+
+const LAYOUT_KEY = "regio.layout";
 import { loadBible, refLabel, type Bible } from "../bible/bible";
 import { uid, useLibrary } from "../app/library";
 import { usePolledImage, type Camera, type Studio } from "../app/useStudio";
@@ -48,7 +50,11 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   const [offPlan, setOffPlan] = useState(false);
   const [mode, setMode] = useState<Mode>("items");
   const [reading, setReading] = useState<Reading | null>(null);
-  const [readLayout, setReadLayout] = useState<"full" | "lower">("full");
+  // Mise en page des versets et textes, choisie À L'AVANCE (même quand une caméra est à l'écran) :
+  // tout verset ou texte affiché ensuite (déroulé, Bible, Texte) apparaît ainsi. Retenue d'un culte à l'autre.
+  const [layoutMode, setLayoutMode] = useState<Layout>(() => (localStorage.getItem(LAYOUT_KEY) === "lower" ? "lower" : "full"));
+  useEffect(() => localStorage.setItem(LAYOUT_KEY, layoutMode), [layoutMode]);
+  const withLayout = (c: Content): Content => (c.kind === "verse" || c.kind === "text" ? { ...c, layout: layoutMode } : c);
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
 
@@ -56,7 +62,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   /** Contenu à cette position (pour une présentation : la bonne diapo). */
   const contentAt = (p: Pos): Content | null => {
     const c = moments[p.m]?.items[p.i]?.content;
-    return !c ? null : c.kind === "slides" ? { ...c, index: Math.min(p.s ?? 0, c.slides.length - 1) } : c;
+    return !c ? null : c.kind === "slides" ? { ...c, index: Math.min(p.s ?? 0, c.slides.length - 1) } : withLayout(c);
   };
   const slideCount = (p: Pos | null) => {
     const c = p ? moments[p.m]?.items[p.i]?.content : null;
@@ -80,26 +86,26 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
       setMode(m);
       studio.show(content ?? { kind: "none" });
     },
-    [moments, studio.show], // eslint-disable-line react-hooks/exhaustive-deps
+    [moments, studio.show, layoutMode], // eslint-disable-line react-hooks/exhaustive-deps
   );
   const showOther = useCallback(
     (c: Content) => {
       setOffPlan(true);
       setReading(null);
       if (mode === "reading") setMode("items");
-      studio.show(c);
+      studio.show(withLayout(c));
     },
-    [mode, studio.show], // eslint-disable-line react-hooks/exhaustive-deps
+    [mode, studio.show, layoutMode], // eslint-disable-line react-hooks/exhaustive-deps
   );
   const read = useCallback(
-    (r: Reading, layout = readLayout) => {
+    (r: Reading, layout = layoutMode) => {
       if (!bible) return;
       setReading(r);
       setMode("reading");
       setOffPlan(true);
       studio.show(verseContent(bible, r, layout));
     },
-    [bible, readLayout, studio.show], // eslint-disable-line react-hooks/exhaustive-deps
+    [bible, layoutMode, studio.show], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   // Au premier affichage : le premier moment.
@@ -198,7 +204,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   const upcoming: { content: Content; label: string } | null = !nextTarget
     ? null
     : nextTarget.kind === "verse"
-      ? { content: verseContent(bible!, nextTarget.r, readLayout), label: refLabel(bible!, nextTarget.r) }
+      ? { content: verseContent(bible!, nextTarget.r, layoutMode), label: refLabel(bible!, nextTarget.r) }
       : { content: contentAt(nextTarget.pos) ?? { kind: "none" }, label: posLabel(nextTarget.pos) };
   const curLabel =
     mode === "reading" && reading && bible
@@ -215,12 +221,11 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
           ? t("regie.nextSlide")
           : t("regie.nextItem");
 
-  const canLayout = cur.kind === "verse" || cur.kind === "text";
-  const setLayout = (layout: "lower" | "full") => {
-    if (mode === "reading" && reading) {
-      setReadLayout(layout);
-      read(reading, layout);
-    } else if (cur.kind === "verse" || cur.kind === "text") showOther({ ...cur, layout });
+  /** Choisir la mise en page : pour la suite, et tout de suite si un verset ou un texte est à l'écran
+   *  (sans quitter le déroulé ni la lecture suivie). */
+  const setLayout = (layout: Layout) => {
+    setLayoutMode(layout);
+    if (cur.kind === "verse" || cur.kind === "text") studio.show({ ...cur, layout });
   };
 
   const preview = usePolledImage(studio.link.kind === "on" ? studio.outputShot : null, 500);
@@ -366,6 +371,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
             sel={sel}
             liveIndex={!offPlan && live && live.m === sel ? live.i : null}
             liveSlide={live?.s ?? 0}
+            layout={layoutMode}
             localBase={studio.server?.localBase ?? ""}
             camera={camera}
             bible={bible}
@@ -443,11 +449,12 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
                 </span>
               </button>
             </div>
-            <div className="segmented layout-toggle" role="radiogroup" aria-label={t("regie.layout")} title={canLayout ? undefined : t("regie.layoutHelp")}>
-              <button type="button" role="radio" disabled={!canLayout} aria-checked={canLayout && cur.layout === "lower"} aria-pressed={canLayout && cur.layout === "lower"} onClick={() => setLayout("lower")}>
+            <p className="layout-cap">{t("regie.layoutCaption")}</p>
+            <div className="segmented layout-toggle" role="radiogroup" aria-label={t("regie.layoutCaption")}>
+              <button type="button" role="radio" aria-checked={layoutMode === "lower"} aria-pressed={layoutMode === "lower"} onClick={() => setLayout("lower")}>
                 {t("regie.onCamera")}
               </button>
-              <button type="button" role="radio" disabled={!canLayout} aria-checked={canLayout && cur.layout === "full"} aria-pressed={canLayout && cur.layout === "full"} onClick={() => setLayout("full")}>
+              <button type="button" role="radio" aria-checked={layoutMode === "full"} aria-pressed={layoutMode === "full"} onClick={() => setLayout("full")}>
                 {t("regie.fullScreen")}
               </button>
             </div>

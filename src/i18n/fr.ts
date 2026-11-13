@@ -69,6 +69,7 @@ export const fr = {
     start: "Commencer le culte",
   },
   regie: {
+    layoutCaption: "Versets et textes",
     camKey: "touche {n}",
     camReady: "PRÊTE · sous le plein écran",
     camerasHelpOn: "un clic met la caméra à l'écran",
@@ -161,6 +162,7 @@ export const fr = {
     slides: "Présentation · {n} diapos",
   },
   panels: {
+    textLayoutHelp: "Il s'affichera « Sur la caméra » ou « En plein écran » selon le choix fait à droite, sous les commandes.",
     imagesTitle: "Images",
     textNew: "Nouveau texte",
     preview: "Aperçu",

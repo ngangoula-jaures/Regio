@@ -63,6 +63,7 @@ export const en: Messages = {
     start: "Start the service",
   },
   regie: {
+    layoutCaption: "Verses and texts",
     camKey: "key {n}",
     camReady: "READY · under the full screen",
     camerasHelpOn: "click to put the camera on screen",
@@ -155,6 +156,7 @@ export const en: Messages = {
     slides: "Presentation · {n} slides",
   },
   panels: {
+    textLayoutHelp: "It will be shown “On the camera” or “Full screen” as chosen on the right, under the controls.",
     imagesTitle: "Images",
     textNew: "New text",
     preview: "Preview",

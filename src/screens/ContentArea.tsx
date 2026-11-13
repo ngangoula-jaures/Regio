@@ -5,7 +5,10 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
 import { BookOpen, Check, ChevronLeft, ChevronRight, GripVertical, ImagePlus, Pencil, Plus, Presentation, Search, Trash2, Type, X } from "lucide-react";
 import { t } from "../i18n";
-import type { Content } from "../shared/content";
+import type { Content, Layout } from "../shared/content";
+
+/** Les versets et textes s'affichent selon la mise en page choisie dans la régie : les aperçus aussi. */
+const laid = (c: Content, layout: Layout): Content => (c.kind === "verse" || c.kind === "text" ? { ...c, layout } : c);
 import { MiniScreen } from "../components/MiniScreen";
 import { OT_COUNT, parseReference, refLabel, searchWords, type Bible, type Passage } from "../bible/bible";
 import { kindLabel, uid, type Library, type MediaEntry, type Moment, type PlanItem } from "../app/library";
@@ -37,6 +40,7 @@ function MomentView(props: {
   moment: Moment;
   liveIndex: number | null;
   liveSlide: number;
+  layout: Layout;
   camera: string | null;
   big: boolean;
   setBig: (b: boolean) => void;
@@ -225,7 +229,7 @@ function MomentView(props: {
       <div className="content-grid" style={{ ["--card-min" as string]: props.big ? "360px" : "250px", ["--slide-min" as string]: props.big ? "320px" : "210px" }} onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setDropAt(null)}>
         {moment.items.map((it, i) => {
           const live = props.liveIndex === i;
-          const c = it.content;
+          const c = laid(it.content, props.layout);
           if (c.kind === "slides") {
             return (
               <section key={it.id} className={`item-card is-slides ${live ? "is-live" : ""} ${drag === i ? "is-dragging" : ""} ${dropClass(i)}`} {...dragProps(i, true)}>
@@ -502,11 +506,10 @@ function MediaView(props: { media: MediaEntry[]; selName: string; store: (dataUr
 
 // ---------------------------------------------------------------- Texte
 
-function TextView(props: { selName: string; onShow: (c: Content) => void; onAdd: (c: Content, label: string) => void }) {
+function TextView(props: { selName: string; layout: Layout; onShow: (c: Content) => void; onAdd: (c: Content, label: string) => void }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [layout, setLayout] = useState<"full" | "lower">("full");
-  const content = (): Content => ({ kind: "text", layout, title: title || t("panels.textTitlePlaceholder"), body: body || t("panels.textBodyPlaceholder") });
+  const content = (): Content => ({ kind: "text", layout: props.layout, title: title || t("panels.textTitlePlaceholder"), body: body || t("panels.textBodyPlaceholder") });
   return (
     <div className="view">
       <div className="view-head">
@@ -524,14 +527,7 @@ function TextView(props: { selName: string; onShow: (c: Content) => void; onAdd:
             <label htmlFor="tbody">{t("panels.textBody")}</label>
             <textarea id="tbody" className="input" value={body} placeholder={t("panels.textBodyPlaceholder")} onChange={(e) => setBody(e.target.value)} />
           </div>
-          <div className="segmented" style={{ display: "flex" }} role="radiogroup" aria-label={t("regie.layout")}>
-            <button type="button" role="radio" style={{ flex: 1 }} aria-checked={layout === "lower"} aria-pressed={layout === "lower"} onClick={() => setLayout("lower")}>
-              {t("regie.onCamera")}
-            </button>
-            <button type="button" role="radio" style={{ flex: 1 }} aria-checked={layout === "full"} aria-pressed={layout === "full"} onClick={() => setLayout("full")}>
-              {t("regie.fullScreen")}
-            </button>
-          </div>
+          <p className="note">{t("panels.textLayoutHelp")}</p>
           <div className="row-2">
             <button type="button" className="btn" onClick={() => props.onShow(content())}>
               {t("panels.showNow")}
@@ -562,6 +558,7 @@ export function ContentArea(props: {
   sel: number;
   liveIndex: number | null;
   liveSlide: number;
+  layout: Layout;
   localBase: string;
   camera: string | null;
   bible: Bible | null;
@@ -628,6 +625,7 @@ export function ContentArea(props: {
           moment={moment}
           liveIndex={props.liveIndex}
           liveSlide={props.liveSlide}
+          layout={props.layout}
           camera={props.camera}
           big={big}
           setBig={setBig}
@@ -664,7 +662,7 @@ export function ContentArea(props: {
         />
       </div>
       <div hidden={view !== "text"}>
-        <TextView selName={moment?.name ?? ""} onShow={props.onShowOther} onAdd={(c, label) => addToMoment(sel, c, label)} />
+        <TextView selName={moment?.name ?? ""} layout={props.layout} onShow={props.onShowOther} onAdd={(c, label) => addToMoment(sel, c, label)} />
       </div>
     </div>
   );

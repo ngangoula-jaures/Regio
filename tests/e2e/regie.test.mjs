@@ -84,10 +84,18 @@ try {
   await app.waitForSelector(".view-title h1:text-is('Prédication')");
   await render.waitForTimeout(500);
   await check((await render.locator(".layer.in .standby-title").count()) === 1, "clic sur « Prédication » : ses contenus s'ouvrent au centre, l'écran ne change pas");
+  // Mise en page choisie À L'AVANCE : le texte arrive directement sur la caméra, sans passer par le plein écran.
+  await app.click(".layout-toggle >> text=Sur la caméra");
+  await render.waitForTimeout(400);
+  await check((await render.locator(".layer.in .standby-title").count()) === 1, "« Sur la caméra » choisi à l'avance : rien ne change à l'écran (écran d'attente)");
   await app.keyboard.press("Space");
   await waitRender(".lower-ref");
   await app.waitForSelector(".moment.is-live:has-text('Prédication')");
-  await check(true, "espace : le 1er contenu du moment choisi s'affiche");
+  await check((await render.locator(".layer.in .text-title, .layer.in .full").count()) === 0, "espace : le 1er contenu du moment s'affiche DIRECTEMENT sur la caméra (jamais en plein écran)");
+  await app.click(".layout-toggle >> text=En plein écran");
+  await waitRender(".text-title");
+  await check((await app.textContent(".moment.is-live")).includes("Prédication") && (await app.textContent(".next-btn")).includes("Contenu suivant"),
+    "« En plein écran » : le même texte passe en plein écran, on reste dans le déroulé");
 
   await app.click(".add-btn:has-text('Texte')");
   await app.fill("#ttitle", "Culte de Noël");
@@ -120,6 +128,9 @@ try {
   await app.click(".layout-toggle >> text=Sur la caméra");
   await waitRender(".lower-ref:has-text('PSAUMES 23:1')");
   await check(true, "verset passé « Sur la caméra » (bandeau)");
+  await app.click(".layout-toggle >> text=En plein écran");
+  await waitRender(".ref:has-text('PSAUMES 23:1')");
+  await check((await app.textContent(".next-btn")).includes("Verset suivant"), "retour « En plein écran » : le verset repasse en plein écran, la lecture suivie continue");
 
   await app.click(".crumbs >> text=Livres");
   await app.click("text=Nouveau Testament");

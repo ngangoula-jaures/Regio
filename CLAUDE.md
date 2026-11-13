@@ -84,6 +84,7 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   reflet (`icon()` dans `design/brand/build_brand.py`). Le bleu nuit seul paraissait noir dans la barre des tâches.
   Régénérer : build_brand.py (fonttools) → render_png.mjs → `npx tauri icon design/brand/png/regio-icon-1024.png -o src-tauri/icons`
   (supprimer android/ et ios/) → `make_ico.py src-tauri/icons/icon.ico` → copier regio-icon-32.png en 32x32.png.
+  `src-tauri/build.rs` surveille `icons/` : sans ça, l'ancienne icône restait intégrée dans regio.exe.
 
 ## Interface (régie v5 codée le 2026-11-13, d'après la maquette v5 validée)
 - `src/app/App.tsx` : Démarrage → Sources du jour → Régie. Une fois le culte commencé, la Régie reste montée ;
@@ -99,6 +100,10 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   `ContentArea.tsx` = le moment en grand, présentations en grille de diapos, taille Normal/Grand ; « Ajouter : Verset ·
   PowerPoint · Image · Texte » ouvre la Bible / les images / le texte AU CENTRE avec « Retour à … » — plus d'onglets)
   · DIFFUSER (`aside.output` : À l'écran, Suivant or très grand, Précédent, Caméra seule, mise en page, Ensuite).
+  **Mise en page « Versets et textes » choisie À L'AVANCE** (retour de l'utilisateur) : le choix Sur la caméra / En plein
+  écran est toujours actif, retenu (`localStorage regio.layout`) et s'applique à TOUT verset ou texte affiché ensuite
+  (déroulé, Bible, Texte) — la mise en page enregistrée dans un contenu est ignorée ; changer le choix pendant qu'un
+  verset/texte est à l'écran le bascule sans quitter le déroulé ni la lecture suivie. Aperçus et libellés suivent.
   Réordonner : SEULE la poignée se saisit (un clic tremblé sur une carte doit l'afficher, pas la déplacer).
 - **Navigation** — DEUX navigations séparées (exigence de l'utilisateur) :
   CHOISIR un moment (clic dans le déroulé, ↑ / ↓) n'affiche RIEN, ses contenus s'ouvrent à droite ;

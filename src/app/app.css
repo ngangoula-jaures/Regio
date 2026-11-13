@@ -334,3 +334,4 @@ button.cam:hover { border-color: #3a4775; }
 }
 /* Les vignettes ne se « glissent » pas toutes seules : c'est la carte entière qu'on déplace. */
 .item-card img, .slide-card img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
+.layout-cap { margin-top: 2px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--regio-ardoise); }
