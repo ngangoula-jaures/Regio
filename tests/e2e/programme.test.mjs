@@ -90,6 +90,28 @@ try {
   await app.click(".modal >> text=Annuler");
   await check((await app.locator(".moment:has-text('Sujet principal')").count()) === 1, "supprimer un moment : confirmation, Annuler ne supprime rien");
 
+  // --- Mise en page : une image très large au nom très long ne déborde pas, même fenêtre au minimum (1100 px) ---
+  const overflowing = () => app.evaluate(() => {
+    const boxes = ".media-card, .output, .topbar, .text-form, .plan, .center";
+    return [...document.querySelectorAll(`${boxes.split(", ").map((b) => `${b} *`).join(", ")}`)].filter((e) => {
+      const p = e.parentElement?.closest(boxes);
+      if (!p) return false;
+      const a = e.getBoundingClientRect(), b = p.getBoundingClientRect();
+      return a.width > 0 && a.height > 0 && (a.right > b.right + 1 || a.left < b.left - 1);
+    }).length + (document.documentElement.scrollWidth > innerWidth ? 1000 : 0);
+  });
+  await app.click(".add-btn:has-text('Image')");
+  const png = await app.evaluate(() => { const c = document.createElement("canvas"); c.width = 3000; c.height = 500; const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, 3000, 500); return c.toDataURL("image/png").split(",")[1]; });
+  await app.setInputFiles(".media-import input", { name: "LEjOYxvSCZruZoexPFjZ7r3pRGpJFwgWqqqqqqqqqqqqqqqq.png", mimeType: "image/png", buffer: Buffer.from(png, "base64") });
+  await app.waitForSelector(".media-card");
+  await check((await overflowing()) === 0, "images : une image très large au nom très long reste dans sa carte");
+  await app.click(".back-btn");
+  await app.click(".add-btn:has-text('Texte')");
+  await check((await overflowing()) === 0, "nouveau texte : les champs restent dans leur colonne");
+  await app.setViewportSize({ width: 1100, height: 680 });
+  await check((await overflowing()) === 0, "fenêtre au minimum (1100 × 680) : rien ne déborde, rien n'est coupé");
+  await app.setViewportSize({ width: 1366, height: 820 });
+
   await check(errors.length === 0, `aucune erreur de page ${errors.join(" | ")}`);
   console.log("TOUS LES TESTS PASSENT");
 } catch (e) {

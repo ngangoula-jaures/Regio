@@ -15,6 +15,18 @@ type Screen = "startup" | "sources" | "regie";
 export default function App() {
   const studio = useStudio();
   const [screen, setScreen] = useState<Screen>("startup");
+
+  // Filet de sécurité : la fenêtre d'une application ne défile jamais (un focus sur un élément qui dépasse
+  // pourrait sinon la décaler). Les panneaux intérieurs, eux, défilent normalement.
+  useEffect(() => {
+    const pin = () => {
+      if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
+      const root = document.getElementById("root");
+      if (root && (root.scrollLeft || root.scrollTop)) root.scrollTo(0, 0);
+    };
+    window.addEventListener("scroll", pin, true);
+    return () => window.removeEventListener("scroll", pin, true);
+  }, []);
   const everConnected = useRef(false);
   const regieOpen = useRef(false);
 

@@ -326,7 +326,7 @@ button.cam:hover { border-color: #3a4775; }
 .overlay { position: fixed; inset: 0; z-index: 50; overflow-y: auto; background: var(--regio-nuit); }
 .file-drop { position: relative; }
 
-@media (max-width: 1100px) {
+@media (max-width: 1000px) {
   .regie-body { flex-wrap: wrap; overflow-y: auto; }
   .plan, .output { flex: 1 1 100%; border: 0; }
   .center { flex-basis: 100%; }
@@ -464,3 +464,55 @@ button.cam:hover { border-color: #3a4775; }
 @media (max-width: 900px) { .template-grid { grid-template-columns: minmax(0, 1fr); } }
 .item-card:not(.is-slides) .item-edit { position: absolute; right: 46px; bottom: 10px; width: 30px; height: 30px; }
 .item-card:has(.item-edit) .item-text { padding-right: 78px; }
+
+/* ---------- Mise en page robuste : aucun contenu (image très large, nom de fichier très long, champ) ne peut
+   élargir sa colonne et pousser la fenêtre (cause du décalage vu le 2026-11-13). ---------- */
+.field, .text-form, .output-live, .output-next, .controls, .sound { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.output > *, .center > *, .view > *, .text-editor > * { min-width: 0; }
+.center { flex: 1 1 0; min-width: 0; }
+.plan { flex: 0 0 clamp(220px, 18vw, 264px); }
+.output { flex: 0 0 clamp(320px, 28vw, 440px); }
+.next-row { min-width: 0; }
+.next-row .screen-next { width: clamp(120px, 40%, 168px); }
+.next-label { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word; }
+.media-card { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.media-show { display: block; width: 100%; }
+.media-row .item-label { min-width: 0; }
+.media-card .row-2 { flex-direction: column; }
+.media-card .row-2 .btn { min-width: 0; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.item-label, .cam-tile-name { word-break: break-all; }
+.topbar { flex-wrap: nowrap; min-width: 0; }
+.topbar > * { flex: none; }
+.topbar .topbar-date { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 1280px) {
+  .topbar .topbar-date { display: none; }
+  .live-target { display: none; }
+}
+.topbar > .spacer { flex: 1 1 0; }
+.plan { flex-basis: clamp(236px, 18vw, 264px); }
+.moment .plan-kind { white-space: nowrap; }
+.moment .plan-text { min-width: 0; }
+.ctl-btn { min-width: 0; overflow: hidden; }
+.ctl-btn span { min-width: 0; }
+.ctl-btn span, .ctl-btn small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.next-btn span { white-space: normal; line-height: 1.2; }
+.next-btn svg { flex: none; }
+@media (max-width: 1280px) {
+  .moment .plan-badge { font-size: 0; width: 10px; height: 10px; padding: 0; border-radius: 50%; }
+  .next-btn { font-size: 17px; padding: 0 18px 0 20px; }
+  .ctl-btn { padding: 0 10px; gap: 8px; }
+  .ctl-btn span { font-size: 14px; }
+}
+@media (max-width: 1200px) {
+  .ctl-btn small { display: none; }
+  .ctl-btn { min-height: 50px; }
+}
+@media (max-width: 1200px) {
+  .output { padding: 18px 16px 22px; }
+  .ctl-btn { padding: 0 8px; gap: 6px; }
+  .ctl-btn svg { width: 18px; height: 18px; }
+}
+/* Dans le Programme, le moment à l'écran a déjà son cadre blanc : un simple point suffit (le nom reste lisible). */
+.moment .plan-badge { font-size: 0; width: 10px; height: 10px; padding: 0; border-radius: 50%; flex: none; }
+.text-form .row-2 { flex-wrap: wrap; }
+.text-form .row-2 .btn { flex: 1 1 auto; min-width: 0; white-space: normal; }

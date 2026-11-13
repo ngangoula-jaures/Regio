@@ -358,7 +358,6 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
                 <ChevronDown size={16} strokeWidth={2} />
               </button>
             </div>
-            <p className="note">{t("regie.planHelp")}</p>
           </div>
           {lib.moments.map((m, i) => (
             <button

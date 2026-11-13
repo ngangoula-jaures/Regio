@@ -321,6 +321,10 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   (cible : SignPath Foundation, gratuit pour l'open source, sur candidature).
 - PowerShell : stratégie `RemoteSigned` (CurrentUser) en place ; depuis WSL, utiliser `npm.cmd`/`npx.cmd`.
 - Fenêtre Tauri : `dragDropEnabled: false` (sinon WebView2 bloque le glisser-déposer HTML sous Windows).
+- **Mise en page robuste** (2026-11-13) : aucun contenu ne doit élargir sa colonne (image 3000 px, nom de fichier à rallonge,
+  champ) → `grid-template-columns: minmax(0, 1fr)` / `min-width: 0` partout (sinon la fenêtre se décale) ; fenêtre
+  minimale 1100 × 680 (`tauri.conf.json`) ; en dessous de 1280 / 1200 px, la date et les indications de touches
+  s'effacent. Garde-fou : `App.tsx` remet la fenêtre à 0 si elle défile. Vérifié par `npm run test:programme`.
 - **Fenêtre d'application FIXE** (retour de l'utilisateur : « l'interface se déplace, s'étire ») : `html, body, #root`
   en `overflow: clip` + `overscroll-behavior: none` (ni défilement par glisser prolongé, ni rebond du pavé tactile) ;
   seuls les panneaux défilent (`.plan`, `.center-scroll`, `.output`, `.sources`, `.startup`…). Texte de l'interface non
