@@ -19,7 +19,7 @@ try {
   recv.on("pageerror", (e) => errors.push("réception : " + e.message));
   await recv.goto(`${BASE}/receiver.html?cam=e2e`);
 
-  const phoneCtx = await browser.newContext({ ignoreHTTPSErrors: true, permissions: ["camera", "microphone"], viewport: { width: 800, height: 400 } });
+  const phoneCtx = await browser.newContext({ ignoreHTTPSErrors: true, permissions: ["camera", "microphone"], viewport: { width: 800, height: 400 }, locale: "fr-FR" });
   const phone = await phoneCtx.newPage();
   phone.on("pageerror", (e) => errors.push("téléphone : " + e.message));
   await phone.goto(`${PHONE_BASE}/phone.html?cam=e2e`);

@@ -5,7 +5,7 @@ import { RegioMark } from "../components/Logo";
 import { StatusRow, type RowState } from "../components/StatusRow";
 import { longDate, t } from "../i18n";
 import { inTauri } from "../shared/server";
-import type { Studio } from "../app/useStudio";
+import { isWide, type Studio } from "../app/useStudio";
 
 function engineRow(s: Studio): { state: RowState; detail: string } {
   if (s.link.kind === "on") return { state: "ok", detail: t("startup.engineReady") };
@@ -26,7 +26,9 @@ export function StartupScreen({ studio, onNext }: { studio: Studio; onNext: () =
   const roomRow: { state: RowState; detail: string } = !ready
     ? { state: "idle", detail: t("startup.roomSearching") }
     : room
-      ? { state: "ok", detail: t("startup.roomFound", { n: room.index + 1, width: room.width, height: room.height }) }
+      ? isWide(room)
+        ? { state: "ok", detail: t("startup.roomFound", { n: room.index + 1, width: room.width, height: room.height }) }
+        : { state: "warn", detail: t("startup.roomAspect", { n: room.index + 1, width: room.width, height: room.height }) }
       : studio.monitors.length
         ? { state: "warn", detail: t("startup.roomMissing") }
         : { state: "busy", detail: t("startup.roomSearching") };

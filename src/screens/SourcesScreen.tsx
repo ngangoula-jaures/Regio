@@ -6,7 +6,7 @@ import { ArrowRight, Info, Star, Video } from "lucide-react";
 import { RegioLockup } from "../components/Logo";
 import { longDate, t } from "../i18n";
 import { phoneUrl } from "../shared/server";
-import { PHONE_CAM, usePolledImage, type Camera, type Studio } from "../app/useStudio";
+import { usePolledImage, type Camera, type Studio } from "../app/useStudio";
 
 function CamCard({ studio, cam, isMain, live }: { studio: Studio; cam: Camera; isMain: boolean; live: boolean }) {
   const fetcher = useCallback(() => studio.cameraShot(cam.source), [studio.cameraShot, cam.source]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -19,7 +19,7 @@ function CamCard({ studio, cam, isMain, live }: { studio: Studio; cam: Camera; i
       </div>
       <div className="cam-row">
         <div>
-          <div className="cam-name">{cam.kind === "phone" ? t("sources.phone") : cam.label}</div>
+          <div className="cam-name">{cam.kind === "phone" ? t("sources.phoneN", { n: cam.label }) : cam.label}</div>
           <div className="cam-detail">{cam.kind === "phone" ? t("sources.phoneHelp") : ""}</div>
         </div>
         <span className="pill pill-ok">{cam.kind === "phone" ? t("sources.phoneConnected") : t("sources.ready")}</span>
@@ -36,11 +36,11 @@ function CamCard({ studio, cam, isMain, live }: { studio: Studio; cam: Camera; i
   );
 }
 
-function PhoneCard({ studio }: { studio: Studio }) {
+function PhoneCard({ studio, id }: { studio: Studio; id: string }) {
   const [qr, setQr] = useState<string | null>(null);
   const info = studio.server;
   const ip = info?.lanIps[0];
-  const url = info && ip && info.phonePort ? phoneUrl(info, ip, PHONE_CAM) : null;
+  const url = info && ip && info.phonePort ? phoneUrl(info, ip, id) : null;
 
   useEffect(() => {
     if (!url) return;
@@ -67,7 +67,7 @@ function PhoneCard({ studio }: { studio: Studio }) {
       )}
       <div className="cam-row">
         <div>
-          <div className="cam-name">{t("sources.phone")}</div>
+          <div className="cam-name">{studio.phoneCams.length ? t("sources.phoneAnother", { n: id }) : t("sources.phoneN", { n: id })}</div>
           <div className="cam-detail">{t("sources.phoneHelp")}</div>
         </div>
         <span className="pill pill-neutral">{t("sources.phoneWaiting")}</span>
@@ -80,7 +80,7 @@ function PhoneCard({ studio }: { studio: Studio }) {
 export function SourcesScreen({ studio, onBack, onStart }: { studio: Studio; onBack: () => void; onStart: () => void }) {
   // Préparer la réception du téléphone, puis surveiller : nouvelles caméras branchées, téléphone connecté.
   useEffect(() => {
-    studio.preparePhone().catch(() => {});
+    studio.preparePhones().catch(() => {});
     let alive = true;
     let n = 0;
     const tick = async () => {
@@ -94,15 +94,13 @@ export function SourcesScreen({ studio, onBack, onStart }: { studio: Studio; onB
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const phoneConnected = Boolean(studio.server?.rooms[PHONE_CAM]?.phone);
-  const phoneCam: Camera | null = phoneConnected && studio.phoneSource ? { source: studio.phoneSource, label: t("sources.phone"), kind: "phone" } : null;
-
-  // Téléphone connecté et aucune caméra principale : il le devient tout seul.
+  // Premier téléphone connecté sans caméra principale : il le devient tout seul.
+  const firstPhone = studio.phoneCams[0]?.source;
   useEffect(() => {
-    if (phoneCam && !studio.mainCamera) studio.chooseMain(phoneCam.source).catch(() => {});
-  }, [phoneCam?.source, studio.mainCamera]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (firstPhone && !studio.mainCamera) studio.chooseMain(firstPhone).catch(() => {});
+  }, [firstPhone, studio.mainCamera]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const all = [...(studio.cameras ?? []), ...(phoneCam ? [phoneCam] : [])];
+  const all: Camera[] = [...(studio.cameras ?? []), ...studio.phoneCams];
   const main = all.find((c) => c.source === studio.mainCamera);
 
   return (
@@ -122,7 +120,7 @@ export function SourcesScreen({ studio, onBack, onStart }: { studio: Studio; onB
           {all.map((c) => (
             <CamCard key={c.source} studio={studio} cam={c} isMain={c.source === studio.mainCamera} live />
           ))}
-          {!phoneCam && <PhoneCard studio={studio} />}
+          {studio.freePhone && <PhoneCard key={studio.freePhone} studio={studio} id={studio.freePhone} />}
           <div className="cam is-hint">
             <div className="cam-view">
               <Video size={56} strokeWidth={1.25} />
@@ -144,7 +142,7 @@ export function SourcesScreen({ studio, onBack, onStart }: { studio: Studio; onB
 
       <footer className="bottombar">
         <span className="main-label">
-          {t("sources.mainLabel")} <strong>{main ? (main.kind === "phone" ? t("sources.phone") : main.label) : t("sources.noneMain")}</strong>
+          {t("sources.mainLabel")} <strong>{main ? (main.kind === "phone" ? t("sources.phoneN", { n: main.label }) : main.label) : t("sources.noneMain")}</strong>
         </span>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <button type="button" className="btn btn-lg" onClick={onBack}>

@@ -1,13 +1,14 @@
 // Écran 3 — La régie pendant le culte (maquette v3) :
 // déroulé en moments à gauche ; à l'écran + ensuite au centre ; caméras ; onglets à droite.
 //
-// Navigation (Suivant / Précédent, espace, flèches) selon le dernier clic :
-// - sur un moment du déroulé  → moment par moment (le 1er contenu de chacun s'affiche) ;
-// - sur un contenu d'un moment → contenu par contenu (puis le moment suivant) ;
-// - sur un verset de la Bible  → lecture suivie, verset par verset.
+// Deux navigations bien séparées (retours de l'utilisateur du 13 novembre) :
+// - CHOISIR un moment (clic dans le déroulé, ↑ / ↓) : ses contenus s'ouvrent à droite, RIEN ne change à l'écran ;
+// - AFFICHER (clic sur un contenu, Suivant / espace / →, Précédent / ←) : contenu suivant du moment choisi
+//   (son 1er contenu si on vient d'en choisir un autre), puis le moment d'après ;
+// - pendant une lecture biblique, Suivant / Précédent passent de verset en verset.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, RefreshCw } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { RegioLockup } from "../components/Logo";
 import { MiniScreen } from "../components/MiniScreen";
 import { longDate, t } from "../i18n";
@@ -20,7 +21,7 @@ import { CameraRow } from "./CameraRow";
 import { RoomButton } from "./RoomDialog";
 import { RightPanel, verseContent, type Reading, type Tab } from "./RightPanel";
 
-type Mode = "moments" | "items" | "reading";
+type Mode = "items" | "reading";
 interface Pos {
   m: number;
   i: number;
@@ -37,7 +38,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   const [tab, setTab] = useState<Tab>("moment");
   const [live, setLive] = useState<Pos | null>(null);
   const [offPlan, setOffPlan] = useState(false);
-  const [mode, setMode] = useState<Mode>("moments");
+  const [mode, setMode] = useState<Mode>("items");
   const [reading, setReading] = useState<Reading | null>(null);
   const [readLayout, setReadLayout] = useState<"full" | "lower">("full");
   const [adding, setAdding] = useState(false);
@@ -84,7 +85,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   useEffect(() => {
     if (!lib || started.current) return;
     started.current = true;
-    if (lib.moments.length) showPos({ m: 0, i: 0 }, "moments");
+    if (lib.moments.length) showPos({ m: 0, i: 0 }, "items");
   }, [lib, showPos]);
 
   // ---------- Où mènent Suivant / Précédent ----------
@@ -95,16 +96,17 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
       const v = reading.verse + dir;
       return v >= 1 && v <= verses.length ? { kind: "verse", r: { ...reading, verse: v } } : null;
     }
-    const base = live ?? { m: sel, i: -1 };
-    if (mode === "items") {
-      const i = base.i + dir;
-      if (i >= 0 && i < (moments[base.m]?.items.length ?? 0)) return { kind: "pos", pos: { m: base.m, i } };
-      const m = base.m + dir;
-      if (m < 0 || m >= moments.length) return null;
-      return { kind: "pos", pos: { m, i: dir > 0 ? 0 : Math.max(0, moments[m].items.length - 1) } };
+    const len = (m: number) => moments[m]?.items.length ?? 0;
+    // Moment choisi différent de celui à l'écran : Suivant affiche son 1er contenu.
+    if (dir > 0 && (!live || live.m !== sel)) return sel < moments.length ? { kind: "pos", pos: { m: sel, i: 0 } } : null;
+    if (!live) return null;
+    const i = live.i + dir;
+    if (i >= 0 && i < len(live.m)) return { kind: "pos", pos: { m: live.m, i } };
+    // Au bout du moment : moment voisin (les moments vides sont sautés).
+    for (let m = live.m + dir; m >= 0 && m < moments.length; m += dir) {
+      if (len(m) > 0) return { kind: "pos", pos: { m, i: dir > 0 ? 0 : len(m) - 1 } };
     }
-    const m = base.m + dir;
-    return m >= 0 && m < moments.length ? { kind: "pos", pos: { m, i: 0 } } : null;
+    return null;
   };
   const go = (dir: 1 | -1) => {
     const target = step(dir);
@@ -113,23 +115,31 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
       return;
     }
     if (target.kind === "verse") read(target.r);
-    else showPos(target.pos, mode === "reading" ? "items" : mode);
+    else showPos(target.pos, "items");
+  };
+  /** Choisir un moment sans rien afficher (↑ / ↓ ou clic dans le déroulé). */
+  const moveSel = (dir: 1 | -1) => {
+    setSel((v) => Math.min(Math.max(0, v + dir), Math.max(0, moments.length - 1)));
+    setTab("moment");
   };
   const cameraOnly = () => showOther({ kind: "none" });
 
-  // Clavier : espace, → et ↓ = suivant ; ← et ↑ = précédent ; Échap = caméra (sauf pendant une saisie).
-  const keys = useRef({ go, cameraOnly, active });
-  keys.current = { go, cameraOnly, active };
+  // Clavier : espace / → = suivant ; ← = précédent ; ↑ / ↓ = choisir le moment ; Échap = caméra.
+  const keys = useRef({ go, moveSel, cameraOnly, active });
+  keys.current = { go, moveSel, cameraOnly, active };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!keys.current.active) return;
       if ((e.target as HTMLElement).closest("input, textarea, select, [contenteditable]")) return;
-      if ([" ", "ArrowRight", "ArrowDown"].includes(e.key)) {
+      if (e.key === " " || e.key === "ArrowRight") {
         e.preventDefault();
         keys.current.go(1);
-      } else if (["ArrowLeft", "ArrowUp"].includes(e.key)) {
+      } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         keys.current.go(-1);
+      } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        keys.current.moveSel(e.key === "ArrowDown" ? 1 : -1);
       } else if (e.key === "Escape") {
         e.preventDefault();
         keys.current.cameraOnly();
@@ -156,7 +166,8 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
       : offPlan || !live
         ? t("regie.offPlan")
         : `${moments[live.m]?.name} · ${moments[live.m]?.items[live.i]?.label ?? t("kinds.camera")}`;
-  const nextWord = mode === "reading" ? t("regie.nextVerse") : mode === "items" ? t("regie.nextItem") : t("regie.nextMoment");
+  const nextWord =
+    mode === "reading" ? t("regie.nextVerse") : !live || live.m !== sel ? t("regie.showMoment", { name: moments[sel]?.name ?? "" }) : t("regie.nextItem");
 
   const canLayout = cur.kind === "verse" || cur.kind === "text";
   const setLayout = (layout: "lower" | "full") => {
@@ -174,6 +185,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   useEffect(() => {
     const id = window.setInterval(() => studio.refreshServer().catch(() => {}), 3000);
     studio.refreshServer().catch(() => {});
+    studio.preparePhones().catch(() => {});
     return () => window.clearInterval(id);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -212,7 +224,15 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
       <div className="regie-body">
         <nav className="plan" aria-label={t("regie.plan")}>
           <div className="plan-head" style={{ display: "block" }}>
-            <h2>{t("regie.plan")}</h2>
+            <div className="plan-title">
+              <h2>{t("regie.plan")}</h2>
+              <button type="button" className="icon-btn" aria-label={t("regie.prevMoment")} title={t("regie.prevMoment")} onClick={() => moveSel(-1)}>
+                <ChevronUp size={16} strokeWidth={2} />
+              </button>
+              <button type="button" className="icon-btn" aria-label={t("regie.nextMomentSel")} title={t("regie.nextMomentSel")} onClick={() => moveSel(1)}>
+                <ChevronDown size={16} strokeWidth={2} />
+              </button>
+            </div>
             <p className="note">{t("regie.planHelp")}</p>
           </div>
           {lib.moments.map((m, i) => (
@@ -221,7 +241,10 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
               type="button"
               className={`moment ${i === sel ? "is-selected" : ""} ${i === liveMoment ? "is-live" : ""}`}
               aria-current={i === liveMoment ? "step" : undefined}
-              onClick={() => showPos({ m: i, i: 0 }, "moments")}
+              onClick={() => {
+                setSel(i);
+                setTab("moment");
+              }}
             >
               <span className="moment-num">{i + 1}</span>
               <span className="plan-text">

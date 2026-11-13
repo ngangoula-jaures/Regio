@@ -1,61 +1,78 @@
-html, body, #root { margin: 0; height: 100%; background: #000; color: #fff;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+/* Page caméra du téléphone — charte Regio (nuit, ivoire, or réservé au bouton principal). */
+@import "../design/tokens.css";
+
+html, body, #root { margin: 0; height: 100%; background: var(--regio-nuit); color: var(--regio-ivoire); font-family: var(--regio-font-ui); -webkit-font-smoothing: antialiased; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 button { font: inherit; color: inherit; border: 0; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--regio-ivoire); outline-offset: 2px; }
 
-.phone { position: fixed; inset: 0; overflow: hidden; }
+.phone { position: fixed; inset: 0; overflow: hidden; background: #000; }
 .preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
 .preview.mirror { transform: scaleX(-1); }
 
+/* ---- Écran d'accueil ---- */
 .start {
-  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 18px; padding: 24px; text-align: center; background: #14121a;
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+  padding: max(20px, env(safe-area-inset-top)) 24px max(20px, env(safe-area-inset-bottom));
+  background: radial-gradient(ellipse at 50% 30%, #1b2650 0%, var(--regio-nuit) 65%); overflow-y: auto;
 }
-.start h1 { margin: 0; font-size: 26px; color: #f2c86b; }
-.start p { margin: 0; color: #c9c3d6; line-height: 1.45; max-width: 420px; }
-.choice { display: flex; gap: 10px; width: 100%; max-width: 420px; }
+.brand { align-self: flex-start; display: flex; align-items: center; gap: 8px; font-family: var(--regio-font-titre); font-weight: 600; font-size: 18px; letter-spacing: -0.02em; }
+.start-main { flex: 1; width: 100%; max-width: 440px; display: flex; flex-direction: column; justify-content: center; gap: 18px; padding: 24px 0; }
+.start h1 { margin: 0; font-family: var(--regio-font-titre); font-weight: 600; font-size: 30px; letter-spacing: -0.02em; text-align: center; }
+.sub { margin: -10px 0 0; text-align: center; color: var(--regio-ardoise); font-size: 15px; }
+.tip { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; background: var(--regio-nuit-2); border: 1px solid var(--regio-nuit-3); color: var(--regio-texte-doux); font-size: 15px; line-height: 1.45; }
+.tip svg { flex: none; color: var(--regio-ivoire); }
+.choice { display: flex; gap: 10px; }
 .choice button {
-  flex: 1; padding: 14px 8px; border-radius: 12px; background: #282433; border: 2px solid #3a3447;
-  display: flex; flex-direction: column; gap: 4px; font-weight: 600;
+  flex: 1; padding: 14px 8px; border-radius: 12px; background: var(--regio-nuit-2); border: 1px solid var(--regio-nuit-3);
+  display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 600; font-size: 16px;
 }
-.choice button small { font-weight: 400; color: #9a93a8; }
-.choice button.on { border-color: #f2c86b; background: #3a3020; }
+.choice button small { font-weight: 400; font-size: 13px; color: var(--regio-ardoise); }
+.choice button.on { border: 2px solid var(--regio-ivoire); padding: 13px 7px; background: var(--regio-nuit-3); }
 .go {
-  width: 100%; max-width: 420px; padding: 18px; border-radius: 14px; font-size: 19px; font-weight: 700;
-  background: #4ccb7a; color: #0b1f12;
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 58px; border-radius: 14px;
+  background: var(--regio-or); color: var(--regio-nuit); font-size: 18px; font-weight: 700;
 }
 .go:disabled { opacity: 0.6; }
-.error { color: #ff8a8a !important; }
-.cam-id { font-size: 13px; color: #6f6880 !important; }
+.error { margin: 0; padding: 12px 14px; border-radius: 10px; background: rgba(255, 107, 107, .12); color: #ffb3b3; line-height: 1.45; font-size: 14px; }
+.foot { margin: 0; max-width: 440px; text-align: center; font-size: 13px; color: var(--regio-ardoise); line-height: 1.45; }
 
+/* ---- Pendant l'envoi ---- */
+.top {
+  position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 10px;
+  padding: max(10px, env(safe-area-inset-top)) 12px 10px; background: linear-gradient(rgba(14, 21, 48, .7), transparent);
+}
 .status {
-  position: absolute; top: max(12px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
-  padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 15px; white-space: nowrap;
-  background: rgba(40, 36, 51, 0.85);
+  display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 99px; font-weight: 600; font-size: 14px; white-space: nowrap;
+  background: rgba(24, 33, 63, .9); color: var(--regio-texte-doux);
 }
-.status.live { background: rgba(200, 30, 30, 0.9); }
-.status.connecting, .status.waiting { color: #f2c86b; }
-.toast {
-  position: absolute; top: 60px; left: 12px; right: 12px; padding: 10px 14px; border-radius: 10px;
-  background: rgba(120, 30, 30, 0.92); font-size: 14px;
+.status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--regio-bord-fort); }
+.status.live { background: rgba(14, 21, 48, .9); color: var(--regio-direct); }
+.status.live::before { background: var(--regio-direct); }
+.status.connecting::before, .status.waiting::before { background: var(--regio-attention); }
+.cam-name { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--regio-texte-doux); }
+.stats {
+  position: absolute; left: 12px; bottom: max(84px, calc(env(safe-area-inset-bottom) + 76px));
+  padding: 4px 8px; border-radius: 6px; font-size: 11px; background: rgba(14, 21, 48, .7); color: var(--regio-texte-doux);
 }
+.toast { position: absolute; top: 64px; left: 12px; right: 12px; padding: 10px 14px; border-radius: 10px; background: rgba(120, 30, 30, .92); font-size: 14px; }
 .controls {
-  position: absolute; left: 0; right: 0; bottom: max(14px, env(safe-area-inset-bottom));
-  display: flex; justify-content: center; gap: 10px; padding: 0 12px; flex-wrap: wrap;
+  position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+  padding: 12px 12px max(14px, env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(14, 21, 48, .75));
 }
-.controls button { padding: 12px 16px; border-radius: 12px; background: rgba(40, 36, 51, 0.85); font-weight: 600; }
-.controls button.off { background: rgba(120, 30, 30, 0.9); }
-.controls button.stop { background: rgba(70, 20, 20, 0.9); }
+.controls button {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border-radius: 12px;
+  background: rgba(24, 33, 63, .92); border: 1px solid var(--regio-nuit-3); font-weight: 600; font-size: 14px;
+}
+.controls button.off { color: var(--regio-attention); }
+.controls button.stop { color: #ffb3b3; }
 
 .rotate {
   position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 12px; padding: 24px; text-align: center; font-size: 22px; font-weight: 700;
-  background: rgba(20, 18, 26, 0.88); color: #f2c86b;
+  gap: 14px; padding: 24px; text-align: center; font-size: 21px; font-weight: 600; font-family: var(--regio-font-titre);
+  background: rgba(14, 21, 48, .92); color: var(--regio-ivoire);
 }
-.rotate-icon { font-size: 64px; animation: tilt 1.6s ease-in-out infinite; }
-.rotate small { font-size: 14px; font-weight: 400; color: #c9c3d6; max-width: 360px; }
+.rotate small { font-family: var(--regio-font-ui); font-size: 14px; font-weight: 400; color: var(--regio-texte-doux); max-width: 360px; line-height: 1.45; }
+.rotate-icon { animation: tilt 1.8s ease-in-out infinite; }
 @keyframes tilt { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
-.stats {
-  position: absolute; left: 12px; top: max(56px, calc(env(safe-area-inset-top) + 44px));
-  padding: 4px 8px; border-radius: 6px; font-size: 11px; background: rgba(0, 0, 0, 0.55); color: #c9c3d6;
-}
+@media (prefers-reduced-motion: reduce) { .rotate-icon { animation: none; } }

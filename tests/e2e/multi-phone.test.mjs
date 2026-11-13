@@ -1,0 +1,56 @@
+// Test : plusieurs téléphones comme caméras (Sources du jour + rangée des caméras de la régie).
+// Prérequis : `npm run dev` lancé. Caméras des téléphones simulées par Chromium.
+import { launch, BASE, PHONE_BASE } from "./browser.mjs";
+import { startFakeObs } from "./fake-obs.mjs";
+
+const obs = startFakeObs(4467);
+const browser = await launch(["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"]);
+const fail = async (msg) => {
+  console.error("ÉCHEC :", msg);
+  await browser.close();
+  obs.close();
+  process.exit(1);
+};
+const check = async (cond, msg) => (cond ? console.log("✓", msg) : fail(msg));
+const startPhone = async (cam) => {
+  const ctx = await browser.newContext({ ignoreHTTPSErrors: true, permissions: ["camera", "microphone"], locale: "fr-FR" });
+  const p = await ctx.newPage();
+  await p.goto(`${PHONE_BASE}/phone.html?cam=${cam}`);
+  await p.click("text=Démarrer la caméra");
+  return p;
+};
+
+try {
+  const app = await (await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "fr-FR" })).newPage();
+  await app.goto(BASE);
+  await app.evaluate(() => localStorage.clear());
+  await app.reload();
+  await app.fill("#port", "4467");
+  await app.click("text=Se connecter");
+  await app.click("button:has-text('Choisir les caméras du jour'):not([disabled])", { timeout: 8000 });
+  await app.waitForSelector(".cam:has-text('Téléphone 1')", { timeout: 8000 });
+  await check(true, "sources : QR code du « Téléphone 1 »");
+
+  await startPhone("1");
+  await app.waitForSelector(".cam-name:text-is('Téléphone 1')", { timeout: 10000 });
+  await app.waitForSelector("text=Ajouter un téléphone (2)", { timeout: 10000 });
+  await check(true, "téléphone 1 connecté → nouveau QR code pour un 2e téléphone");
+
+  await startPhone("2");
+  await app.waitForSelector(".cam-name:text-is('Téléphone 2')", { timeout: 10000 });
+  await app.waitForSelector("text=Ajouter un téléphone (3)", { timeout: 10000 });
+  const qr = obs.state.inputs.filter((i) => i.inputName.startsWith("Regio - Téléphone QR")).map((i) => i.inputName);
+  await check(qr.length === 3, `chaque téléphone a sa réception dans le moteur vidéo (${qr.join(", ")})`);
+
+  await app.click("text=Commencer le culte");
+  await app.waitForSelector(".cam-tile:has-text('Téléphone 2')");
+  await app.click(".cam-tile:has-text('Téléphone 2')");
+  await app.waitForSelector(".cam-tile.is-on:has-text('Téléphone 2')");
+  const on = obs.state.items["Regio - Sortie"].filter((i) => i.sceneItemEnabled && !["Regio - Fond", "Regio - Contenu"].includes(i.sourceName)).map((i) => i.sourceName);
+  await check(on.length === 1 && on[0] === "Regio - Téléphone QR 2", `régie : bascule sur le téléphone 2 (${on.join(", ")})`);
+  console.log("TOUS LES TESTS PASSENT");
+} catch (e) {
+  await fail(e.message);
+}
+await browser.close();
+obs.close();

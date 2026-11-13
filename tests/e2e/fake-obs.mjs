@@ -37,6 +37,11 @@ export function startFakeObs(port = 4466) {
         case "GetInputSettings": r = { inputSettings: state.inputs.find((i) => i.inputName === d.inputName)?.settings ?? {} }; break;
         case "SetInputSettings": { const i = state.inputs.find((x) => x.inputName === d.inputName); if (i) i.settings = { ...i.settings, ...d.inputSettings }; break; }
         case "CreateInput":
+          // Comme le vrai OBS : un nom de source déjà pris est refusé (code 601).
+          if (state.inputs.some((i) => i.inputName === d.inputName)) {
+            ws.send(JSON.stringify({ op: 7, d: { requestType: t, requestId, requestStatus: { result: false, code: 601, comment: "A source already exists by that input name." } } }));
+            return;
+          }
           state.inputs.push({ inputName: d.inputName, inputKind: d.inputKind, settings: d.inputSettings });
           r = { sceneItemId: addItem(d.sceneName, d.inputName, d.sceneItemEnabled ?? true) };
           break;

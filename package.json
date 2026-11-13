@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test:phone": "node tests/e2e/phone-camera.test.mjs",
     "test:regie": "node tests/e2e/regie.test.mjs",
-    "test:e2e": "npm run -s test:regie && npm run -s test:phone",
+    "test:multiphone": "node tests/e2e/multi-phone.test.mjs",
+    "test:e2e": "npm run -s test:regie && npm run -s test:phone && npm run -s test:multiphone",
     "tauri": "tauri"
   },
   "dependencies": {

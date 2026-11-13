@@ -2,7 +2,9 @@
 // Aucune application à installer, pas de filigrane, pas de limite de durée.
 
 import { useEffect, useRef, useState } from "react";
+import { Mic, MicOff, Play, RotateCcw, Smartphone, Square, SwitchCamera } from "lucide-react";
 import { SignalClient, preferH264, type SignalMessage } from "../shared/signal";
+import { t } from "../i18n";
 
 type Quality = "720" | "1080";
 type Phase = "idle" | "starting" | "waiting" | "connecting" | "live" | "error";
@@ -93,7 +95,7 @@ export default function Phone() {
     }
     let lastBytes = 0;
     let lastTime = 0;
-    const t = window.setInterval(async () => {
+    const timer = window.setInterval(async () => {
       const pc = pcRef.current.pc;
       if (!pc) return;
       const report = await pc.getStats();
@@ -102,15 +104,15 @@ export default function Phone() {
         const mbps = lastTime ? ((r.bytesSent - lastBytes) * 8) / ((r.timestamp - lastTime) * 1000) : null;
         lastBytes = r.bytesSent;
         lastTime = r.timestamp;
-        const limit = { bandwidth: "réseau Wi-Fi", cpu: "téléphone trop sollicité", other: "autre" }[r.qualityLimitationReason as string];
+        const limit = { bandwidth: t("phone.limitNetwork"), cpu: t("phone.limitCpu"), other: t("phone.limitOther") }[r.qualityLimitationReason as string];
         setStats(
-          `${r.frameWidth ?? "?"}×${r.frameHeight ?? "?"} · ${Math.round(r.framesPerSecond ?? 0)} i/s` +
+          `${r.frameWidth ?? "?"}×${r.frameHeight ?? "?"} · ${Math.round(r.framesPerSecond ?? 0)} ${t("phone.fps")}` +
             (mbps === null ? "" : ` · ${mbps.toFixed(1)} Mb/s`) +
-            (limit ? ` · qualité réduite : ${limit}` : ""),
+            (limit ? ` · ${t("phone.limited", { why: limit })}` : ""),
         );
       });
     }, 2000);
-    return () => window.clearInterval(t);
+    return () => window.clearInterval(timer);
   }, [phase]);
 
   async function openCamera(face: "environment" | "user", q: Quality): Promise<MediaStream> {
@@ -135,7 +137,7 @@ export default function Phone() {
       const signal = new SignalClient("phone", cam, onSignal, setSignalOk, () => {
         stopAll();
         setPhase("error");
-        setError(`Un autre appareil a pris la place de la caméra n° ${cam}.`);
+        setError(t("phone.replaced", { n: cam }));
       });
       signalRef.current = signal;
       signal.start();
@@ -264,62 +266,91 @@ export default function Phone() {
 
       {!running && (
         <div className="start">
-          <h1>Caméra Regio</h1>
-          {!secure ? (
-            <p className="error">
-              La caméra est bloquée : la page doit être ouverte en <b>https://</b>. Scannez à nouveau le QR code affiché dans la régie.
-            </p>
-          ) : (
-            <>
-              <p>Tournez le téléphone à l'horizontale, posez-le sur un support stable, puis démarrez.</p>
-              <div className="choice">
-                <button className={quality === "720" ? "on" : ""} onClick={() => setQuality("720")}>
-                  HD 720p
-                  <small>Wi-Fi faible</small>
+          <div className="brand">
+            <Mark size={30} />
+            <span>regio</span>
+          </div>
+          <div className="start-main">
+            <h1>{t("phone.title", { n: cam })}</h1>
+            <p className="sub">{t("phone.subtitle")}</p>
+            {!secure ? (
+              <p className="error">{t("phone.insecure")}</p>
+            ) : (
+              <>
+                <div className="tip">
+                  <RotateCcw size={22} strokeWidth={1.75} />
+                  <span>{t("phone.rotate")}</span>
+                </div>
+                <div className="choice" role="radiogroup" aria-label={t("phone.quality")}>
+                  <button type="button" role="radio" aria-checked={quality === "720"} className={quality === "720" ? "on" : ""} onClick={() => setQuality("720")}>
+                    {t("phone.hd")}
+                    <small>{t("phone.hdHelp")}</small>
+                  </button>
+                  <button type="button" role="radio" aria-checked={quality === "1080"} className={quality === "1080" ? "on" : ""} onClick={() => setQuality("1080")}>
+                    {t("phone.fullHd")}
+                    <small>{t("phone.fullHdHelp")}</small>
+                  </button>
+                </div>
+                <button type="button" className="go" onClick={start} disabled={phase === "starting"}>
+                  <Play size={20} strokeWidth={2.2} fill="currentColor" />
+                  {phase === "starting" ? t("phone.starting") : t("phone.start")}
                 </button>
-                <button className={quality === "1080" ? "on" : ""} onClick={() => setQuality("1080")}>
-                  Full HD 1080p
-                  <small>Recommandé</small>
-                </button>
-              </div>
-              <button className="go" onClick={start} disabled={phase === "starting"}>
-                {phase === "starting" ? "Ouverture de la caméra…" : "▶ Démarrer la caméra"}
-              </button>
-            </>
-          )}
-          {error && <p className="error">{error}</p>}
-          <p className="cam-id">Caméra n° {cam}</p>
+              </>
+            )}
+            {error && <p className="error">{error}</p>}
+          </div>
+          <p className="foot">{t("phone.sameWifi")}</p>
         </div>
       )}
 
       {running && (
         <>
-          <div className={`status ${phase}`}>
-            {phase === "live" && "● EN DIRECT vers la régie"}
-            {phase === "connecting" && "Connexion à la régie…"}
-            {phase === "waiting" && (signalOk ? "Caméra prête — en attente de la régie" : "Recherche de la régie…")}
+          <div className="top">
+            <Mark size={26} />
+            <div className={`status ${phase}`}>
+              {phase === "live" && t("phone.live")}
+              {phase === "connecting" && t("phone.connecting")}
+              {phase === "waiting" && (signalOk ? t("phone.waiting") : t("phone.searching"))}
+            </div>
+            <span className="cam-name">{t("phone.title", { n: cam })}</span>
           </div>
           {error && <div className="toast">{error}</div>}
           {portrait && (
             <div className="rotate">
-              <div className="rotate-icon">📱↻</div>
-              Tournez le téléphone à l'horizontale
-              <small>L'image est envoyée en vertical : elle aura des bandes noires sur l'écran de l'église.</small>
+              <Smartphone size={64} strokeWidth={1.25} className="rotate-icon" />
+              {t("phone.portraitTitle")}
+              <small>{t("phone.portraitHelp")}</small>
             </div>
           )}
           {stats && <div className="stats">{stats}</div>}
           <div className="controls">
-            <button onClick={switchCamera}>🔄 Caméra {facing === "environment" ? "arrière" : "avant"}</button>
-            <button onClick={toggleMic} className={micOn ? "" : "off"}>
-              {micOn ? "🎙️ Son activé" : "🔇 Son coupé"}
+            <button type="button" onClick={switchCamera}>
+              <SwitchCamera size={20} strokeWidth={1.75} />
+              {facing === "environment" ? t("phone.back") : t("phone.front")}
             </button>
-            <button className="stop" onClick={stop}>
-              ■ Arrêter
+            <button type="button" onClick={toggleMic} className={micOn ? "" : "off"}>
+              {micOn ? <Mic size={20} strokeWidth={1.75} /> : <MicOff size={20} strokeWidth={1.75} />}
+              {micOn ? t("phone.micOn") : t("phone.micOff")}
+            </button>
+            <button type="button" className="stop" onClick={stop}>
+              <Square size={16} strokeWidth={2} fill="currentColor" />
+              {t("phone.stop")}
             </button>
           </div>
         </>
       )}
     </div>
+  );
+}
+
+function Mark({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+      <rect x="9.5" y="19.5" width="81" height="61" rx="15" fill="none" stroke="#f6f2e8" strokeWidth="7" />
+      <path d="M36.5 63 V43" fill="none" stroke="#f6f2e8" strokeWidth="9" strokeLinecap="round" />
+      <path d="M36.5 51 C36.5 42 43.5 37 52.5 37" fill="none" stroke="#f6f2e8" strokeWidth="9" strokeLinecap="round" />
+      <circle cx="62.5" cy="37" r="6" fill="#e8b44c" />
+    </svg>
   );
 }
 
@@ -329,8 +360,8 @@ interface PeerConnectionHolder {
 
 function explain(e: unknown): string {
   const name = (e as { name?: string })?.name;
-  if (name === "NotAllowedError") return "Accès à la caméra refusé. Autorisez la caméra et le micro pour ce site dans le navigateur, puis réessayez.";
-  if (name === "NotFoundError") return "Aucune caméra trouvée sur cet appareil.";
-  if (name === "NotReadableError") return "La caméra est déjà utilisée par une autre application. Fermez-la et réessayez.";
+  if (name === "NotAllowedError") return t("phone.denied");
+  if (name === "NotFoundError") return t("phone.noCamera");
+  if (name === "NotReadableError") return t("phone.busy");
   return e instanceof Error ? e.message : String(e);
 }

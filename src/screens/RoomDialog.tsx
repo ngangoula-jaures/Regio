@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Laptop, MonitorPlay, Tv } from "lucide-react";
 import { t } from "../i18n";
-import type { Studio } from "../app/useStudio";
+import { isWide, type Studio } from "../app/useStudio";
 
 export function RoomButton({ studio }: { studio: Studio }) {
   const [open, setOpen] = useState(false);
@@ -63,6 +63,13 @@ export function RoomButton({ studio }: { studio: Studio }) {
               </button>
             ))}
           </div>
+          {tvs
+            .filter((m) => !isWide(m))
+            .map((m) => (
+              <p key={m.index} className="banner banner-warn">
+                {t("regie.roomAspect", { width: m.width, height: m.height, n: m.index + 1 })}
+              </p>
+            ))}
           <button type="button" className="btn btn-sm" onClick={() => choose(() => studio.projectTo({ kind: "window" }))}>
             <MonitorPlay size={16} strokeWidth={1.75} />
             {t("regie.roomWindow")}

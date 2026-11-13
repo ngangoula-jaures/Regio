@@ -69,20 +69,25 @@ try {
   await app.waitForSelector(".moment.is-live:has-text('Écran d')");
   await waitRender(".standby-title");
   await check(true, "régie : le 1er moment (écran d'attente) est à l'écran");
-  await check((await app.textContent(".next-btn")).includes("Moment suivant"), "après un clic sur le déroulé, le bouton dit « Moment suivant »");
-
-  await app.keyboard.press("Space");
-  await app.waitForSelector(".moment.is-live:has-text('Louange')");
   await app.keyboard.press("ArrowDown");
-  await app.waitForSelector(".moment.is-live:has-text('Adoration')");
+  await app.keyboard.press("ArrowDown");
+  await app.waitForSelector(".moment.is-selected:has-text('Adoration')");
+  await app.waitForSelector("role=tab[name='Adoration'][selected]");
+  await render.waitForTimeout(500);
+  await check((await app.locator(".moment.is-live:has-text('Écran d')").count()) === 1 && (await render.locator(".layer.in .standby-title").count()) === 1,
+    "↓ ↓ : on choisit « Adoration » (ses contenus à droite) sans rien changer à l'écran");
   await app.keyboard.press("ArrowUp");
-  await app.waitForSelector(".moment.is-live:has-text('Louange')");
-  await check(true, "espace / ↓ / ↑ : on avance et on recule de moment en moment");
+  await app.waitForSelector(".moment.is-selected:has-text('Louange')");
+  await check((await app.textContent(".next-btn")).includes("Afficher « Louange »"), "↑ : retour sur « Louange » ; le bouton annonce « Afficher « Louange » »");
 
   await app.click(".moment:has-text('Prédication')");
   await app.waitForSelector("role=tab[name='Prédication'][selected]");
+  await render.waitForTimeout(500);
+  await check((await render.locator(".layer.in .standby-title").count()) === 1, "clic sur « Prédication » : son onglet s'ouvre, l'écran ne change pas");
+  await app.keyboard.press("Space");
   await waitRender(".lower-ref");
-  await check(true, "clic sur « Prédication » : son onglet s'ouvre à droite et son 1er contenu s'affiche");
+  await app.waitForSelector(".moment.is-live:has-text('Prédication')");
+  await check(true, "espace : le 1er contenu du moment choisi s'affiche");
 
   await app.click("role=tab[name='Texte']");
   await app.fill("#ttitle", "Culte de Noël");
@@ -94,7 +99,7 @@ try {
   await check((await app.locator(".item-card").count()) === 2, "texte créé et rattaché au moment « Prédication »");
 
   await app.click(".item-card >> nth=0 >> .item-main");
-  await check((await app.textContent(".next-btn")).includes("Contenu suivant"), "après un clic sur un contenu, le bouton dit « Contenu suivant »");
+  await check((await app.textContent(".next-btn")).includes("Contenu suivant"), "un clic sur un contenu l'affiche ; le bouton dit « Contenu suivant »");
   await app.keyboard.press("Space");
   await waitRender(".text-title:has-text('Culte de Noël')");
   await check(true, "espace : contenu suivant du moment (le texte ajouté)");
@@ -110,9 +115,9 @@ try {
   await app.click("body", { position: { x: 700, y: 30 } });
   await app.keyboard.press("Space");
   await waitRender(".verse-text:has-text('verts pâturages')");
-  await app.keyboard.press("ArrowUp");
+  await app.keyboard.press("ArrowLeft");
   await waitRender(".verse-text:has-text('mon berger')");
-  await check(true, "lecture suivie : espace = verset 2, ↑ = retour au verset 1");
+  await check(true, "lecture suivie : espace = verset 2, ← = retour au verset 1");
   await app.click(".screens >> text=Sur la caméra");
   await waitRender(".lower-ref:has-text('PSAUMES 23:1')");
   await check(true, "verset passé « Sur la caméra » (bandeau)");

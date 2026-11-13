@@ -2,7 +2,7 @@
 // Les écrans (Démarrage, Sources du jour, Régie) ne font qu'afficher cet état et appeler ses actions.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ObsController, type ConnectionSettings, type Monitor } from "../obs/obs";
+import { ObsController, PHONE_QR_PREFIX, type ConnectionSettings, type Monitor } from "../obs/obs";
 import { readCustomEvent, type Content } from "../shared/content";
 import { getServerInfo, inTauri, type ServerInfo } from "../shared/server";
 import { getEngineState, type EngineState } from "../shared/engine";
@@ -13,13 +13,18 @@ export type Projection = { kind: "monitor"; index: number } | { kind: "window" }
 export interface Camera {
   /** Nom de la source dans OBS. */
   source: string;
-  /** Nom lisible (« HP TrueVision HD Camera »). */
+  /** Nom lisible (« HP TrueVision HD Camera ») ; pour un téléphone : son numéro (« 2 »). */
   label: string;
   kind: "device" | "phone";
 }
 
+/** Nombre maximal de téléphones-caméras (chacun décode une vidéo : au-delà, un PC modeste sature). */
+export const MAX_PHONES = 4;
+
 const SETTINGS_KEY = "regio.obs";
-export const PHONE_CAM = "1";
+
+/** La télé reçoit-elle un format proche du 16:9 de la sortie ? Sinon : bandes noires. */
+export const isWide = (m: Monitor) => Math.abs(m.width / m.height - 16 / 9) < 0.08;
 
 export function loadBrowserSettings(): ConnectionSettings {
   try {
@@ -115,13 +120,45 @@ export function useStudio() {
 
   // ---------- Téléphone (QR code) ----------
   const [server, setServer] = useState<ServerInfo | null>(null);
-  const [phoneSource, setPhoneSource] = useState<string | null>(null);
+  // Plusieurs téléphones : chacun a son numéro (« Téléphone 1 », « Téléphone 2 »…), son QR code et sa
+  // réception dans le moteur vidéo. Il y a toujours UN numéro libre prêt pour le téléphone suivant.
+  const [phoneIds, setPhoneIds] = useState<string[]>([]);
+  const addingPhone = useRef(false);
 
-  const preparePhone = useCallback(async () => {
-    const name = await obs.current.usePhoneQr(PHONE_CAM, false);
-    setPhoneSource(name);
-    return name;
-  }, []);
+  const preparing = useRef<Promise<void> | null>(null);
+  const preparePhones = useCallback(() => {
+    // Un seul passage à la fois (l'écran peut le demander deux fois de suite).
+    preparing.current ??= doPreparePhones().finally(() => (preparing.current = null));
+    return preparing.current;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const doPreparePhones = async () => {
+    const existing = (await obs.current.listCameraSources())
+      .filter((c) => c.kind === "phone-qr")
+      .map((c) => c.name.slice(PHONE_QR_PREFIX.length).trim())
+      .filter((id) => /^\d+$/.test(id));
+    const ids = [...new Set(existing.length ? existing : ["1"])].sort((a, b) => Number(a) - Number(b));
+    for (const id of ids) await obs.current.usePhoneQr(id, false);
+    setPhoneIds(ids);
+  };
+
+  useEffect(() => {
+    if (!server || phoneIds.length === 0 || addingPhone.current || phoneIds.length >= MAX_PHONES) return;
+    if (!phoneIds.every((id) => server.rooms[id]?.phone)) return;
+    addingPhone.current = true;
+    const next = String(Math.max(...phoneIds.map(Number)) + 1);
+    obs.current
+      .usePhoneQr(next, false)
+      .then(() => setPhoneIds((ids) => [...ids, next]))
+      .finally(() => (addingPhone.current = false));
+  }, [server, phoneIds]);
+
+  /** Téléphones actuellement connectés. */
+  const phoneCams: Camera[] = phoneIds
+    .filter((id) => server?.rooms[id]?.phone)
+    .map((id) => ({ source: `${PHONE_QR_PREFIX} ${id}`, label: id, kind: "phone" }));
+  /** Numéro proposé au prochain téléphone (null : maximum atteint). */
+  const freePhone = phoneIds.find((id) => !server?.rooms[id]?.phone) ?? null;
 
   const refreshServer = useCallback(async () => {
     const info = await getServerInfo();
@@ -231,8 +268,9 @@ export function useStudio() {
     cameraShot,
     server,
     refreshServer,
-    phoneSource,
-    preparePhone,
+    preparePhones,
+    phoneCams,
+    freePhone,
   };
 }
 

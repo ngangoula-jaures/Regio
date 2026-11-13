@@ -78,9 +78,11 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   propre à chaque église (ajouter / renommer / supprimer un moment, retirer un contenu), enregistré
   automatiquement (`src/shared/storage.ts` → commandes Rust `load_data`/`save_data`, fichier
   `%APPDATA%\org.regio.app\data\library.json`, écriture atomique ; navigateur : localStorage).
-- **Navigation** (`src/screens/RegieScreen.tsx`) selon le dernier clic : moment → « Moment suivant » ;
-  contenu → « Contenu suivant » (puis 1er contenu du moment suivant) ; verset → « Verset suivant » (lecture
-  suivie). Touches : espace / → / ↓ = suivant ; ← / ↑ = précédent ; Échap = caméra.
+- **Navigation** (`src/screens/RegieScreen.tsx`) — DEUX navigations séparées (exigence de l'utilisateur) :
+  CHOISIR un moment (clic dans le déroulé, ↑ / ↓) n'affiche RIEN, ses contenus s'ouvrent à droite ;
+  AFFICHER = clic sur un contenu, ou Suivant / espace / → (contenu suivant ; si un autre moment est choisi :
+  son 1er contenu, bouton « Afficher « <moment> » ») et Précédent / ←. Lecture biblique : Suivant / ← = versets.
+  Échap = caméra. Les moments vides sont sautés en fin de moment.
 - Panneau de droite (`src/screens/RightPanel.tsx`) : onglet AU NOM du moment sélectionné + Bible + Médias + Texte
   (onglets gardés montés : la Bible garde son chapitre). « Ajouter à <moment> » partout ; toast de confirmation.
 - **Bible LSG 1910 complète** (domaine public, eBible.org) : `public/bible/lsg1910.json` (4,2 Mo, construit par
@@ -89,12 +91,18 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
 - **Images importées** : réduites en JPEG puis enregistrées comme fichiers (`save_media` →
   `%APPDATA%\org.regio.app\media\`), servies à OBS par le serveur local `/media/<fichier>` (noms filtrés).
 - Caméras pendant le culte : `src/screens/CameraRow.tsx` (vignettes, un clic = caméra à l'écran).
+- **Plusieurs téléphones** (max `MAX_PHONES` = 4) : numéros « 1 », « 2 »… (salle de signalisation + source OBS
+  `Regio - Téléphone QR <n>` chacun) ; il y a toujours UN numéro libre avec son QR code (« Ajouter un téléphone (n) »).
+  `useStudio.preparePhones` (un seul passage à la fois), `phoneCams`, `freePhone`. Test : `npm run test:multiphone`.
+- Page du téléphone (`src/phone/`) : charte Regio, textes FR/EN (langue du téléphone), icônes Lucide.
+- Images : `object-fit: contain` en plein cadre (agrandies si plus petites). Télé réglée hors 16:9 (ex. 1024 × 768)
+  → avertissement au démarrage et dans « Télé de la salle » (régler Windows en 1920 × 1080).
   Télé de la salle : `src/screens/RoomDialog.tsx` (« Votre ordinateur » / « Télé / projecteur » / fenêtre d'essai).
 - **Textes : jamais en dur** (`src/i18n/fr.ts` + `en.ts`). Styles via les jetons (`base.css`, `app.css`).
   Aperçus réduits : `src/components/MiniScreen.tsx` (même mise en page que la sortie projetée).
 - Pas encore fait (ne pas l'afficher comme si ça marchait) : réordonner les contenus d'un moment, direct sur les
-  réseaux, vumètre, « musique hors direct », bascule auto sur le logo si une caméra se débranche, page du
-  téléphone au nouveau style, import PowerPoint, plusieurs déroulés / modèles de culte.
+  réseaux, vumètre, « musique hors direct », bascule auto sur le logo si une caméra se débranche,
+  import PowerPoint, plusieurs déroulés / modèles de culte.
 
 ## Architecture
 
@@ -184,7 +192,8 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 - Vérifier avec `npm run build` (tsc + vite) avant de rendre la main.
 - Tests de bout en bout (serveur de dev lancé) : `npm run test:e2e` = `test:regie` (parcours complet
   Démarrage → Sources → Régie ↔ faux OBS `tests/e2e/fake-obs.mjs`, 36 vérifications : navigation, Bible, ajouts, conservation après redémarrage…) + `test:phone` (caméra téléphone WebRTC avec caméra simulée). Le faux OBS
-  doit reproduire le comportement RÉEL d'OBS (ex. CustomEvent sans enveloppe `eventData`).
+  doit reproduire le comportement RÉEL d'OBS (ex. CustomEvent sans enveloppe `eventData` ; nom de source déjà
+  pris refusé, code 601). Les tests du téléphone fixent `locale: "fr-FR"` (la page suit la langue de l'appareil).
 - **Compilation Windows (Tauri)** : le code reste dans WSL (source de vérité, git, tests). Windows ne sait
   pas compiler depuis un chemin WSL → `scripts/win.sh` synchronise le code vers `C:\dev\regio`
   (sans node_modules/target/.git) puis y lance la commande Windows : `scripts/win.sh npx.cmd tauri dev`,
