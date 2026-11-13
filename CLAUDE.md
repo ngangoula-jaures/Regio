@@ -118,8 +118,8 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   chaque diapo en JPEG 1920 × 1080 max (diapos masquées sautées) → médias. Progression : événement `pptx-progress`.
   Abandon après 90 s sans nouvelles (mot de passe…). Erreurs : NOPOWERPOINT / FORMAT / EMPTY / TIMEOUT.
   **Une présentation = UN contenu** `{ kind: "slides", slides, index }` (choix de l'utilisateur) : Suivant / Précédent
-  = diapo par diapo, puis contenu suivant ; en reculant on arrive sur la dernière diapo ; vignettes cliquables
-  (`SlideStrip`). Diapo suivante préchargée par la page d'affichage. Test : `npm run test:slides` ; export réel :
+  = diapo par diapo, puis contenu suivant ; en reculant on arrive sur la dernière diapo ; diapos en grille lisible
+  (`.slide-grid` dans `ContentArea.tsx`). Diapo suivante préchargée par la page d'affichage. Test : `npm run test:slides` ; export réel :
   `scripts/win.sh cargo test --manifest-path src-tauri\Cargo.toml --lib pptx -- --include-ignored`
   (présentation de test `C:\dev\regio-test\Chants test.pptx`). Reste : mode « modifiable » (sans PowerPoint).
 - **Plusieurs téléphones** (max `MAX_PHONES` = 4) : numéros « 1 », « 2 »… (salle de signalisation + source OBS
