@@ -68,7 +68,33 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
     </nav>
 
     <!-- ================= 2. VOIR : les contenus du moment, en grand ================= -->
-    <main class="scroll" style="flex: 1 1 560px; min-width: 0; padding: 26px 30px 40px">
+    <div style="flex: 1 1 560px; min-width: 0; display: flex; flex-direction: column">
+
+    <!-- Caméras : en grand, au centre, toujours visibles (on les regarde avant de choisir) -->
+    <section aria-label="Caméras" style="flex: none; padding: 20px 30px 18px; border-bottom: 1px solid #253055; background: #111933">
+      <div style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 12px">
+        <h2 style="margin: 0; font-size: 12.5px; font-weight: 700; letter-spacing: .1em; color: #F6F2E8">CAMÉRAS</h2>
+        <span style="font-size: 13px; color: #9AA3BF">{{camHelp}}</span>
+        <span style="flex: 1"></span>
+        <button type="button" class="hov" style="height: 34px; padding: 0 12px; border-radius: 9px; border: 1px dashed #3A4568; background: transparent; font-size: 13px; color: #C9CEDD">+ Ajouter une caméra</button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+        <sc-for list="{{cams}}" as="cm" hint-placeholder-count="3">
+          <button type="button" class="card" onClick="{{cm.pick}}" aria-pressed="{{cm.pressed}}" style="position: relative; padding: 8px; border-radius: 14px; border: {{cm.border}}; background: #18213F; text-align: left">
+            <span style="position: relative; display: block; border-radius: 9px; overflow: hidden">
+              <dc-import name="Ecran" content="{{cm.c}}" hint-size="100%,150px"></dc-import>
+              <sc-if value="{{cm.on}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; top: 8px; left: 8px; font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 99px; background: {{cm.badgeBg}}; color: {{cm.badgeColor}}">{{cm.badge}}</span></sc-if>
+            </span>
+            <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; padding: 0 4px 2px">
+              <span style="font-size: 15px; font-weight: 600">{{cm.name}}</span>
+              <span style="font-size: 12px; color: #9AA3BF">{{cm.key}}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <main class="scroll" style="flex: 1; min-height: 0; padding: 24px 30px 40px">
 
       <sc-if value="{{isMomentView}}" hint-placeholder-val="{{ true }}">
         <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 20px">
@@ -207,6 +233,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
         </div>
       </sc-if>
     </main>
+    </div>
 
     <!-- ================= 3. DIFFUSER : à l'écran + commandes, toujours au même endroit ================= -->
     <aside aria-label="À l'écran et commandes" class="scroll" style="flex: 0 0 440px; box-sizing: border-box; border-left: 1px solid #253055; background: #111933; padding: 22px 22px 26px; display: flex; flex-direction: column; gap: 18px">
@@ -257,21 +284,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
         </div>
       </div>
 
-      <div style="padding-top: 16px; border-top: 1px solid #253055">
-        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px">
-          <span style="font-size: 12.5px; font-weight: 700; letter-spacing: .1em; color: #9AA3BF">CAMÉRAS</span>
-          <span style="font-size: 12px; color: #9AA3BF">un clic change l'image</span>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
-          <sc-for list="{{cams}}" as="cm" hint-placeholder-count="3">
-            <button type="button" class="ctl" onClick="{{cm.pick}}" aria-pressed="{{cm.pressed}}" style="padding: 5px; border-radius: 10px; border: {{cm.border}}; background: #18213F; text-align: left">
-              <span style="display: block; border-radius: 6px; overflow: hidden"><dc-import name="Ecran" content="{{cm.c}}" hint-size="100%,60px"></dc-import></span>
-              <span style="display: block; margin-top: 6px; padding: 0 2px; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{cm.name}}</span>
-            </button>
-          </sc-for>
-        </div>
-        <button type="button" class="hov" style="margin-top: 8px; width: 100%; min-height: 40px; border-radius: 10px; border: 1px dashed #3A4568; background: transparent; font-size: 13px; color: #C9CEDD">+ Ajouter une caméra</button>
-      </div>
     </aside>
   </div>
 </div>
@@ -430,12 +442,22 @@ class Component extends DCLogic {
     ];
     const media = mediaDefs.map((d) => ({ label: d.label, c: d.c, pick: () => this.setState({ off: { title: d.label, sub: 'Image', c: d.c } }) }));
 
-    const cams = camDefs.map((c, k) => ({
-      name: c.name, c: { kind: 'cam', tint: c.tint },
-      pressed: st.cam === k ? 'true' : 'false',
-      border: st.cam === k ? '2px solid #F6F2E8' : '1px solid #253055',
-      pick: () => this.setState({ cam: k }),
-    }));
+    // La caméra se voit-elle à la sortie ? (caméra seule ou bandeau par-dessus ; pas sous un plein écran)
+    const camVisible = liveC.kind === 'cam' || liveC.kind === 'lower';
+    const cams = camDefs.map((c, k) => {
+      const active = st.cam === k;
+      return {
+        name: c.name, key: 'touche ' + (k + 1), c: { kind: 'cam', tint: c.tint },
+        on: active,
+        badge: camVisible ? "À L'ÉCRAN" : 'PRÊTE · sous le plein écran',
+        badgeBg: camVisible ? '#F6F2E8' : '#0E1530',
+        badgeColor: camVisible ? '#0E1530' : '#C9CEDD',
+        pressed: active ? 'true' : 'false',
+        border: active ? (camVisible ? '2px solid #F6F2E8' : '2px solid #5A6896') : '1px solid #253055',
+        // Un clic met cette caméra à l'écran : un bandeau reste par-dessus, un plein écran laisse place à la caméra.
+        pick: () => (camVisible ? this.setState({ cam: k }) : this.setState({ cam: k, off: { title: 'Caméra seule', sub: c.name, c: { kind: 'cam' } } })),
+      };
+    });
 
     const lower = pill(st.layout === 'lower'), full = pill(st.layout === 'full');
     const small = pill(!st.big), big = pill(st.big);
@@ -481,6 +503,7 @@ class Component extends DCLogic {
       },
       cameraOnly: () => this.setState({ off: { title: 'Caméra seule', sub: camDefs[st.cam].name, c: { kind: 'cam' } } }),
       cams: cams,
+      camHelp: camVisible ? 'un clic change la caméra à l’écran' : 'un clic remet la caméra à l’écran (le plein écran s’efface)',
       setLower: () => this.setState({ layout: 'lower' }), setFull: () => this.setState({ layout: 'full' }),
       lowerBg: lower.bg, lowerColor: lower.color, lowerPressed: lower.pressed,
       fullBg: full.bg, fullColor: full.color, fullPressed: full.pressed,
