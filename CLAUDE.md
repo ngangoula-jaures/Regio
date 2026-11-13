@@ -94,6 +94,10 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
 - **Plusieurs téléphones** (max `MAX_PHONES` = 4) : numéros « 1 », « 2 »… (salle de signalisation + source OBS
   `Regio - Téléphone QR <n>` chacun) ; il y a toujours UN numéro libre avec son QR code (« Ajouter un téléphone (n) »).
   `useStudio.preparePhones` (un seul passage à la fois), `phoneCams`, `freePhone`. Test : `npm run test:multiphone`.
+  **Place attribuée par le serveur** (`phone_room` dans `signal.rs`, même règle dans `phone-bridge.ts`) : le n° du QR
+  code n'est qu'une préférence ; un téléphone ne chasse JAMAIS un autre téléphone (identifiant d'appareil
+  `regio.device` en localStorage) ; s'il est pris → 1re place libre prête dans OBS (message `assigned`), sinon
+  fermeture 4009 et nouvel essai. Même appareil (reconnexion) → reprend sa place.
 - Page du téléphone (`src/phone/`) : charte Regio, textes FR/EN (langue du téléphone), icônes Lucide.
 - Images : `object-fit: contain` en plein cadre (agrandies si plus petites). Télé réglée hors 16:9 (ex. 1024 × 768)
   → avertissement au démarrage et dans « Télé de la salle » (régler Windows en 1920 × 1080).
@@ -143,6 +147,7 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
     mot de passe généré une fois (`regio-obs.json`), `global.ini`/`user.ini` créés une seule fois
     (FirstRun, pas de mises à jour, pas de confirmation de fermeture, démarrage dans la zone de notification).
   - Lancé avec `--portable --minimize-to-tray --disable-shutdown-check --disable-updater --multi`.
+  - Au lancement, les OBS restés ouverts depuis NOTRE dossier (Regio fermé de force) sont fermés (`kill_leftovers`).
   - Surveillé : relance auto après plantage (~5 s, testé) ; arrêt après 5 plantages en 2 min (message clair) ;
     fermé quand Regio se ferme (testé).
   - Interface : commande Tauri `obs_status` (`src/shared/engine.ts`) → écran de démarrage (`Startup.tsx`) avec

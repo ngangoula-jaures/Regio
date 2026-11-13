@@ -100,6 +100,10 @@ impl ObsManager {
             self.download_and_install(&base, &root).await?;
         }
 
+        // Un OBS laissé par un Regio fermé de force (ou planté) tournerait encore, caché : il occuperait
+        // la caméra et le processeur. On ferme ces restes AVANT d'en lancer un nouveau.
+        kill_leftovers(&exe);
+
         let password = load_or_create_password(&base)?;
         let port = free_port(PREFERRED_PORT).ok_or("aucun port libre pour la connexion à OBS")?;
         configure(&root, port, &password)?;
@@ -248,6 +252,25 @@ fn load_or_create_password(base: &Path) -> Result<String, String> {
     fs::write(&path, serde_json::to_string(&Saved { password: password.clone() }).unwrap()).map_err(|e| e.to_string())?;
     Ok(password)
 }
+
+/// Ferme les OBS lancés depuis NOTRE copie (même chemin d'exécutable) : un OBS installé
+/// par ailleurs par l'utilisateur n'est jamais touché.
+#[cfg(windows)]
+fn kill_leftovers(exe: &Path) {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    let path = exe.to_string_lossy().replace('\'', "''");
+    let script = format!(
+        "Get-Process obs64 -ErrorAction SilentlyContinue | Where-Object {{ $_.Path -eq '{path}' }} | Stop-Process -Force -ErrorAction SilentlyContinue"
+    );
+    let _ = Command::new("powershell.exe")
+        .args(["-NoProfile", "-NonInteractive", "-Command", &script])
+        .creation_flags(CREATE_NO_WINDOW)
+        .status();
+}
+
+#[cfg(not(windows))]
+fn kill_leftovers(_exe: &Path) {}
 
 fn free_port(preferred: u16) -> Option<u16> {
     (preferred..preferred + 20).find(|p| TcpListener::bind(("127.0.0.1", *p)).is_ok())

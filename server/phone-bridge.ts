@@ -23,7 +23,8 @@ import { generate } from "selfsigned";
 export const PHONE_HTTPS_PORT = 8443;
 export const SIGNAL_PATH = "/regio/signal";
 export const INFO_PATH = "/regio/info";
-const CLOSE_REPLACED = 4000; // identique à src/shared/signal.ts
+const CLOSE_REPLACED = 4000; // identiques à src/shared/signal.ts
+const CLOSE_NO_SLOT = 4009;
 
 type Role = "phone" | "receiver";
 
@@ -35,6 +36,21 @@ interface Room {
 // ---------- Signalisation ----------
 
 const rooms = new Map<string, Room>();
+/** Identifiant d'appareil de chaque téléphone connecté. */
+const devices = new WeakMap<WebSocket, string>();
+
+/**
+ * Place d'un téléphone (même règle que src-tauri/src/server/signal.rs) : celle du QR code si libre
+ * ou déjà la sienne ; sinon la première place libre prête dans OBS. Jamais celle d'un autre téléphone.
+ */
+function phoneRoom(wanted: string, device: string | undefined): string | null {
+  const usable = (r: Room | undefined) => !r?.phone || (!!device && devices.get(r.phone) === device);
+  if (usable(rooms.get(wanted))) return wanted;
+  for (const [cam, r] of rooms) if (device && r.phone && devices.get(r.phone) === device) return cam;
+  const free = [...rooms].filter(([, r]) => r.receiver && !r.phone).map(([c]) => c);
+  free.sort((a, b) => (Number(a) || Infinity) - (Number(b) || Infinity));
+  return free[0] ?? null;
+}
 
 function send(ws: WebSocket | undefined, msg: unknown) {
   if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
@@ -49,20 +65,29 @@ function handleSignalConnection(ws: WebSocket) {
   let role: Role | null = null;
 
   ws.on("message", (raw) => {
-    let msg: { type?: string; role?: Role; cam?: string };
+    let msg: { type?: string; role?: Role; cam?: string; device?: string };
     try {
       msg = JSON.parse(String(raw));
     } catch {
       return;
     }
     if (msg.type === "join" && (msg.role === "phone" || msg.role === "receiver")) {
-      cam = String(msg.cam ?? "1");
+      const wanted = String(msg.cam ?? "1");
+      const device = msg.device ? String(msg.device).slice(0, 64) : undefined;
+      const assigned = msg.role === "phone" ? phoneRoom(wanted, device) : wanted;
+      if (assigned === null) {
+        ws.close(CLOSE_NO_SLOT, "pas de place");
+        return;
+      }
+      cam = assigned;
       role = msg.role;
+      if (device) devices.set(ws, device);
       const room = rooms.get(cam) ?? {};
       rooms.set(cam, room);
       // Une seule connexion par rôle : la plus récente remplace l'ancienne.
       if (room[role] && room[role] !== ws) room[role]!.close(CLOSE_REPLACED, "remplacé");
       room[role] = ws;
+      if (role === "phone") send(ws, { type: "assigned", cam });
       send(ws, { type: "peer", present: Boolean(room[other(role)]) });
       send(room[other(role)], { type: "peer", present: true });
       return;

@@ -23,6 +23,9 @@ use tokio::sync::{mpsc, Mutex};
 const CLOSE_REPLACED: u16 = 4000;
 /// Connexion refusée (mauvaise clé ou rôle interdit depuis ce serveur).
 const CLOSE_FORBIDDEN: u16 = 4003;
+/// Toutes les places de téléphone sont prises : le téléphone réessaie un peu plus tard
+/// (la régie prépare une nouvelle place dès que les précédentes sont occupées).
+const CLOSE_NO_SLOT: u16 = 4009;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Role {
@@ -47,6 +50,8 @@ pub enum Access {
 
 struct Peer {
     id: u64,
+    /// Identifiant de l'appareil (téléphone) : seul le même appareil peut reprendre sa place.
+    device: Option<String>,
     tx: mpsc::UnboundedSender<Message>,
 }
 
@@ -83,6 +88,26 @@ impl Rooms {
             .map(|(cam, r)| (cam.clone(), RoomStatus { phone: r.phone.is_some(), receiver: r.receiver.is_some() }))
             .collect()
     }
+}
+
+/// Place d'un téléphone. Celle du QR code si elle est libre (ou déjà la sienne : reconnexion) ;
+/// sinon la première place libre prête dans OBS. Un téléphone ne chasse JAMAIS un autre téléphone
+/// (deux téléphones peuvent avoir scanné le même QR code).
+fn phone_room(map: &HashMap<String, Room>, wanted: &str, device: Option<&str>) -> Option<String> {
+    let usable = |r: &Room| match &r.phone {
+        None => true,
+        Some(p) => device.is_some() && p.device.as_deref() == device,
+    };
+    if map.get(wanted).map_or(true, usable) {
+        return Some(wanted.to_string());
+    }
+    // Reconnexion : cet appareil avait déjà une place ailleurs.
+    if let Some((cam, _)) = map.iter().find(|(_, r)| device.is_some() && r.phone.as_ref().and_then(|p| p.device.as_deref()) == device) {
+        return Some(cam.clone());
+    }
+    let mut free: Vec<&String> = map.iter().filter(|(_, r)| r.receiver.is_some() && r.phone.is_none()).map(|(c, _)| c).collect();
+    free.sort_by_key(|c| (c.parse::<u32>().unwrap_or(u32::MAX), (*c).clone()));
+    free.first().map(|c| (*c).clone())
 }
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
@@ -135,11 +160,22 @@ pub async fn handle(socket: WebSocket, rooms: Rooms, access: Access) {
                 let _ = tx.send(close(CLOSE_FORBIDDEN, "refusé"));
                 break;
             }
-            let cam = v["cam"].as_str().unwrap_or("1").chars().take(32).collect::<String>();
+            let wanted = v["cam"].as_str().unwrap_or("1").chars().take(32).collect::<String>();
+            let device = v["device"].as_str().map(|d| d.chars().take(64).collect::<String>());
             let mut map = rooms.0.lock().await;
+            let Some(cam) = (match role {
+                Role::Receiver => Some(wanted),
+                Role::Phone => phone_room(&map, &wanted, device.as_deref()),
+            }) else {
+                let _ = tx.send(close(CLOSE_NO_SLOT, "pas de place"));
+                break;
+            };
             let room = map.entry(cam.clone()).or_default();
-            if let Some(old) = room.slot(role).replace(Peer { id, tx: tx.clone() }) {
+            if let Some(old) = room.slot(role).replace(Peer { id, device, tx: tx.clone() }) {
                 let _ = old.tx.send(close(CLOSE_REPLACED, "remplacé"));
+            }
+            if role == Role::Phone {
+                let _ = tx.send(text(json!({ "type": "assigned", "cam": cam })));
             }
             let other_present = room.slot(role.other()).is_some();
             let _ = tx.send(text(json!({ "type": "peer", "present": other_present })));
@@ -173,4 +209,58 @@ pub async fn handle(socket: WebSocket, rooms: Rooms, access: Access) {
     }
     drop(tx);
     let _ = writer.await;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn peer(device: Option<&str>) -> Option<Peer> {
+        let (tx, _rx) = mpsc::unbounded_channel();
+        Some(Peer { id: 0, device: device.map(String::from), tx })
+    }
+
+    fn rooms(spec: &[(&str, Option<&str>, bool)]) -> HashMap<String, Room> {
+        spec.iter()
+            .map(|(cam, phone, receiver)| {
+                let room = Room { phone: phone.and_then(|d| peer(Some(d))), receiver: if *receiver { peer(None) } else { None } };
+                (cam.to_string(), room)
+            })
+            .collect()
+    }
+
+    #[test]
+    fn place_du_qr_code_si_libre() {
+        let m = rooms(&[("1", None, true), ("2", None, true)]);
+        assert_eq!(phone_room(&m, "1", Some("a")).as_deref(), Some("1"));
+    }
+
+    #[test]
+    fn meme_qr_code_ne_chasse_pas_le_premier() {
+        let m = rooms(&[("1", Some("a"), true), ("2", None, true)]);
+        assert_eq!(phone_room(&m, "1", Some("b")).as_deref(), Some("2"));
+    }
+
+    #[test]
+    fn reconnexion_reprend_sa_place() {
+        let m = rooms(&[("1", Some("b"), true), ("2", Some("a"), true)]);
+        assert_eq!(phone_room(&m, "1", Some("a")).as_deref(), Some("2"));
+        assert_eq!(phone_room(&m, "2", Some("a")).as_deref(), Some("2"));
+    }
+
+    #[test]
+    fn pas_de_place_prete() {
+        // Place 2 pas encore prête dans OBS (aucun récepteur) : attendre.
+        let m = rooms(&[("1", Some("a"), true), ("2", None, false)]);
+        assert_eq!(phone_room(&m, "1", Some("b")), None);
+        // Sans identifiant d'appareil, on ne prend jamais la place d'un autre.
+        let m = rooms(&[("1", Some("a"), true)]);
+        assert_eq!(phone_room(&m, "1", None), None);
+    }
+
+    #[test]
+    fn premiere_place_libre_par_numero() {
+        let m = rooms(&[("1", Some("a"), true), ("10", None, true), ("3", None, true)]);
+        assert_eq!(phone_room(&m, "1", Some("b")).as_deref(), Some("3"));
+    }
 }

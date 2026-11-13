@@ -4,9 +4,26 @@ export const SIGNAL_PATH = "/regio/signal";
 
 /** Code de fermeture envoyé par le serveur quand une connexion plus récente prend la place. */
 export const CLOSE_REPLACED = 4000;
+/** Code de fermeture : aucune place de téléphone libre pour l'instant (réessayer). */
+export const CLOSE_NO_SLOT = 4009;
+
+/** Identifiant de cet appareil, conservé : permet de reprendre SA place après une coupure. */
+export function deviceId(): string {
+  try {
+    let id = localStorage.getItem("regio.device");
+    if (!id) {
+      id = crypto.randomUUID?.() ?? `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem("regio.device", id);
+    }
+    return id;
+  } catch {
+    return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+  }
+}
 
 export type SignalMessage =
   | { type: "peer"; present: boolean }
+  | { type: "assigned"; cam: string }
   | { type: "offer"; sdp: string }
   | { type: "answer"; sdp: string }
   | { type: "candidate"; candidate: RTCIceCandidateInit };
@@ -22,7 +39,14 @@ export class SignalClient {
     private onMessage: (msg: SignalMessage) => void,
     private onStatus: (connected: boolean) => void,
     private onReplaced?: () => void,
+    /** Téléphone : aucune place libre (true) / place obtenue (false). */
+    private onNoSlot?: (waiting: boolean) => void,
   ) {}
+
+  /** Place réellement attribuée par la régie (un téléphone peut recevoir un autre numéro que celui du QR code). */
+  get camera() {
+    return this.cam;
+  }
 
   start() {
     this.stopped = false;
@@ -46,12 +70,18 @@ export class SignalClient {
     ws.onopen = () => {
       // Clé secrète du QR code (exigée par le serveur de l'application pour un téléphone).
       const key = new URLSearchParams(location.search).get("k") ?? undefined;
-      ws.send(JSON.stringify({ type: "join", role: this.role, cam: this.cam, key }));
+      const device = this.role === "phone" ? deviceId() : undefined;
+      ws.send(JSON.stringify({ type: "join", role: this.role, cam: this.cam, key, device }));
       this.onStatus(true);
     };
     ws.onmessage = (e) => {
       try {
-        this.onMessage(JSON.parse(e.data));
+        const msg = JSON.parse(e.data) as SignalMessage;
+        if (msg.type === "assigned") {
+          this.cam = msg.cam; // les reconnexions redemandent cette place
+          this.onNoSlot?.(false);
+        }
+        this.onMessage(msg);
       } catch {
         /* ignore */
       }
@@ -66,7 +96,8 @@ export class SignalClient {
         this.onReplaced?.();
         return;
       }
-      if (!this.stopped) this.retry = window.setTimeout(() => this.open(), 1500);
+      if (e.code === CLOSE_NO_SLOT) this.onNoSlot?.(true);
+      if (!this.stopped) this.retry = window.setTimeout(() => this.open(), e.code === CLOSE_NO_SLOT ? 2500 : 1500);
     };
   }
 }

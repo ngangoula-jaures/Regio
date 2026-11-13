@@ -12,6 +12,7 @@ const fail = async (msg) => {
   process.exit(1);
 };
 const check = async (cond, msg) => (cond ? console.log("✓", msg) : fail(msg));
+// Chaque téléphone = un appareil distinct (contexte séparé → identifiant d'appareil différent).
 const startPhone = async (cam) => {
   const ctx = await browser.newContext({ ignoreHTTPSErrors: true, permissions: ["camera", "microphone"], locale: "fr-FR" });
   const p = await ctx.newPage();
@@ -19,6 +20,20 @@ const startPhone = async (cam) => {
   await p.click("text=Démarrer la caméra");
   return p;
 };
+
+// Le faux OBS ne charge pas les pages : on ouvre nous-mêmes une page réceptrice par source téléphone créée.
+const receivers = new Map();
+const recvCtx = await browser.newContext();
+const syncReceivers = setInterval(async () => {
+  for (const i of obs.state.inputs) {
+    const id = i.inputName.match(/^Regio - Téléphone QR (\d+)$/)?.[1];
+    if (!id || receivers.has(id)) continue;
+    receivers.set(id, null);
+    const r = await recvCtx.newPage();
+    await r.goto(`${BASE}/receiver.html?cam=${id}`);
+    receivers.set(id, r);
+  }
+}, 300);
 
 try {
   const app = await (await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "fr-FR" })).newPage();
@@ -31,16 +46,29 @@ try {
   await app.waitForSelector(".cam:has-text('Téléphone 1')", { timeout: 8000 });
   await check(true, "sources : QR code du « Téléphone 1 »");
 
-  await startPhone("1");
+  const phoneA = await startPhone("1");
   await app.waitForSelector(".cam-name:text-is('Téléphone 1')", { timeout: 10000 });
   await app.waitForSelector("text=Ajouter un téléphone (2)", { timeout: 10000 });
+  await phoneA.waitForSelector(".status.live", { timeout: 10000 });
   await check(true, "téléphone 1 connecté → nouveau QR code pour un 2e téléphone");
 
-  await startPhone("2");
+  // Cas réel : le 2e téléphone a scanné le MÊME QR code (« Téléphone 1 ») que le premier.
+  const phoneB = await startPhone("1");
+  await phoneB.waitForSelector(".cam-name:text-is('Téléphone 2')", { timeout: 10000 });
+  await phoneB.waitForSelector(".status.live", { timeout: 10000 });
+  await check(true, "2e téléphone sur le même QR code → la régie lui donne la place n° 2");
+  await phoneA.waitForTimeout(1500);
+  await check((await phoneA.locator(".status.live").count()) === 1 && (await phoneA.locator(".cam-name").textContent()) === "Téléphone 1", "le 1er téléphone n'est PAS déconnecté");
   await app.waitForSelector(".cam-name:text-is('Téléphone 2')", { timeout: 10000 });
   await app.waitForSelector("text=Ajouter un téléphone (3)", { timeout: 10000 });
   const qr = obs.state.inputs.filter((i) => i.inputName.startsWith("Regio - Téléphone QR")).map((i) => i.inputName);
   await check(qr.length === 3, `chaque téléphone a sa réception dans le moteur vidéo (${qr.join(", ")})`);
+
+  // Coupure réseau du 1er téléphone (page rechargée) : il retrouve SA place, pas celle d'un autre.
+  await phoneA.reload();
+  await phoneA.click("text=Démarrer la caméra");
+  await phoneA.waitForSelector(".status.live", { timeout: 10000 });
+  await check((await phoneA.locator(".cam-name").textContent()) === "Téléphone 1" && (await phoneB.locator(".status.live").count()) === 1, "après une coupure, le téléphone 1 reprend sa place sans gêner le 2");
 
   await app.click("text=Commencer le culte");
   await app.waitForSelector(".cam-tile:has-text('Téléphone 2')");
@@ -49,6 +77,7 @@ try {
   const on = obs.state.items["Regio - Sortie"].filter((i) => i.sceneItemEnabled && !["Regio - Fond", "Regio - Contenu"].includes(i.sourceName)).map((i) => i.sourceName);
   await check(on.length === 1 && on[0] === "Regio - Téléphone QR 2", `régie : bascule sur le téléphone 2 (${on.join(", ")})`);
   console.log("TOUS LES TESTS PASSENT");
+  clearInterval(syncReceivers);
 } catch (e) {
   await fail(e.message);
 }

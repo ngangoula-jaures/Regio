@@ -12,7 +12,9 @@ type Phase = "idle" | "starting" | "waiting" | "connecting" | "live" | "error";
 const BITRATE: Record<Quality, number> = { "720": 3_500_000, "1080": 6_000_000 };
 
 export default function Phone() {
-  const cam = new URLSearchParams(location.search).get("cam") ?? "1";
+  // Numéro du QR code ; la régie peut en attribuer un autre si cette place est déjà prise.
+  const [cam, setCam] = useState(() => new URLSearchParams(location.search).get("cam") ?? "1");
+  const [noSlot, setNoSlot] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);
   const [quality, setQuality] = useState<Quality>("1080");
@@ -134,11 +136,18 @@ export default function Phone() {
       if (videoRef.current) videoRef.current.srcObject = stream;
       await requestWakeLock();
       setPhase("waiting");
-      const signal = new SignalClient("phone", cam, onSignal, setSignalOk, () => {
-        stopAll();
-        setPhase("error");
-        setError(t("phone.replaced", { n: cam }));
-      });
+      const signal = new SignalClient(
+        "phone",
+        cam,
+        onSignal,
+        setSignalOk,
+        () => {
+          stopAll();
+          setPhase("error");
+          setError(t("phone.replaced", { n: signal.camera }));
+        },
+        setNoSlot,
+      );
       signalRef.current = signal;
       signal.start();
     } catch (e) {
@@ -209,6 +218,14 @@ export default function Phone() {
   async function onSignal(msg: SignalMessage) {
     const pc = pcRef.current.pc;
     switch (msg.type) {
+      case "assigned": {
+        setCam(msg.cam);
+        // Garder ce numéro si la page est rechargée.
+        const url = new URL(location.href);
+        url.searchParams.set("cam", msg.cam);
+        history.replaceState(null, "", url);
+        break;
+      }
       case "peer":
         if (msg.present) await call();
         else {
@@ -310,7 +327,7 @@ export default function Phone() {
             <div className={`status ${phase}`}>
               {phase === "live" && t("phone.live")}
               {phase === "connecting" && t("phone.connecting")}
-              {phase === "waiting" && (signalOk ? t("phone.waiting") : t("phone.searching"))}
+              {phase === "waiting" && (noSlot ? t("phone.noSlot") : signalOk ? t("phone.waiting") : t("phone.searching"))}
             </div>
             <span className="cam-name">{t("phone.title", { n: cam })}</span>
           </div>
