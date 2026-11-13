@@ -243,6 +243,9 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
     l'OBS livré (`resources/obs/…zip`, empreinte revérifiée) au lieu de le télécharger, puis supprime l'archive.
     `installer-hooks.nsh` (UTF-8 avec BOM !) installe le runtime Visual C++ s'il manque (registre 64 et 32 bits).
     WebView2 : bootstrapper embarqué (Internet requis seulement si WebView2 manque, rare). Pas encore signé (SignPath).
+    **v0.1.0 construite le 2026-11-13** (installeur 243 Mo, LICENSE + THIRD_PARTY_NOTICES livrés ; copie et empreinte dans
+    `C:\dev\regio-release\`) ; tag git `v0.1.0`. Présentation : README (FR/EN), CHANGELOG, captures `docs/screenshots/`
+    (`scripts/screenshots.mjs`, contenu fictif). Publication (dépôt public, release GitHub, SignPath) : par l'utilisateur.
     **Testé le 2026-11-13** (simulation de 1re installation sur le PC de dev, `scripts/installer-test/` : 1 = met l'OBS
     de Regio de côté, installe en silencieux `/S`, lance, vérifie ; 2 = sauvegarde les données, désinstalle, remet
     tout) : installation 20 s, prêt en 11 s, OBS déballé DEPUIS l'installeur (aucun téléchargement), archive supprimée,
