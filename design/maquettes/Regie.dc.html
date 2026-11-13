@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Regio · La régie pendant le culte</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600&amp;family=Inter:wght@400;500;600&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;family=Montserrat:wght@600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E1530}
+a{color:#E8B44C}a:hover{color:#F2C86B}
+button{font:inherit;color:inherit}
+.row:hover{background:#1E2848}
+.ghost:hover{border-color:#3A4775;background:#1E2848}
+.next:hover{background:#F2C86B}
+.mini:hover{border-color:#3A4775;background:#1E2848}
+.tab:hover{color:#F6F2E8}
+.row:focus-visible,.ghost:focus-visible,.next:focus-visible,.mini:focus-visible,.tab:focus-visible,.sw:focus-visible{outline:3px solid #F6F2E8;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 900px; box-sizing: border-box; background: #0E1530; font-family: Inter, 'Segoe UI', system-ui, sans-serif; color: #F6F2E8; display: flex; flex-direction: column">
+
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 12px 20px; background: #18213F; border-bottom: 1px solid #253055">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <svg width="30" height="30" viewBox="0 0 100 100" role="img" aria-label="Regio"><rect x="9.5" y="19.5" width="81" height="61" rx="15" fill="none" stroke="#F6F2E8" stroke-width="7"></rect><path d="M36.5 63 V43" fill="none" stroke="#F6F2E8" stroke-width="9" stroke-linecap="round"></path><path d="M36.5 51 C36.5 42 43.5 37 52.5 37" fill="none" stroke="#F6F2E8" stroke-width="9" stroke-linecap="round"></path><circle cx="62.5" cy="37" r="6" fill="#E8B44C"></circle></svg>
+      <span style="font-family: Sora, Inter, sans-serif; font-weight: 600; font-size: 18px; letter-spacing: -0.02em">regio</span>
+    </div>
+    <div style="font-size: 14px; color: #9AA3BF">Culte du dimanche · 16 novembre</div>
+    <div style="flex: 1"></div>
+    <span style="display: inline-flex; align-items: center; gap: 7px; font-size: 13px; padding: 6px 12px; border-radius: 99px; background: #111933; color: #C9CEDD"><span style="width: 7px; height: 7px; border-radius: 50%; background: #4CC38A"></span>Salle · écran 2</span>
+    <span style="display: inline-flex; align-items: center; gap: 7px; font-size: 13px; padding: 6px 12px; border-radius: 99px; background: #111933; color: #C9CEDD"><span style="width: 7px; height: 7px; border-radius: 50%; background: #4CC38A"></span>Connexion bonne</span>
+    <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 99px; background: rgba(255,107,107,0.14); color: #FF6B6B"><span style="width: 8px; height: 8px; border-radius: 50%; background: #FF6B6B"></span>EN DIRECT · 00:42:17<span style="font-weight: 400; color: #C9CEDD">· Facebook, YouTube</span></span>
+    <button type="button" class="ghost" style="min-height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid #253055; background: transparent; font-size: 14px; font-weight: 600; cursor: pointer">Terminer le culte</button>
+  </header>
+
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch; min-height: 0">
+
+    <aside aria-label="Déroulé du culte" style="flex: 1 0 280px; max-width: 320px; box-sizing: border-box; border-right: 1px solid #253055; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 0 8px 8px">
+        <h2 style="margin: 0; font-family: Sora, Inter, sans-serif; font-size: 16px; font-weight: 600">Déroulé</h2>
+        <span style="font-size: 12px; color: #9AA3BF">{{progress}}</span>
+      </div>
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+        <sc-if value="{{r.header}}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 12px 10px 4px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3BF">{{r.moment}}</div>
+        </sc-if>
+        <sc-if value="{{r.item}}" hint-placeholder-val="{{ true }}">
+          <button type="button" class="row" onClick="{{r.pick}}" style="{{r.style}}">
+            <span style="{{r.dot}}"></span>
+            <span style="flex: 1; min-width: 0; text-align: left">
+              <span style="display: block; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.label}}</span>
+              <span style="display: block; font-size: 12px; color: #9AA3BF">{{r.kindLabel}}</span>
+            </span>
+            <sc-if value="{{r.current}}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px; background: #F6F2E8; color: #0E1530">À L'ÉCRAN</span>
+            </sc-if>
+          </button>
+        </sc-if>
+      </sc-for>
+    </aside>
+
+    <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+        <h2 style="margin: 0; font-family: Sora, Inter, sans-serif; font-size: 16px; font-weight: 600">À l'écran <span style="font-family: Inter, sans-serif; font-weight: 400; font-size: 13px; color: #9AA3BF">· ce que voient la salle et le direct</span></h2>
+        <div role="group" aria-label="Mise en page" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: #111933">
+          <button type="button" class="tab" onClick="{{setCamera}}" style="{{segCamera}}">Caméra seule</button>
+          <button type="button" class="tab" onClick="{{setLower}}" style="{{segLower}}">Bandeau</button>
+          <button type="button" class="tab" onClick="{{setFull}}" style="{{segFull}}">Plein écran</button>
+        </div>
+      </div>
+
+      <div style="position: relative; aspect-ratio: 16 / 9; container-type: inline-size; border-radius: 12px; overflow: hidden; outline: 3px solid #FF6B6B; outline-offset: 0; background: #000">
+        <sc-if value="{{showCamera}}" hint-placeholder-val="{{ true }}">
+          <div style="position: absolute; inset: 0; background: linear-gradient(180deg, #6B5A4A 0%, #54473C 55%, #3B322B 100%)">
+            <div style="position: absolute; left: 8%; top: 12%; width: 18%; height: 60%; border-radius: 6px; background: #7A6754"></div>
+            <div style="position: absolute; right: 9%; top: 10%; width: 14%; height: 70%; border-radius: 6px; background: #4A3D33"></div>
+            <div style="position: absolute; left: 50%; top: 20%; width: 13%; aspect-ratio: 1; transform: translateX(-50%); border-radius: 50%; background: #9B6B45"></div>
+            <div style="position: absolute; left: 50%; bottom: 0; width: 40%; height: 48%; transform: translateX(-50%); border-radius: 46% 46% 0 0; background: #1E2433"></div>
+            <div style="position: absolute; left: 50%; bottom: 0; width: 34%; height: 22%; transform: translateX(-50%); border-radius: 8px 8px 0 0; background: #2B2118"></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{showLower}}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; left: 5%; right: 5%; bottom: 6%; padding: 2.2cqw 3cqw; border-radius: 1.2cqw; background: rgba(14,21,48,0.88)">
+            <div style="font-family: Montserrat, sans-serif; font-weight: 600; font-size: 1.7cqw; letter-spacing: 0.06em; color: #E8B44C">{{lowerRef}}</div>
+            <div style="margin-top: 0.6cqw; font-family: 'Source Serif 4', Georgia, serif; font-size: 2.6cqw; line-height: 1.35; color: #F6F2E8">{{lowerText}}</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{showFull}}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 12%; background: radial-gradient(ellipse at 50% 40%, #1E2A52 0%, #0E1530 72%)">
+            <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 3.6cqw; line-height: 1.38; color: #F6F2E8; text-wrap: balance">{{fullText}}</div>
+            <div style="margin-top: 2.4cqw; font-family: Montserrat, sans-serif; font-weight: 600; font-size: 1.8cqw; letter-spacing: 0.06em; color: #E8B44C">{{fullRef}}</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{showPoster}}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #0E1530">
+            <div style="height: 92%; aspect-ratio: 4 / 5; border-radius: 1cqw; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 3cqw; box-sizing: border-box; background: linear-gradient(160deg, #E8B44C 0%, #C7883A 45%, #3A2A5C 100%)">
+              <div style="font-family: Montserrat, sans-serif; font-weight: 700; font-size: 1.6cqw; letter-spacing: 0.08em; color: #0E1530">{{posterKicker}}</div>
+              <div style="font-family: Montserrat, sans-serif; font-weight: 700; font-size: 4cqw; line-height: 1.05; color: #F6F2E8; margin-top: 0.8cqw">{{posterTitle}}</div>
+              <div style="font-family: Inter, sans-serif; font-size: 1.6cqw; color: #F6F2E8; margin-top: 1.2cqw; white-space: pre-line">{{posterLine}}</div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{showStandby}}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2cqw; background: radial-gradient(ellipse at 50% 42%, #1E2A52 0%, #0E1530 70%)">
+            <svg viewBox="0 0 100 100" aria-hidden="true" style="width: 10cqw; height: 10cqw"><rect x="9.5" y="19.5" width="81" height="61" rx="15" fill="none" stroke="#F6F2E8" stroke-width="7"></rect><path d="M36.5 63 V43" fill="none" stroke="#F6F2E8" stroke-width="9" stroke-linecap="round"></path><path d="M36.5 51 C36.5 42 43.5 37 52.5 37" fill="none" stroke="#F6F2E8" stroke-width="9" stroke-linecap="round"></path><circle cx="62.5" cy="37" r="6" fill="#E8B44C"></circle></svg>
+            <div style="font-family: Montserrat, sans-serif; font-weight: 700; font-size: 4.4cqw; color: #E8B44C">Bienvenue</div>
+            <div style="font-family: Inter, sans-serif; font-size: 2cqw; color: #C9CEDD">Le culte va bientôt commencer</div>
+          </div>
+        </sc-if>
+        <span style="position: absolute; left: 1.4cqw; top: 1.4cqw; display: inline-flex; align-items: center; gap: 0.6cqw; font-size: max(11px, 1.1cqw); font-weight: 600; padding: 0.4cqw 1cqw; border-radius: 99px; background: rgba(14,21,48,0.8); color: #FF6B6B"><span style="width: 0.8cqw; height: 0.8cqw; min-width: 7px; min-height: 7px; border-radius: 50%; background: #FF6B6B"></span>EN DIRECT</span>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch">
+        <div style="flex: 1 1 260px; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; background: #18213F; border: 1px solid #253055">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3BF">Ensuite</span>
+          <span style="flex: 1; min-width: 0">
+            <span style="display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{nextLabel}}</span>
+            <span style="display: block; font-size: 12.5px; color: #9AA3BF">{{nextKind}}</span>
+          </span>
+        </div>
+        <button type="button" class="ghost" onClick="{{cameraOnly}}" style="min-height: 56px; padding: 0 18px; border-radius: 12px; border: 1px solid #253055; background: #18213F; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: flex-start">
+          <span style="font-size: 15px; font-weight: 600">Caméra seule</span>
+          <span style="font-size: 12px; color: #9AA3BF">touche Échap</span>
+        </button>
+        <button type="button" class="next" onClick="{{next}}" style="min-height: 56px; min-width: 200px; padding: 0 24px; border-radius: 12px; border: 0; background: #E8B44C; color: #0E1530; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px">
+          <span style="display: flex; flex-direction: column; align-items: flex-start">
+            <span style="font-size: 17px; font-weight: 600">Suivant</span>
+            <span style="font-size: 12px; opacity: 0.75">barre d'espace</span>
+          </span>
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="#0E1530" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </button>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 12px 16px; border-radius: 12px; background: #111933">
+        <span style="font-size: 13px; color: #9AA3BF">Son du direct</span>
+        <div aria-label="Niveau sonore : bon" role="img" style="display: flex; gap: 3px; align-items: center">
+          <span style="width: 8px; height: 14px; border-radius: 2px; background: #4CC38A"></span><span style="width: 8px; height: 14px; border-radius: 2px; background: #4CC38A"></span><span style="width: 8px; height: 14px; border-radius: 2px; background: #4CC38A"></span><span style="width: 8px; height: 14px; border-radius: 2px; background: #4CC38A"></span><span style="width: 8px; height: 14px; border-radius: 2px; background: #4CC38A"></span><span style="width: 8px; height: 14px; border-radius: 2px; background: #4CC38A"></span><span style="width: 8px; height: 14px; border-radius: 2px; background: #F5B451"></span><span style="width: 8px; height: 14px; border-radius: 2px; background: #253055"></span><span style="width: 8px; height: 14px; border-radius: 2px; background: #253055"></span><span style="width: 8px; height: 14px; border-radius: 2px; background: #253055"></span>
+        </div>
+        <span style="flex: 1"></span>
+        <button type="button" class="sw" role="switch" aria-checked="{{musicOff}}" onClick="{{toggleMusic}}" style="display: inline-flex; align-items: center; gap: 10px; border: 0; background: transparent; cursor: pointer; font-size: 13px; color: #C9CEDD; padding: 4px">
+          <span style="{{switchTrack}}"><span style="{{switchKnob}}"></span></span>
+          Musique hors direct
+        </button>
+      </div>
+    </main>
+
+    <aside aria-label="Contenus" style="flex: 1 0 340px; max-width: 400px; box-sizing: border-box; border-left: 1px solid #253055; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+      <div role="tablist" aria-label="Contenus" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: #111933">
+        <button type="button" role="tab" aria-selected="true" class="tab" style="flex: 1; min-height: 38px; border: 0; border-radius: 8px; background: #253055; font-size: 14px; font-weight: 600; cursor: pointer">Bible</button>
+        <button type="button" role="tab" aria-selected="false" class="tab" style="flex: 1; min-height: 38px; border: 0; border-radius: 8px; background: transparent; color: #9AA3BF; font-size: 14px; cursor: pointer">Médias</button>
+        <button type="button" role="tab" aria-selected="false" class="tab" style="flex: 1; min-height: 38px; border: 0; border-radius: 8px; background: transparent; color: #9AA3BF; font-size: 14px; cursor: pointer">Texte</button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="ref" style="font-size: 12.5px; color: #9AA3BF">Passage</label>
+        <div style="display: flex; gap: 8px">
+          <input id="ref" type="text" value="Jean 3 16" readonly="readonly" style="flex: 1; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 14px; border-radius: 8px; border: 1px solid #3A4568; background: #111933; color: #F6F2E8; font: inherit; font-size: 15px">
+          <button type="button" class="ghost" style="min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #253055; background: transparent; font-size: 13px; cursor: pointer">LSG 1910</button>
+        </div>
+        <span style="font-size: 12px; color: #9AA3BF">Tapez une référence (« Jean 3 16 ») ou un mot (« berger »).</span>
+      </div>
+      <sc-for list="{{verses}}" as="v" hint-placeholder-count="3">
+        <div style="padding: 12px 14px; border-radius: 12px; background: #18213F; border: 1px solid #253055; display: flex; flex-direction: column; gap: 10px">
+          <div style="font-size: 13px; font-weight: 600; color: #C9CEDD">{{v.ref}}</div>
+          <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.5">{{v.text}}</div>
+          <div style="display: flex; gap: 8px">
+            <button type="button" class="mini" onClick="{{v.lower}}" style="flex: 1; min-height: 36px; border-radius: 8px; border: 1px solid #253055; background: transparent; font-size: 13px; cursor: pointer">En bandeau</button>
+            <button type="button" class="mini" onClick="{{v.full}}" style="flex: 1; min-height: 36px; border-radius: 8px; border: 1px solid #253055; background: transparent; font-size: 13px; cursor: pointer">Plein écran</button>
+          </div>
+        </div>
+      </sc-for>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { idx: 5, override: null, music: false };
+  }
+
+  items() {
+    return [
+      { moment: 'Accueil', label: 'Écran d’attente', kind: 'standby' },
+      { moment: 'Louange', label: 'Louange', kind: 'camera' },
+      { moment: 'Prière', label: 'Prière d’ouverture', kind: 'camera' },
+      { moment: 'Lecture', label: 'Psaume 23:1', kind: 'full', ref: 'PSAUME 23:1 · LSG 1910', text: 'L’Éternel est mon berger : je ne manquerai de rien.' },
+      { moment: 'Prédication', label: 'Titre du message', kind: 'lower', ref: 'PRÉDICATION', text: '« Il nous a aimés le premier » · Pasteur [NOM]' },
+      { moment: 'Prédication', label: 'Jean 3:16', kind: 'lower', ref: 'JEAN 3:16', text: 'Car Dieu a tant aimé le monde qu’il a donné son Fils unique…' },
+      { moment: 'Prédication', label: 'Romains 8:28', kind: 'full', ref: 'ROMAINS 8:28 · LSG 1910', text: 'Nous savons, du reste, que toutes choses concourent au bien de ceux qui aiment Dieu.' },
+      { moment: 'Offrandes', label: 'Offrandes et dîmes', kind: 'poster', kicker: 'OFFRANDES ET DÎMES', title: 'Merci pour votre générosité', line: 'Mobile Money : [VOTRE NUMÉRO]\nVirement : [VOS COORDONNÉES]' },
+      { moment: 'Annonces', label: 'Conférence des jeunes', kind: 'poster', kicker: 'SAMEDI 22 NOVEMBRE · 15 H', title: 'Conférence des jeunes', line: 'Grande salle · entrée libre' },
+      { moment: 'Annonces', label: 'Réunion de prière', kind: 'fullText', ref: 'ANNONCE', text: 'Réunion de prière mercredi à 18 h 30' },
+      { moment: 'Bénédiction', label: 'Bénédiction', kind: 'camera' },
+    ];
+  }
+
+  kindLabel(k) {
+    return { standby: 'Écran d’attente', camera: 'Caméra seule', lower: 'Bandeau sur la caméra', full: 'Verset plein écran', fullText: 'Texte plein écran', poster: 'Affiche' }[k];
+  }
+
+  renderVals() {
+    const items = this.items();
+    const { idx, override, music } = this.state;
+    const cur = override || items[idx];
+    const next = items[idx + 1];
+
+    const rows = [];
+    let last = '';
+    items.forEach((it, i) => {
+      if (it.moment !== last) {
+        rows.push({ header: true, item: false, moment: it.moment });
+        last = it.moment;
+      }
+      const isCur = i === idx && !override;
+      const done = i < idx;
+      rows.push({
+        header: false,
+        item: true,
+        label: it.label,
+        kindLabel: this.kindLabel(it.kind),
+        current: isCur,
+        pick: () => this.setState({ idx: i, override: null }),
+        style: 'display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 6px 10px; border-radius: 10px; cursor: pointer; text-align: left; border: 1px solid ' + (isCur ? '#3A4775' : 'transparent') + '; background: ' + (isCur ? '#253055' : 'transparent') + '; opacity: ' + (done ? '0.6' : '1') + ';',
+        dot: 'flex: none; width: 8px; height: 8px; border-radius: 50%; background: ' + (isCur ? '#F6F2E8' : done ? '#3A4568' : 'transparent') + '; border: 1.5px solid ' + (done || isCur ? 'transparent' : '#3A4568') + ';',
+      });
+    });
+
+    const k = cur.kind;
+    const seg = (on) => 'min-height: 36px; padding: 0 14px; border: 0; border-radius: 8px; font-size: 13px; cursor: pointer; ' + (on ? 'background: #253055; color: #F6F2E8; font-weight: 600;' : 'background: transparent; color: #9AA3BF;');
+    const isVerse = cur.ref && (k === 'lower' || k === 'full');
+    const verses = [
+      { ref: 'Jean 3:16', text: 'Car Dieu a tant aimé le monde qu’il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu’il ait la vie éternelle.' },
+      { ref: 'Jean 3:17', text: 'Dieu, en effet, n’a pas envoyé son Fils dans le monde pour qu’il juge le monde, mais pour que le monde soit sauvé par lui.' },
+      { ref: 'Jean 3:18', text: 'Celui qui croit en lui n’est point jugé ; mais celui qui ne croit pas est déjà jugé.' },
+    ].map((v) => ({
+      ...v,
+      lower: () => this.setState({ override: { kind: 'lower', label: v.ref, ref: v.ref.toUpperCase(), text: v.text } }),
+      full: () => this.setState({ override: { kind: 'full', label: v.ref, ref: v.ref.toUpperCase() + ' · LSG 1910', text: v.text } }),
+    }));
+
+    return {
+      rows,
+      progress: (idx + 1) + ' sur ' + items.length,
+      showCamera: k === 'camera' || k === 'lower',
+      showLower: k === 'lower',
+      showFull: k === 'full' || k === 'fullText',
+      showPoster: k === 'poster',
+      showStandby: k === 'standby',
+      lowerRef: cur.ref || '',
+      lowerText: cur.text || '',
+      fullRef: cur.ref || '',
+      fullText: cur.text || '',
+      posterKicker: cur.kicker || '',
+      posterTitle: cur.title || '',
+      posterLine: cur.line || '',
+      nextLabel: next ? next.moment + ' · ' + next.label : 'Fin du culte',
+      nextKind: next ? this.kindLabel(next.kind) : 'Tout a été affiché',
+      segCamera: seg(k === 'camera'),
+      segLower: seg(k === 'lower'),
+      segFull: seg(k === 'full' || k === 'fullText' || k === 'poster' || k === 'standby'),
+      setCamera: () => this.setState({ override: { ...cur, kind: 'camera' } }),
+      setLower: () => isVerse && this.setState({ override: { ...cur, kind: 'lower' } }),
+      setFull: () => isVerse && this.setState({ override: { ...cur, kind: 'full' } }),
+      cameraOnly: () => this.setState({ override: { kind: 'camera', label: 'Caméra seule' } }),
+      next: () => this.setState({ idx: Math.min(idx + 1, items.length - 1), override: null }),
+      verses,
+      musicOff: music ? 'true' : 'false',
+      toggleMusic: () => this.setState({ music: !music }),
+      switchTrack: 'position: relative; width: 38px; height: 22px; border-radius: 99px; background: ' + (music ? '#4CC38A' : '#3A4568') + '; display: inline-block;',
+      switchKnob: 'position: absolute; top: 3px; left: ' + (music ? '19px' : '3px') + '; width: 16px; height: 16px; border-radius: 50%; background: #F6F2E8;',
+    };
+  }
+}
+</script>
+</body>
+</html>

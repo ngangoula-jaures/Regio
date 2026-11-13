@@ -51,6 +51,9 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   `src/design/tokens.css`** (source unique des couleurs/polices/tailles/rayons ; l'interface DOIT les utiliser).
   Règles clés : l'or = un seul élément par écran ; rouge = uniquement « en direct » ; sur fond ivoire utiliser
   « or profond » #8F6210 et « ardoise foncée » #535B78 (contrastes vérifiés) ; nom en minuscules dans le logo.
+- **Maquettes v1 (2026-11-13)** : https://claude.ai/artifact/QZoyQWWfoTvzNFdpw4v6QH (toile « Design », 3 écrans
+  cliquables : Démarrage → Sources du jour → Régie interactive). Copie de référence : `design/maquettes/`.
+  En attente de validation par l'utilisateur avant de coder la nouvelle interface.
 - Identité visuelle conçue en parallèle : nom → logo (3 pistes, lisible en 16 px, monochrome possible,
   non confessionnel) → charte (palette, typos, ton) → déclinaisons. Un seul système de design (tokens).
 
