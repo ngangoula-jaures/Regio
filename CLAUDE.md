@@ -18,7 +18,7 @@ américaine de diffusion de cultes. `regio.app` pris ; `getregio.app` et `regio.
 (décision de l'utilisateur, pour la v0.1). **Version 0.1.0 publiée** : https://github.com/ngangoula-jaures/Regio/releases/tag/v0.1.0
 (installeur + empreinte SHA-256 ; GitHub CLI `C:\Program Files\GitHub CLI\gh.exe` connecté au compte de l'utilisateur).
 SignPath : **candidature ENVOYÉE le 2026-11-14** (réponse attendue par e-mail ; si acceptée : brancher la signature
-SignPath sur le workflow GitHub Actions). Ancien texte (texte prêt dans `C:\dev\regio-release\signpath-candidature.md`) ;
+SignPath sur le workflow GitHub Actions ; texte de la candidature : `C:\dev\regio-release\signpath-candidature.md`).
 Construction par CI : `.github/workflows/installeur.yml` (GitHub Actions, windows-latest, à chaque tag `v*` ou à la
 demande) → artefact `regio-installeur-windows` ; 1er build réussi le 2026-11-14 (~12 min). Confidentialité : `PRIVACY.md`.
 Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app supprime les anciennes scènes/sources
@@ -44,8 +44,8 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
 6. **Hors ligne.** Tout fonctionne sans Internet sauf la diffusion vers les réseaux.
 
 ## Design (exigence forte de l'utilisateur)
-- Interface **très belle, élégante, professionnelle**, adaptée au contexte du culte. Le prototype actuel
-  (emojis, mise en page brute) sera entièrement redessiné : maquette validée par l'utilisateur AVANT de coder un écran.
+- Interface **très belle, élégante, professionnelle**, adaptée au contexte du culte. Le prototype à emojis a été
+  entièrement redessiné (v5). Règle : maquette validée par l'utilisateur AVANT de coder un nouvel écran.
 - Régie : thème sombre calme (bleu nuit + accent or ; couleurs vives réservées aux états : rouge = direct,
   vert = prêt, orange = attention), gros boutons, police **Inter**, icônes **Lucide** (jamais d'emojis).
 - Sortie (assemblée/direct) : lisible du fond de la salle (texte ≥ 5 % de la hauteur, contraste fort,
@@ -69,7 +69,7 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
 - Identité visuelle conçue en parallèle : nom → logo (3 pistes, lisible en 16 px, monochrome possible,
   non confessionnel) → charte (palette, typos, ton) → déclinaisons. Un seul système de design (tokens).
 
-- **Maquette v2 de la régie (2026-11-13, en attente de validation)** : https://claude.ai/artifact/XzemCVvaSXtL28etX3CfvG
+- **Maquette v2 de la régie (2026-11-13, dépassée par la v5)** : https://claude.ai/artifact/XzemCVvaSXtL28etX3CfvG
   (copie `design/maquettes/v2/`). Suite aux retours de l'utilisateur sur la v1 codée : « mode Présentateur »
   (À l'écran + Ensuite côte à côte), ◀ Précédent / Suivant ▶ (← → espace), rangée de CAMÉRAS cliquables pendant
   le culte (manquait !), écrans nommés « Votre ordinateur » / « Télé / projecteur » (pas « Écran 1/2 »),
@@ -109,7 +109,7 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   décochée la 1re fois puis dernier choix retenu, taille annoncée (~1,4 Go/h en 720p) + espace libre ; l'enregistrement
   réutilise l'encodage du direct (`RecEncoder=none`) : même qualité, aucun effort en plus pour le PC.
 
-## Le direct (codé le 2026-11-13, validé sur le vrai OBS — pas encore essayé avec une vraie clé Facebook)
+## Le direct (codé le 2026-11-13, validé sur le vrai OBS et par un vrai direct Facebook avec son)
 - `src/app/useLive.ts` : réglages (doc `live` → `data/live.json` : target, key, quality, record), phases unset → ready →
   starting → live → stopping, santé toutes les 2 s (`GetStreamStatus` : reconnexion → coupée ; encombrement > 0,25 ou
   débit < 60 % → faible), refus de Facebook détecté après 20 s. Test de connexion : commande Rust `upload_test`
@@ -126,7 +126,7 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
 - **Son** : OBS ne crée PAS toujours ses sources audio au 1er lancement (vu sur le PC de dev : aucune entrée spéciale) →
   Regio crée `Regio - Son` (`wasapi_input_capture`, `device_id: "default"` = périphérique d'enregistrement par défaut de
   Windows) dans la scène de sortie ; elle fait partie des sources FIXES (jamais masquée au changement de caméra).
-  Testé le 2026-11-13 : direct Facebook réel OK (image + son). À faire : choisir le périphérique dans Regio.
+  Testé le 2026-11-13 : direct Facebook réel OK (image + son). Périphérique au choix : voir « Entrée son » plus bas.
 - **Le son suit l'image** (validé par l'utilisateur : le micro le plus proche de ce qu'on montre) : la caméra affichée
   donne le son — un téléphone = son micro ; une caméra du PC (webcam/HDMI) = `Regio - Son`. **« Garder ce son »**
   (cadenas sur chaque vignette, `obs.ts setKeptAudio`) : le son de cette caméra reste au direct quelle que soit l'image
@@ -208,9 +208,9 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   Les tests fixent `regio.lang` (`addInitScript`) ; `test:programme` vérifie l'écran de choix.
 - **Textes : jamais en dur** (`src/i18n/fr.ts` + `en.ts`). Styles via les jetons (`base.css`, `app.css`).
   Aperçus réduits : `src/components/MiniScreen.tsx` (même mise en page que la sortie projetée).
-- Pas encore fait (ne pas l'afficher comme si ça marchait) : direct sur les
-  réseaux, vumètre, « musique hors direct », bascule auto sur le logo si une caméra se débranche,
-  import PowerPoint sans PowerPoint (mode « modifiable »), plusieurs déroulés / modèles de culte.
+- Pas encore fait (ne pas l'afficher comme si ça marchait) : YouTube et les autres réseaux, multidiffusion (relais),
+  « musique hors direct », import PowerPoint sans PowerPoint (mode « modifiable »), plusieurs programmes enregistrés,
+  écran de Réglages (dont le changement de langue), signature de l'installeur.
 
 ## Architecture
 
@@ -221,13 +221,13 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
                                       affiche versets/affiches/textes avec fondus CSS)
 ```
 
-- **Moteur vidéo = OBS** piloté via obs-websocket (intégré à OBS ≥ 28, port 4455). On n'écrit pas
+- **Moteur vidéo = OBS** piloté via obs-websocket (intégré à OBS ≥ 28 ; port 4466 pour l'OBS embarqué, 4455 en dev). On n'écrit pas
   notre propre mixeur vidéo.
 - **Tout le contenu (versets, affiches, textes, diapos) est rendu en HTML/CSS** dans `render.html`,
   chargé par OBS comme Browser Source au-dessus de la caméra. Les transitions sont faites en CSS.
   Le contrôle envoie le contenu via `BroadcastCustomEvent` ; la page render écoute `CustomEvent`.
 - **Scène OBS de sortie** gérée par l'app : `Regio - Sortie` = fond de secours + caméra(s) + contenu.
-- **Projecteur** = projecteur plein écran OBS (`OpenVideoMixProjector`) sur l'écran HDMI.
+- **Projecteur** = projecteur plein écran OBS (`OpenSourceProjector` de la scène `Regio - Salle`) sur l'écran HDMI.
 - **Téléphone caméra « sans application » (QR code)** : le téléphone ouvre `phone.html` (HTTPS obligatoire
   pour la caméra) et envoie caméra + micro en **WebRTC** directement à `receiver.html`, chargée dans OBS
   comme Browser Source (`Regio - Téléphone QR <n>`, `reroute_audio` → le son arrive dans le mélangeur OBS).
@@ -245,7 +245,7 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   - Test sous Windows, application lancée : `scripts/win.sh node tests/e2e/rust-server.test.mjs`.
 - **OBS embarqué et automatique (`src-tauri/src/obs.rs`)** — fait et validé le 2026-11-13 :
   - OBS **33.0.1 portable** (version figée, empreinte SHA-256 vérifiée) dans
-    `%LOCALAPPDATA%\org.regio.app\obs\33.0.1\` ; téléchargé une fois au 1er lancement (224 Mo, ~30 s).
+    `%LOCALAPPDATA%\org.regio.app\obs\33.0.1\` ; livré dans l'installeur (sinon, en dev : téléchargé une fois, 224 Mo, ~30 s).
     **Installeur (2026-11-13)** : `scripts/build-installer.sh` (WSL) → `scripts/fetch-installer-deps.sh` (OBS zip,
     empreinte vérifiée ; vc_redist.x64.exe, signature Microsoft vérifiée ; dans `src-tauri/resources/`, HORS git) puis
     `tauri build --config src-tauri/tauri.installer.conf.json` → `C:\dev\regio\src-tauri\target\release\bundle\nsis\
@@ -264,8 +264,9 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
     (« Informations complémentaires › Exécuter quand même »), installation et lancement OK (écran « Préparation du
     culte » → moteur vidéo « Prêt »), PC connecté à Internet. **Installation HORS LIGNE validée le 2026-11-14** (même ami, Wi-Fi coupé après le
     téléchargement). Signalé alors : caméra du PC et téléphone « rien tant que pas de Wi-Fi » — téléphone : normal (même
-    réseau requis) ; caméra du PC : rien dans Regio n'utilise le réseau pour elle (caméras du PC éteintes par défaut,
-    « Utiliser cette caméra ») → à revérifier. Toujours non vérifié : PC sans Visual C++.
+    réseau requis) ; caméra du PC : rien dans Regio n'utilise le réseau pour elle, et sur le PC de l'utilisateur elle
+    s'affiche Wi-Fi coupé (vérifié le 2026-11-14) → point mis de côté, à surveiller s'il se reproduit (piste : caméras
+    du PC éteintes par défaut, « Utiliser cette caméra »). Toujours non vérifié : PC sans Visual C++.
     Windows Sandbox inutilisable sur ce PC : « Exception of type System.Exception » (le port 80 était pris par un
     Apache dans WSL — désactivé par l'utilisateur — mais l'erreur persiste : bug du composant Sandbox 0.8.114).
   - Configuré AVANT lancement : `portable_mode.txt`, WebSocket sur **4466** (≠ 4455 d'un OBS installé),
@@ -278,7 +279,8 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   - Interface : commande Tauri `obs_status` (`src/shared/engine.ts`) → écran de démarrage (`Startup.tsx`) avec
     progression, puis connexion automatique ; reconnexion auto et **réouverture de la projection** après un
     redémarrage d'OBS. Le panneau de connexion manuelle n'existe plus qu'en mode navigateur.
-- **Stockage** : SQLite (Bible, médiathèque, déroulés) — à partir de la Phase 1.
+- **Stockage** : fichiers JSON (`load_data`/`save_data` : programme `library.json`, direct `live.json`), images dans
+  `media/`, Bible en JSON livré (`public/bible/`). Pas de SQLite (pas utile pour l'instant).
 - Plus tard : affichage différent projecteur / direct (scène dédiée par sortie), relais multi-plateformes.
 
 ### Décisions déjà prises
@@ -300,13 +302,17 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
   (coupe le son uniquement sur le direct pendant la louange, à cause des droits musicaux).
 
 ## Feuille de route
-- **Phase 0 (en cours)** : prototype technique — piloter OBS, caméra (webcam/téléphone), projection HDMI,
+- **Phase 0 (terminée)** : prototype technique — piloter OBS, caméra (webcam/téléphone), projection HDMI,
   fondus caméra ↔ verset/affiche/texte sans écran noir. ✅ Validé sur le vrai matériel le 2026-11-11
   (webcam du PC, téléphone, versets/textes/images). Caméra téléphone QR code (WebRTC) validée sur le vrai
   téléphone le 2026-11-11 : latence bien meilleure que Larix. Application Windows + serveur intégré (2026-11-12),
-  OBS embarqué automatique (2026-11-13). Reste : maquettes de la nouvelle interface, puis 1er installeur.
-- **Phase 1** : remplacer PowerPoint — diapos, éditeur, import .pptx, Bible complète, médiathèque, déroulé du culte.
-- **Phase 2** : le direct — sources du jour, Aperçu/Direct, enregistrement, diffusion 1 plateforme, santé du direct.
+  OBS embarqué automatique (2026-11-13).
+- **Phase 1 (faite, v0.1)** : remplacer PowerPoint — import .pptx fidèle, PDF, Bible complète, images, programme.
+  Reste : éditeur de diapos, import .pptx « modifiable ».
+- **Phase 2 (faite pour Facebook, v0.1.0 publiée le 2026-11-13)** : sources du jour, enregistrement, diffusion
+  1 plateforme, santé du direct, fiabilité (caméra perdue, entrée son, répétition).
+- **PROCHAINE ÉTAPE (semaine du 2026-11-16, choix de l'utilisateur)** : YouTube puis les autres réseaux et la
+  multidiffusion (Phase 3).
 - **Phase 3** : multidiffusion (relais), bandeaux sur le direct, plusieurs écrans, écran retour prédicateur.
 - **Phase 4** : modèles, raccourcis, télécommande, Stream Deck, mode bénévole.
 
@@ -320,8 +326,10 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
 - Tauri (Rust) se compile côté Windows (Rust + Node installés sous Windows) — pas dans WSL
   (pas de webkit2gtk ni de sudo ici).
 - Vérifier avec `npm run build` (tsc + vite) avant de rendre la main.
-- Tests de bout en bout (serveur de dev lancé) : `npm run test:e2e` = `test:regie` (parcours complet
-  Démarrage → Sources → Régie ↔ faux OBS `tests/e2e/fake-obs.mjs`, 36 vérifications : navigation, Bible, ajouts, conservation après redémarrage…) + `test:phone` (caméra téléphone WebRTC avec caméra simulée). Le faux OBS
+- Tests de bout en bout (serveur de dev lancé) : `npm run test:e2e` = 6 suites ↔ faux OBS `tests/e2e/fake-obs.mjs` :
+  `test:regie` (parcours Démarrage → Sources → Régie, navigation, Bible, conservation après redémarrage…), `test:slides`,
+  `test:live`, `test:programme` (langue, programme de départ, PDF, confirmations, débordements), `test:phone` (caméra
+  téléphone WebRTC simulée), `test:multiphone`. Toutes passent au 2026-11-14. Le faux OBS
   doit reproduire le comportement RÉEL d'OBS (ex. CustomEvent sans enveloppe `eventData` ; nom de source déjà
   pris refusé, code 601). Les tests du téléphone fixent `locale: "fr-FR"` (la page suit la langue de l'appareil).
 - **Compilation Windows (Tauri)** : le code reste dans WSL (source de vérité, git, tests). Windows ne sait
