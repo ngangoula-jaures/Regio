@@ -370,6 +370,13 @@ export const en: Messages = {
     soundOk: "sound is coming in",
     soundNone: "no sound",
   },
+  language: {
+    title: "Choose your language",
+    help: "Regio's whole interface will be shown in this language.",
+    name: "English",
+    use: "Use Regio in English",
+    suggested: "Your computer's language",
+  },
   templates: {
     title: "What are you preparing?",
     subtitle: "Regio suggests a starting programme. Everything can be changed afterwards: moments, items, names.",

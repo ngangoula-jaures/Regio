@@ -57,6 +57,7 @@ const library = {
 const browser = await launch(["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"]);
 const ctx = await browser.newContext({ viewport: { width: W, height: H }, locale: "fr-FR", deviceScaleFactor: 1 });
 const app = await ctx.newPage();
+await app.addInitScript(() => localStorage.getItem("regio.lang") || localStorage.setItem("regio.lang", "fr")); // langue déjà choisie
 await app.goto(BASE);
 await app.evaluate(() => localStorage.clear());
 await app.reload();

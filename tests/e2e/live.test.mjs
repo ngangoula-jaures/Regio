@@ -16,6 +16,7 @@ const check = async (cond, msg) => (cond ? console.log("✓", msg) : fail(msg));
 
 try {
   const app = await (await browser.newContext({ viewport: { width: 1366, height: 820 }, locale: "fr-FR" })).newPage();
+  await app.addInitScript(() => localStorage.getItem("regio.lang") || localStorage.setItem("regio.lang", "fr")); // langue déjà choisie
   app.on("pageerror", (e) => errors.push(e.message));
   await app.goto(BASE);
   await app.evaluate(() => localStorage.clear());

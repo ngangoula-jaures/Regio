@@ -24,6 +24,7 @@ const enabledCams = () => obs.state.items[SCENE].filter((i) => i.sceneItemEnable
 try {
   const ctx = await browser.newContext({ viewport: { width: 1366, height: 820 }, locale: "fr-FR" }); // taille de la fenêtre de l'application
   const app = await ctx.newPage();
+  await app.addInitScript(() => localStorage.getItem("regio.lang") || localStorage.setItem("regio.lang", "fr")); // langue déjà choisie
   app.on("pageerror", (e) => errors.push("régie : " + e.message));
   app.on("request", (r) => {
     const u = new URL(r.url());

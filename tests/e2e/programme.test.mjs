@@ -44,6 +44,24 @@ try {
   await app.goto(BASE);
   await app.evaluate(() => localStorage.clear());
   await app.reload();
+
+  // --- 1er lancement : choix de la langue, la langue de l'ordinateur proposée en premier ---
+  const langs = await app.locator(".language-grid .template-card strong").allInnerTexts();
+  await check(langs.join("|") === "Français|English", `choix de la langue, français en premier : ${langs.join(", ")}`);
+  await check((await app.textContent(".language-grid .template-card >> nth=0")).includes("Langue de votre ordinateur"), "la langue de l'ordinateur est signalée");
+  {
+    const en = await (await browser.newContext({ viewport: { width: 1366, height: 820 }, locale: "en-US" })).newPage();
+    await en.goto(BASE);
+    const order = await en.locator(".language-grid .template-card strong").allInnerTexts();
+    await check(order[0] === "English", `ordinateur en anglais : English proposé en premier (${order.join(", ")})`);
+    await en.click(".template-card:has-text('Français')");
+    await en.waitForSelector("text=Se connecter");
+    await check(true, "ordinateur en anglais, Français choisi : l'interface est en français");
+    await en.reload();
+    await check((await en.locator(".language-grid").count()) === 0, "la langue n'est demandée qu'une fois");
+    await en.context().close();
+  }
+  await app.click(".template-card:has-text('Français')");
   await app.fill("#port", "4473");
   await app.click("text=Se connecter");
   await app.click("button:has-text('Choisir les caméras du jour'):not([disabled])", { timeout: 20000 });

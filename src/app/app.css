@@ -462,6 +462,15 @@ button.cam:hover { border-color: #3a4775; }
 .template-card strong { font-size: 17px; }
 .template-card span { font-size: var(--regio-texte-sm); line-height: 1.5; color: var(--regio-ardoise); }
 @media (max-width: 900px) { .template-grid { grid-template-columns: minmax(0, 1fr); } }
+.languages h1 { display: grid; gap: 6px; }
+.languages h1 span { font-size: var(--regio-titre-sm); font-weight: 500; letter-spacing: -0.01em; color: var(--regio-ardoise); }
+.languages-icon { justify-self: center; color: var(--regio-ivoire); }
+.language-grid { grid-template-columns: repeat(2, minmax(0, 280px)); }
+.language-grid .template-card { align-content: start; }
+.language-grid .template-card strong { font-size: 22px; }
+.language-grid .template-card span:not(.language-help):not(.language-suggested) { font-size: var(--regio-texte-lg); color: var(--regio-ivoire); }
+.language-grid .template-card:focus-visible { outline: 2px solid var(--regio-or); outline-offset: 3px; }
+.language-suggested { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; font-size: var(--regio-texte-sm); color: var(--regio-texte-doux) !important; }
 .item-card:not(.is-slides) .item-edit { position: absolute; right: 46px; bottom: 10px; width: 30px; height: 30px; }
 .item-card:has(.item-edit) .item-text { padding-right: 78px; }
 

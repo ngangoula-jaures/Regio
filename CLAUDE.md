@@ -201,6 +201,11 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
 - Images : `object-fit: contain` en plein cadre (agrandies si plus petites). Télé réglée hors 16:9 (ex. 1024 × 768)
   → avertissement au démarrage et dans « Télé de la salle » (régler Windows en 1920 × 1080).
   Télé de la salle : `src/screens/RoomDialog.tsx` (« Votre ordinateur » / « Télé / projecteur » / fenêtre d'essai).
+- **Langue choisie au 1er lancement** (2026-11-14, retour : l'app s'était ouverte en anglais chez un ami dont Windows est
+  en anglais) : `src/screens/LanguageChooser.tsx`, affiché par `src/main.tsx` AVANT l'application tant que
+  `localStorage regio.lang` n'existe pas (le programme de départ est créé dans la langue choisie). Langue de Windows =
+  simple suggestion, proposée en premier. Choix → rechargement. À faire : la changer dans les futurs Réglages.
+  Les tests fixent `regio.lang` (`addInitScript`) ; `test:programme` vérifie l'écran de choix.
 - **Textes : jamais en dur** (`src/i18n/fr.ts` + `en.ts`). Styles via les jetons (`base.css`, `app.css`).
   Aperçus réduits : `src/components/MiniScreen.tsx` (même mise en page que la sortie projetée).
 - Pas encore fait (ne pas l'afficher comme si ça marchait) : direct sur les
@@ -257,8 +262,10 @@ Interface (Tauri + React/TS)  ──obs-websocket v5──▶  OBS Studio (moteu
     désinstallation propre (données gardées).
     **Testé sur un AUTRE PC le 2026-11-13** (portable Dell d'un ami, Windows 11) : avertissement SmartScreen attendu
     (« Informations complémentaires › Exécuter quand même »), installation et lancement OK (écran « Préparation du
-    culte » → moteur vidéo « Prêt »), PC connecté à Internet. Toujours non vérifié : PC sans Visual C++ (inconnu chez
-    l'ami), installation hors ligne.
+    culte » → moteur vidéo « Prêt »), PC connecté à Internet. **Installation HORS LIGNE validée le 2026-11-14** (même ami, Wi-Fi coupé après le
+    téléchargement). Signalé alors : caméra du PC et téléphone « rien tant que pas de Wi-Fi » — téléphone : normal (même
+    réseau requis) ; caméra du PC : rien dans Regio n'utilise le réseau pour elle (caméras du PC éteintes par défaut,
+    « Utiliser cette caméra ») → à revérifier. Toujours non vérifié : PC sans Visual C++.
     Windows Sandbox inutilisable sur ce PC : « Exception of type System.Exception » (le port 80 était pris par un
     Apache dans WSL — désactivé par l'utilisateur — mais l'erreur persiste : bug du composant Sandbox 0.8.114).
   - Configuré AVANT lancement : `portable_mode.txt`, WebSocket sur **4466** (≠ 4455 d'un OBS installé),

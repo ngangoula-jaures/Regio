@@ -376,6 +376,13 @@ export const fr = {
     soundOk: "le son arrive",
     soundNone: "aucun son",
   },
+  language: {
+    title: "Choisissez votre langue",
+    help: "Toute l'interface de Regio s'affichera dans cette langue.",
+    name: "Français",
+    use: "Utiliser Regio en français",
+    suggested: "Langue de votre ordinateur",
+  },
   templates: {
     title: "Que préparez-vous ?",
     subtitle: "Regio vous propose un programme de départ. Tout se modifie ensuite : moments, contenus, noms.",

@@ -12,17 +12,35 @@ type Paths<T, P extends string = ""> = {
 }[keyof T & string];
 export type MessageKey = Paths<Messages>;
 
-function detect(): Lang {
+const LANG_KEY = "regio.lang";
+
+/** Langue choisie par l'utilisateur (null : jamais choisie, 1er lancement). */
+export function savedLang(): Lang | null {
   try {
-    const saved = localStorage.getItem("regio.lang");
+    const saved = localStorage.getItem(LANG_KEY);
     if (saved === "fr" || saved === "en") return saved;
   } catch {
     /* ignore */
   }
-  return navigator.language?.toLowerCase().startsWith("en") ? "en" : "fr";
+  return null;
 }
 
-export const lang: Lang = detect();
+/** Langue de l'ordinateur : seulement une suggestion, jamais imposée. */
+export const systemLang: Lang = navigator.language?.toLowerCase().startsWith("en") ? "en" : "fr";
+
+/** Retient la langue choisie ; l'interface se recharge pour l'appliquer partout. */
+export function chooseLang(l: Lang) {
+  localStorage.setItem(LANG_KEY, l);
+  window.location.reload();
+}
+
+/** Phrase dans une langue donnée (écran du choix de la langue, qui montre les deux). */
+export function tIn(l: Lang, key: MessageKey): string {
+  const text = key.split(".").reduce<unknown>((o, k) => (o as Record<string, unknown>)?.[k], ALL[l]);
+  return typeof text === "string" ? text : key;
+}
+
+export const lang: Lang = savedLang() ?? systemLang;
 const messages = ALL[lang];
 
 export function t(key: MessageKey, vars?: Record<string, string | number>): string {

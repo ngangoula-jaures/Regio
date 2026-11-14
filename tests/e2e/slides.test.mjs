@@ -37,6 +37,7 @@ const library = {
 try {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "fr-FR" });
   const app = await ctx.newPage();
+  await app.addInitScript(() => localStorage.getItem("regio.lang") || localStorage.setItem("regio.lang", "fr")); // langue déjà choisie
   app.on("pageerror", (e) => errors.push("régie : " + e.message));
   await app.goto(BASE);
   await app.evaluate((lib) => {

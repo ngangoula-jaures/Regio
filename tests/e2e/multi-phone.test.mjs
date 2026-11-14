@@ -37,6 +37,7 @@ const syncReceivers = setInterval(async () => {
 
 try {
   const app = await (await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "fr-FR" })).newPage();
+  await app.addInitScript(() => localStorage.getItem("regio.lang") || localStorage.setItem("regio.lang", "fr")); // langue déjà choisie
   await app.goto(BASE);
   await app.evaluate(() => localStorage.clear());
   await app.reload();
