@@ -15,7 +15,7 @@ affiches/annonces, diapos type PowerPoint (avec import .pptx), une ou plusieurs 
 **Nom définitif : Regio** (choisi le 2026-11-12). « Regi » écarté : trop proche de **Resi** (resi.io), entreprise
 américaine de diffusion de cultes. `regio.app` pris ; `getregio.app` et `regio.church` semblent libres (à confirmer).
 **Dépôt GitHub : https://github.com/ngangoula-jaures/Regio** (branche `main`, SSH). **PUBLIC depuis le 2026-11-13**
-(décision de l'utilisateur, pour la v0.1). **Version 0.1.0 publiée** : https://github.com/ngangoula-jaures/Regio/releases/tag/v0.1.0
+(décision de l'utilisateur, pour la v0.1). **Version 0.2.0 publiée le 2026-11-21** (mises à jour automatiques ; build CI, brouillon vérifié puis publié) : https://github.com/ngangoula-jaures/Regio/releases/tag/v0.2.0 ; 0.1.0 : https://github.com/ngangoula-jaures/Regio/releases/tag/v0.1.0
 (installeur + empreinte SHA-256 ; GitHub CLI `C:\Program Files\GitHub CLI\gh.exe` connecté au compte de l'utilisateur).
 SignPath Foundation : **REFUSÉ le 2026-11-14** (projet pas encore assez visible : étoiles, contributeurs, articles…
 « vous pouvez recandidater plus tard ») ; mention SignPath retirée du README. Installeur toujours non signé

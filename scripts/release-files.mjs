@@ -12,7 +12,8 @@ if (!version || !sigFile || !outDir) {
 const repo = "https://github.com/ngangoula-jaures/Regio";
 
 // Notes : la section « ## [version] » du CHANGELOG, jusqu'à la section suivante.
-const changelog = fs.readFileSync(new URL("../CHANGELOG.md", import.meta.url), "utf8");
+// (fins de ligne normalisées : sous Windows, Git peut extraire le fichier en CRLF.)
+const changelog = fs.readFileSync(new URL("../CHANGELOG.md", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const start = changelog.search(new RegExp(`^## \\[?${version.replace(/\./g, "\\.")}\\]?`, "m"));
 let notes = "";
 if (start >= 0) {
