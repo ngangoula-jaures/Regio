@@ -377,6 +377,16 @@ export const en: Messages = {
     soundOk: "sound is coming in",
     soundNone: "no sound",
   },
+  updates: {
+    title: "New version of Regio: {version}",
+    help: "Improvements and fixes. A few MB to download; your programmes and settings are kept.",
+    install: "Install now",
+    later: "Later",
+    downloading: "Downloading… {percent}%",
+    installing: "Installing: Regio will close and reopen by itself.",
+    error: "The update could not be downloaded (connection?). Regio works normally.",
+    retry: "Try again",
+  },
   language: {
     title: "Choose your language",
     help: "Regio's whole interface will be shown in this language.",

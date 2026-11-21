@@ -114,6 +114,10 @@ impl ObsManager {
 
         if !exe.exists() {
             self.install(&app, &base, &root).await?;
+        } else if let Some(zip) = bundled_zip(&app) {
+            // Moteur déjà en place (réinstallation par-dessus une version précédente) : l'archive livrée ne sert à
+            // rien, on libère ses 224 Mo.
+            let _ = fs::remove_file(zip);
         }
 
         // Un OBS laissé par un Regio fermé de force (ou planté) tournerait encore, caché : il occuperait

@@ -45,7 +45,7 @@ Regio est pensé pour **peu de matériel** (un téléphone suffit comme caméra)
 2. Lancez-le. Tant que l'installeur n'est pas signé, Windows affiche « Windows a protégé votre ordinateur » : cliquez sur **Informations complémentaires**, puis **Exécuter quand même**.
 3. Ouvrez **Regio** depuis le menu Démarrer. Le moteur vidéo (OBS Studio, inclus) se met en place tout seul en quelques secondes, **sans Internet**.
 
-L'installation ne demande pas de droits administrateur. Si un composant Windows manque (Visual C++), l'installeur l'ajoute et Windows demande alors l'autorisation.
+Ensuite, **Regio se met à jour tout seul** : au démarrage, il propose les nouvelles versions (quelques Mo). L'installation ne demande pas de droits administrateur. Si un composant Windows manque (Visual C++), l'installeur l'ajoute et Windows demande alors l'autorisation.
 
 ## Premiers pas
 
@@ -59,7 +59,7 @@ L'installation ne demande pas de droits administrateur. Si un composant Windows 
 
 ## État du projet
 
-**Version 0.1** : la première version utilisable, testée sur du vrai matériel (webcam, plusieurs téléphones, télé en HDMI, direct Facebook réel avec son). Prochaines étapes : YouTube et diffusion sur plusieurs réseaux en même temps, signature de l'installeur, puis le mode « modifiable » de l'import PowerPoint (sans PowerPoint installé).
+**Version 0.2** : la première version utilisable, testée sur du vrai matériel (webcam, plusieurs téléphones, télé en HDMI, direct Facebook réel avec son). Prochaines étapes : YouTube et diffusion sur plusieurs réseaux en même temps, signature de l'installeur, puis le mode « modifiable » de l'import PowerPoint (sans PowerPoint installé).
 
 Les idées, retours et contributions sont les bienvenus : ouvrez une *issue*.
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Regio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "org.regio.app",
   "build": {
     "beforeDevCommand": "npm run dev:tauri",
@@ -35,5 +35,16 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDg0QTM0NDQ2MUZBMTM1RDQKUldUVU5hRWZSa1NqaEQ1T2NKaFdmd2FmNnRvM1k0VTNXbVdsZi9lVmRoZW56bTVkcm9BbUh4YXIK",
+      "endpoints": [
+        "https://github.com/ngangoula-jaures/Regio/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

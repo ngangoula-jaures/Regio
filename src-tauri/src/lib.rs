@@ -70,6 +70,7 @@ fn free_space(_dir: &std::path::Path) -> Option<u64> {
 pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let server = tauri::async_runtime::block_on(server::start(app.handle().clone()))?;
             app.manage(server);

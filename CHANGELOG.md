@@ -1,5 +1,25 @@
 # Nouveautés · Changelog
 
+## 0.2.0 — après le premier culte en conditions réelles (novembre 2026)
+
+**Mises à jour automatiques**
+- Au démarrage, s'il y a Internet, Regio **propose** la nouvelle version (« Installer maintenant » / « Plus tard ») : quelques Mo à télécharger, programmes et réglages gardés. Jamais pendant un direct. *À partir de cette version : la 0.1.0 doit être remplacée une fois à la main.*
+
+**Télé de la salle, comme EasyWorship**
+- **Regio à l'écran / Masqué** (touche **T**) : un direct Facebook (ou toute page) étendu sur la télé peut passer devant Regio ; revenir dans Regio le refait passer devant. « Masqué » : plus rien de Regio sur la télé.
+- La fenêtre de projection se rouvre toute seule si elle est fermée par erreur.
+
+**Caméra du téléphone**
+- **Image nette même en mouvement** : la caméra ne s'effondre plus en 320×180 quand on bouge ou zoome (débit minimum garanti sur le réseau local, résolution gardée). 720p par défaut.
+- **Zoom** pendant le direct : pincer l'image, curseur, ou 1× / 2× / 3× (Android ; iPhone selon la version d'iOS).
+- L'avertissement « Votre connexion n'est pas privée » du premier scan est expliqué sous le QR code.
+
+**Premier lancement et confort**
+- **Choix de la langue** (français / anglais) au premier lancement ; la langue de Windows n'est qu'une suggestion.
+- Mise en place du moteur vidéo avec **progression en %** (« ne fermez pas Regio »).
+- Direct : encodeurs réglés en mode qualité (même débit, image plus nette).
+- Corrections d'affichage (cartes des caméras, boutons).
+
 ## 0.1.0 — première version (novembre 2026)
 
 **La régie**

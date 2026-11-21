@@ -557,3 +557,13 @@ button.cam:hover { border-color: #3a4775; }
 .rehearsal-bar strong { color: var(--regio-attention); }
 .rehearsal-bar .btn { border-color: rgba(245, 180, 81, .55); color: var(--regio-ivoire); }
 @media (max-width: 1280px) { .rehearsal-btn { padding: 0 10px; } }
+
+/* Écran de démarrage : nouvelle version disponible (proposée, jamais imposée). */
+.update-card { display: flex; align-items: center; gap: 14px; width: min(560px, 100%); padding: 14px 16px; text-align: left; }
+.update-card > svg { flex: none; color: var(--regio-pret); }
+.update-text { display: grid; gap: 4px; flex: 1; min-width: 0; }
+.update-text strong { font-size: var(--regio-texte-md); }
+.update-text span { font-size: var(--regio-texte-sm); color: var(--regio-texte-doux); line-height: 1.45; }
+.update-bar { display: block; height: 6px; border-radius: 99px; background: var(--regio-nuit-3); overflow: hidden; }
+.update-bar > span { display: block; height: 100%; background: var(--regio-pret); transition: width .3s ease; }
+.update-actions { display: flex; flex-direction: column; gap: 6px; flex: none; }

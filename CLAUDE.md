@@ -20,6 +20,18 @@ américaine de diffusion de cultes. `regio.app` pris ; `getregio.app` et `regio.
 SignPath Foundation : **REFUSÉ le 2026-11-14** (projet pas encore assez visible : étoiles, contributeurs, articles…
 « vous pouvez recandidater plus tard ») ; mention SignPath retirée du README. Installeur toujours non signé
 (SmartScreen : « Exécuter quand même »). Pistes : recandidater quand Regio sera plus connu, ou certificat payant.
+**Mises à jour automatiques (v0.2.0, 2026-11-21)** : `tauri-plugin-updater` ; au démarrage (écran Démarrage SEULEMENT,
+jamais pendant un direct), `src/shared/updates.ts` lit `releases/latest/download/latest.json` sur GitHub et
+`src/screens/UpdateCard.tsx` PROPOSE « Installer maintenant / Plus tard » (progression, NSIS en mode `passive`).
+Deux installeurs par version : COMPLET (`tauri.installer.conf.json`, OBS + VC++ inclus, 1re installation) et LÉGER
+(`tauri.update.conf.json`, sans OBS, `createUpdaterArtifacts`) = `Regio_<v>_x64-update.exe` + `.sig`, référencé par
+`latest.json` (`scripts/release-files.mjs`, notes tirées du CHANGELOG). Clé de signature des MISES À JOUR (≠ signature
+Windows) : `C:\dev\regio-release\updater\regio-updater.key` + `.password` (HORS dépôt ; à SAUVEGARDER : perdue = plus
+aucune mise à jour possible pour les PC installés) ; clé publique dans `tauri.conf.json` ; dans la CI : secrets
+`TAURI_SIGNING_PRIVATE_KEY` et `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Sur un tag `v*`, la CI crée une version BROUILLON
+(à publier après vérification). La 0.1.0 n'a pas l'outil de mise à jour : remplacer une fois à la main.
+Test local de bout en bout : `C:\dev\regio-test\maj\` (configs `full-test.json` / `light-test.json` vers
+`http://127.0.0.1:8765`, `serve.mjs` joue GitHub).
 Construction par CI : `.github/workflows/installeur.yml` (GitHub Actions, windows-latest, à chaque tag `v*` ou à la
 demande) → artefact `regio-installeur-windows` ; 1er build réussi le 2026-11-14 (~12 min). Confidentialité : `PRIVACY.md`.
 Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app supprime les anciennes scènes/sources

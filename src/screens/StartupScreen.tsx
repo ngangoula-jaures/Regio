@@ -1,10 +1,13 @@
 // Écran 1 — Démarrage : Regio vérifie tout seul le moteur vidéo, l'écran de la salle et les caméras.
 
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { RegioMark } from "../components/Logo";
 import { StatusRow, type RowState } from "../components/StatusRow";
 import { longDate, t } from "../i18n";
 import { inTauri } from "../shared/server";
+import { appVersion } from "../shared/updates";
+import { UpdateCard } from "./UpdateCard";
 import { isWide, type Studio } from "../app/useStudio";
 
 function engineRow(s: Studio): { state: RowState; detail: string } {
@@ -20,6 +23,10 @@ function engineRow(s: Studio): { state: RowState; detail: string } {
 
 export function StartupScreen({ studio, onNext }: { studio: Studio; onNext: () => void }) {
   const ready = studio.link.kind === "on";
+  const [version, setVersion] = useState<string | null>(null);
+  useEffect(() => {
+    appVersion().then(setVersion);
+  }, []);
   const engine = engineRow(studio);
 
   const room = studio.monitors.find((m) => !m.primary);
@@ -54,12 +61,16 @@ export function StartupScreen({ studio, onNext }: { studio: Studio; onNext: () =
         <StatusRow state={roomRow.state} title={t("startup.room")} detail={roomRow.detail} />
         <StatusRow state={camRow.state} title={t("startup.cameras")} detail={camRow.detail} />
       </ul>
+      <UpdateCard />
       <div className="startup-foot">
         <button type="button" className="btn btn-primary btn-lg" onClick={onNext} disabled={!ready || cams === null}>
           {t("startup.next")}
           <ArrowRight size={20} strokeWidth={2.2} />
         </button>
-        <span className="startup-date">{t("common.serviceOf", { date: longDate() })}</span>
+        <span className="startup-date">
+          {t("common.serviceOf", { date: longDate() })}
+          {version && ` · Regio ${version}`}
+        </span>
       </div>
     </div>
   );

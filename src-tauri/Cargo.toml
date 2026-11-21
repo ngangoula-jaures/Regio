@@ -1,6 +1,6 @@
 [package]
 name = "regio"
-version = "0.1.0"
+version = "0.2.0"
 description = "Régie de culte : projection, diffusion en direct, Bible"
 authors = ["Service communication"]
 edition = "2024"
@@ -20,6 +20,8 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
+# Mises à jour automatiques (vérifiées par signature, proposées au démarrage)
+tauri-plugin-updater = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Serveur local (pages pour OBS, page du téléphone en HTTPS, signalisation WebRTC)

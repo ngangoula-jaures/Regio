@@ -383,6 +383,16 @@ export const fr = {
     soundOk: "le son arrive",
     soundNone: "aucun son",
   },
+  updates: {
+    title: "Nouvelle version de Regio : {version}",
+    help: "Améliorations et corrections. Quelques Mo à télécharger ; vos programmes et réglages sont gardés.",
+    install: "Installer maintenant",
+    later: "Plus tard",
+    downloading: "Téléchargement… {percent} %",
+    installing: "Installation : Regio va se fermer puis se rouvrir tout seul.",
+    error: "La mise à jour n'a pas pu être téléchargée (connexion ?). Regio fonctionne normalement.",
+    retry: "Réessayer",
+  },
   language: {
     title: "Choisissez votre langue",
     help: "Toute l'interface de Regio s'affichera dans cette langue.",

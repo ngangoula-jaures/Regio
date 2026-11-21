@@ -9,7 +9,9 @@
   ${If} $0 != 1
     ReadRegDWORD $0 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" "Installed"
   ${EndIf}
+  ; Installeur léger des mises à jour automatiques : pas de runtime livré (déjà installé avec la 1re version).
   ${If} $0 != 1
+  ${AndIf} ${FileExists} "$INSTDIR\resources\vc_redist.x64.exe"
     DetailPrint "Installation du runtime Visual C++ (nécessaire au moteur vidéo)…"
     ExecWait '"$INSTDIR\resources\vc_redist.x64.exe" /install /passive /norestart' $1
     DetailPrint "Runtime Visual C++ : code $1"
