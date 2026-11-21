@@ -201,8 +201,9 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
 - Page du téléphone (`src/phone/`) : charte Regio, textes FR/EN (langue du téléphone), icônes Lucide.
 - **Avertissement « Votre connexion n'est pas privée »** au 1er scan (certificat fait par Regio : aucun organisme ne
   certifie une adresse locale ; Chrome exige https pour la caméra). Décision de l'utilisateur (2026-11-21) : on GARDE
-  l'avertissement et on l'EXPLIQUE (encadré `.cert-help` sous chaque QR code, mots exacts de Chrome : « Paramètres
-  avancés › Continuer vers le site <ip> (dangereux) »). PAS d'installation du certificat sur les téléphones, PAS de
+  l'avertissement et on l'EXPLIQUE (simple note en petits caractères `.cert-note` sous chaque QR code — un encadré
+  rallongeait trop les cartes, refusé — mots exacts de Chrome : « Paramètres avancés », « Continuer vers le site <ip>
+  (dangereux) »). Cartes `.cam` en `minmax(0, 1fr)` : la carte du téléphone débordait (pilule « En attente… » coupée). PAS d'installation du certificat sur les téléphones, PAS de
   certificat officiel (domaine + service) : refusés, ne pas les reproposer.
 - Images : `object-fit: contain` en plein cadre (agrandies si plus petites). Télé réglée hors 16:9 (ex. 1024 × 768)
   → avertissement au démarrage et dans « Télé de la salle » (régler Windows en 1920 × 1080).
