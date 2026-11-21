@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { ArrowRight, Info, Power, Star, Video, VideoOff } from "lucide-react";
+import { ArrowRight, Info, Power, ShieldCheck, Star, Video, VideoOff } from "lucide-react";
 import { RegioLockup } from "../components/Logo";
 import { longDate, t } from "../i18n";
 import { phoneUrl } from "../shared/server";
@@ -100,7 +100,22 @@ function PhoneCard({ studio, id }: { studio: Studio; id: string }) {
         </div>
         <span className="pill pill-neutral">{t("sources.phoneWaiting")}</span>
       </div>
-      <p className="note">{t("sources.phoneFirstTime")}</p>
+      {url && (
+        // Chrome affiche « Votre connexion n'est pas privée » la 1re fois (certificat fait par Regio, pas par un
+        // organisme officiel) : on le dit AVANT, avec ses mots exacts, pour qu'un bénévole ne panique pas.
+        <div className="cert-help">
+          <ShieldCheck size={20} strokeWidth={1.8} />
+          <div>
+            <strong>{t("sources.certTitle")}</strong>
+            <p>{t("sources.certWhy")}</p>
+            <p>
+              {t("sources.certDo")} <span className="chrome-btn">{t("sources.certAdvanced")}</span> ›{" "}
+              <span className="chrome-btn">{t("sources.certContinue", { ip: ip ?? "" })}</span>
+            </p>
+            <p className="note">{t("sources.certRemember")}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
