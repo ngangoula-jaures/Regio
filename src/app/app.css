@@ -142,11 +142,15 @@ button.cam:hover { border-color: #3a4775; }
 .room-state.is-ok { color: var(--regio-pret); }
 .room-state.is-warn { color: var(--regio-attention); }
 .room-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 3px; border-radius: 10px; border: 1px solid var(--regio-nuit-3); background: var(--regio-nuit-profonde); flex: none; }
-.room-toggle button { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 12px; border-radius: 7px; color: var(--regio-ardoise); font-size: var(--regio-texte-md); font-weight: 600; white-space: nowrap; }
-.room-toggle button:hover { color: var(--regio-ivoire); }
-.room-toggle button.on { background: var(--regio-nuit-3); color: var(--regio-ivoire); }
+.room-toggle button { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: var(--regio-ardoise); font-size: var(--regio-texte-md); font-weight: 600; white-space: nowrap; transition: background .15s, color .15s; }
+.room-toggle button:hover { background: var(--regio-survol); color: var(--regio-ivoire); }
+.room-toggle button.on, .room-toggle button.on:hover { background: var(--regio-nuit-3); color: var(--regio-ivoire); }
+.room-toggle button:focus-visible { outline: 2px solid var(--regio-or); outline-offset: 1px; }
 .room-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--regio-ardoise); }
 .room-toggle button.on .room-dot { background: var(--regio-pret); }
+/* « Masqué » choisi : Regio n'est plus sur la télé → état « attention » (orange). */
+.room-toggle button.is-hidden.on { color: var(--regio-attention); }
+.room-toggle button.is-hidden.on .room-dot { background: var(--regio-attention); }
 .room-toggle kbd { margin: 0 6px 0 2px; }
 @media (max-width: 1280px) { .room-toggle kbd { display: none; } }
 .room-dialog { position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; width: 480px; padding: 20px; border-radius: 16px; background: var(--regio-nuit-2); border: 1px solid var(--regio-nuit-3); box-shadow: 0 16px 48px rgba(0, 0, 0, .5); display: grid; gap: 14px; }

@@ -95,7 +95,8 @@ export function RoomToggle({ studio }: { studio: Studio }) {
         <span className="room-dot" />
         {t("regie.roomOnScreen")}
       </button>
-      <button type="button" role="radio" aria-checked={!shown} className={!shown ? "on" : ""} onClick={() => studio.setRoomShown(false)}>
+      <button type="button" role="radio" aria-checked={!shown} className={`is-hidden ${!shown ? "on" : ""}`} onClick={() => studio.setRoomShown(false)}>
+        <span className="room-dot" />
         {t("regie.roomHidden")}
       </button>
       <kbd>T</kbd>
