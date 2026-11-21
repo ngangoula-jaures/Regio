@@ -41,6 +41,12 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
 **Open source** : licence **Apache-2.0** ; interface en **français + anglais** dès la 1re version publique
 (tous les textes dans des fichiers de langue, aucune chaîne en dur dans les composants).
 
+**Vidéos de présentation (VALIDÉES le 2026-11-21)** : 2 × 45 s en français, 16:9 + 9:16 — A « églises » (ambiance
+africaine, voix d'homme) et B « pour tous » (personnages mixtes, voix de femme). Sources : `design/video/` (README) ;
+voix-off (edge-tts, textes VALIDÉS mot pour mot par l'utilisateur dans `sound.json` : ne pas les reformuler) + musique
+Mixkit (« Africa » / « Fashion ») par `sound.py`. Copies : `C:\Users\VEDEM worker\Videos\Regio - vidéos de présentation\`.
+Leçons : photos de personnes élégantes, « premium » ; voix-off = récit enchaîné, pas des phrases détachées.
+
 ## Principes produit (non négociables)
 
 1. **Simplicité type PowerPoint.** Un bénévole qui n'a jamais vu le logiciel doit pouvoir
