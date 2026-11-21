@@ -227,6 +227,11 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   5. Direct Facebook flou/saccadé pendant le culte (mieux après) et image du TÉLÉPHONE floue en mouvement même en local :
      Wi-Fi de l'église saturé (fidèles connectés). Fait : téléphone en 720p par défaut (4,5 Mb/s ; 1080p 8 Mb/s si très
      bon Wi-Fi), encodeurs en mode qualité (QSV TU2, NVENC p5/hq/qres, AMF quality). Conseil : réseau dédié / câble.
+  5b. Mesuré par l'utilisateur le 2026-11-21 (ligne d'infos du téléphone) : immobile ~4,6 Mb/s mais bloqué en 640×360 ;
+     en mouvement 0,2–0,3 Mb/s et 320×180 ; zoom 2× → 0,1 Mb/s. Cause : contrôle de congestion WebRTC (fait pour
+     Internet) qui prend le retard du Wi-Fi pour une saturation. FAIT : `localBitrates` (signal.ts) ajoute à la réponse
+     reçue par le téléphone x-google-min/start/max-bitrate (720p 2200/4000/4500, 1080p 4000/6500/8000 kb/s) ;
+     `degradationPreference: "maintain-resolution"` + `contentHint = "detail"`. À CONFIRMER sur le vrai téléphone.
   6. Zoom du téléphone (caméraman) → FAIT le 2026-11-21 (maquette validée) : `Phone.tsx` lit
      `track.getCapabilities().zoom` ; pincer l'image, curseur vertical, raccourcis 1×/2×/3× (et 0,5× si possible) ;
      `applyConstraints({ advanced: [{ zoom }] })` regroupé ; sinon « Le zoom n'est pas disponible sur ce téléphone ».
