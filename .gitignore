@@ -27,3 +27,8 @@ dist-ssr
 .cert/
 *.tsbuildinfo
 src-tauri/resources/
+
+# Vidéos exportées (lourdes) : copiées dans C:\dev\regio-release\videos
+design/video/out/
+design/video/photos/
+design/video/assets/

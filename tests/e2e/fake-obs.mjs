@@ -75,7 +75,8 @@ export function startFakeObs(port = 4466) {
             r = { propertyItems: [{ itemName: "Par défaut", itemValue: "default", itemEnabled: true }, { itemName: "Microphone (USB-Audio-1.0)", itemValue: "usb1", itemEnabled: true }, { itemName: "Entrée ligne (Focusrite USB Audio)", itemValue: "focusrite", itemEnabled: true }] };
             break;
           }
-          r = { propertyItems: [{ itemName: "Cam Link 4K", itemValue: "camlink:1", itemEnabled: true }, { itemName: "Webcam intégrée HP TrueVision HD Camera", itemValue: "int:0", itemEnabled: true }] };
+          // (state.videoDevices : noms de caméras de démonstration, pour les vidéos de présentation)
+          r = { propertyItems: state.videoDevices ?? [{ itemName: "Cam Link 4K", itemValue: "camlink:1", itemEnabled: true }, { itemName: "Webcam intégrée HP TrueVision HD Camera", itemValue: "int:0", itemEnabled: true }] };
           break;
         case "GetMonitorList":
           r = { monitors: [{ monitorIndex: 0, monitorWidth: 1920, monitorHeight: 1080, monitorPositionX: 0, monitorPositionY: 0 }, { monitorIndex: 1, monitorWidth: 1280, monitorHeight: 720, monitorPositionX: 1920, monitorPositionY: 0 }] };
