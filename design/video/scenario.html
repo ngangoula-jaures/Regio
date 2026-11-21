@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regio — Scénario vidéos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=Source+Serif+4:wght@500&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday, warm and confident: a storyboard a church comms volunteer validates in two minutes
+   IDEA a film storyboard sheet: numbered frames with timecodes, each frame drawn in Regio's own colours
+   PICTURE the frames themselves (16:9 thumbnails of each shot), one row per shot, two films side by side via tabs
+   COLOUR Regio tokens: night blue ground, ivory ink, gold for the one accent per frame, red only for « en direct »
+   TYPE Sora titles, Inter text, Source Serif for the Bible verse frame
+   LAYOUT title + tabs on top; then a timeline bar; then the shot list (frame left, text right); stacks on phones */
+:root{color-scheme:dark;--nuit:#0e1530;--nuit2:#18213f;--nuit3:#253055;--prof:#111933;--or:#e8b44c;--ivoire:#f6f2e8;--ardoise:#9aa3bf;--doux:#c9cedd;--bord:#3a4568;--pret:#4cc38a;--direct:#ff6b6b}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;background:var(--nuit);color:var(--ivoire)}
+body{font:16px/1.55 Inter,"Segoe UI",system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Sora,Inter,sans-serif;letter-spacing:-.02em;line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(30px,4vw,44px)}
+h2{font-size:clamp(22px,2.6vw,28px)}
+p{margin:0}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:24px}
+.lead{color:var(--doux);max-width:72ch;font-size:17px}
+.note{color:var(--ardoise);font-size:14px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tabs button{min-height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--bord);background:transparent;color:var(--doux);font:600 15px Inter,sans-serif;cursor:pointer}
+.tabs button.on{background:var(--ivoire);color:var(--nuit);border-color:var(--ivoire)}
+.tabs button:focus-visible{outline:2px solid var(--or);outline-offset:2px}
+.meta{display:flex;gap:10px;flex-wrap:wrap}
+.chip{font:600 13px Inter,sans-serif;padding:5px 11px;border-radius:99px;background:var(--nuit3);color:var(--doux)}
+.timeline{display:flex;height:34px;border-radius:10px;overflow:hidden;border:1px solid var(--nuit3)}
+.timeline span{display:grid;place-items:center;font:600 12px Inter,sans-serif;color:var(--doux);border-right:1px solid var(--nuit);background:var(--nuit2);white-space:nowrap;overflow:hidden}
+.timeline span:nth-child(odd){background:var(--nuit3)}
+.shots{display:grid;gap:14px}
+.shot{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:22px;align-items:start;padding:14px;border-radius:16px;background:var(--nuit2);border:1px solid var(--nuit3)}
+.frame{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:radial-gradient(120% 100% at 50% 20%,#1d2a5c,var(--nuit));display:grid;place-items:center;text-align:center;padding:8%}
+.frame .big{font:700 clamp(15px,1.8vw,22px)/1.15 Sora,sans-serif}
+.frame .small{font:500 11px Inter,sans-serif;color:var(--doux);margin-top:6px}
+.frame .gold{color:var(--or)}
+.frame .serif{font:500 15px/1.35 "Source Serif 4",Georgia,serif}
+.frame .live{display:inline-flex;align-items:center;gap:6px;background:var(--direct);color:var(--nuit);font:700 11px Inter,sans-serif;padding:3px 8px;border-radius:99px}
+.frame .chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+.frame .chips i{font:600 10px Inter,sans-serif;font-style:normal;padding:3px 8px;border-radius:99px;background:var(--nuit3);color:var(--doux)}
+.frame .logo{display:inline-flex;align-items:center;gap:8px;font:600 24px Sora,sans-serif}
+.frame .logo b{width:30px;height:23px;border:3px solid var(--ivoire);border-radius:7px;position:relative}
+.frame .logo b::after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:var(--or);top:2px;right:4px}
+.frame .ui{width:100%;height:100%;display:grid;grid-template-columns:24% 1fr 26%;gap:4%;padding:0}
+.frame .ui div{border-radius:4px;background:var(--nuit3)}
+.frame .ui div.cam{background:linear-gradient(160deg,#5b4a36,#241b12)}
+.frame .ui div.gold{background:var(--or)}
+.frame .tc{position:absolute;left:8px;top:8px;font:600 11px Inter,sans-serif;background:rgba(14,21,48,.85);padding:2px 7px;border-radius:6px;color:var(--doux)}
+.txt{display:grid;gap:8px;align-content:start}
+.txt h3{font-size:18px}
+.txt .on{font:600 16px Inter,sans-serif;color:var(--ivoire)}
+.txt .on::before{content:"À l'écran : ";color:var(--ardoise);font-weight:500}
+.txt .how{color:var(--doux);font-size:15px}
+.txt .v{color:var(--ardoise);font-size:14px}
+.ask{border:1px dashed var(--or);border-radius:14px;padding:16px 18px;display:grid;gap:6px}
+.ask strong{color:var(--or)}
+.ask li{color:var(--doux)}
+.formats{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:18px;align-items:end}
+.f169{aspect-ratio:16/9}.f916{aspect-ratio:9/16;max-height:300px;justify-self:start}
+.fmt{border-radius:12px;border:2px solid var(--bord);display:grid;place-items:center;text-align:center;color:var(--doux);font:600 14px Inter,sans-serif;padding:12px;background:var(--nuit2)}
+@media(max-width:700px){.shot{grid-template-columns:minmax(0,1fr)}.timeline span{font-size:0}.formats{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<section class="band">
+  <div class="wrap">
+    <h1>Deux vidéos de 45 secondes pour faire connaître Regio</h1>
+    <p class="lead">Le scénario plan par plan, à valider avant fabrication. Chaque vidéo existe en vertical (TikTok, Reels, Statuts) et en horizontal (Facebook, YouTube). Pas de voix : les textes racontent, la musique s'ajoute au moment de publier.</p>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-a" class="on" aria-selected="true">Vidéo A · Églises, ouverte aux autres</button>
+      <button type="button" role="tab" id="tab-b" aria-selected="false">Vidéo B · Pour tout le monde</button>
+    </div>
+    <div class="meta" id="meta"></div>
+    <div class="timeline" id="timeline" aria-hidden="true"></div>
+    <div class="shots" id="shots"></div>
+
+    <h2>Les deux formats</h2>
+    <div class="formats">
+      <div class="fmt f169">16:9 horizontal · 1920 × 1080<br>Facebook, YouTube, LinkedIn<br>L'interface de Regio en grand, les textes à côté.</div>
+      <div class="fmt f916">9:16 vertical · 1080 × 1920<br>TikTok, Reels, Statuts<br>Textes en haut, interface recadrée au centre.</div>
+    </div>
+
+    <div class="ask">
+      <strong>À valider</strong>
+      <ul>
+        <li>Les textes de chaque plan (on peut tout reformuler).</li>
+        <li>Vidéo B : « En direct sur Facebook, YouTube bientôt » vous convient ? (YouTube n'est pas encore fait : je ne l'annonce pas comme disponible.)</li>
+        <li>Le lien final : la page GitHub de Regio, ou un autre lien (page Facebook de Regio, site…) ?</li>
+        <li>Les images de l'interface montrent un contenu de démonstration (programme, verset, caméras simulées) : aucun visage ni logo d'église réels.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<script>
+{
+  const F = {
+    title: (big, small = "", gold = false) => `<div><div class="big ${gold ? "gold" : ""}">${big}</div>${small ? `<div class="small">${small}</div>` : ""}</div>`,
+    chips: (list) => `<div class="chips">${list.map((c) => `<i>${c}</i>`).join("")}</div>`,
+    logo: (small) => `<div><span class="logo"><b></b>regio</span><div class="small">${small}</div></div>`,
+    ui: () => `<div class="ui"><div></div><div class="cam"></div><div><div class="gold" style="height:30%;margin-top:40%"></div></div></div>`,
+    verse: () => `<div><div class="serif">« Car Dieu a tant aimé le monde… »</div><div class="small gold">Jean 3:16</div></div>`,
+    live: (txt) => `<div><span class="live">● EN DIRECT</span><div class="big" style="margin-top:8px">${txt}</div></div>`,
+  };
+  const films = {
+    a: {
+      meta: ["45 s", "Français", "Églises d'abord, ouverte à tous", "2 formats"],
+      shots: [
+        { t: "0–3 s", h: "L'accroche", on: "Dimanche, 9 h 58. Le culte commence dans 2 minutes.", how: "Texte qui s'écrit, horloge qui avance. Tension.", f: () => F.title("Dimanche, 9 h 58.", "Le culte commence dans 2 minutes.") },
+        { t: "3–8 s", h: "Le problème", on: "PowerPoint. OBS. Facebook Live. La Bible. La caméra… Trop d'outils. Un seul bénévole.", how: "Les noms des outils arrivent de partout et s'empilent, puis se figent.", f: () => F.chips(["PowerPoint", "OBS", "Facebook Live", "La Bible", "La caméra", "Les annonces"]) },
+        { t: "8–11 s", h: "Regio apparaît", on: "Regio. La régie de vos cultes et de vos directs.", how: "Les outils se rangent dans l'écran du logo ; le point d'or s'allume.", f: () => F.logo("La régie de vos cultes et de vos directs") },
+        { t: "11–17 s", h: "Le culte, préparé en moments", on: "Préparez le culte en moments. Le jour J : Suivant.", how: "La vraie régie : Écran d'attente, Louange, Prédication… Un appui sur Suivant, le chant passe à l'écran.", f: () => F.ui() },
+        { t: "17–22 s", h: "La Bible intégrée", on: "La Bible complète, même sans Internet.", how: "On tape « jn 3 16 » : le verset apparaît en grand sur la télé de la salle.", f: () => F.verse() },
+        { t: "22–27 s", h: "Le téléphone devient caméra", on: "Un téléphone devient une caméra. Sans application.", how: "Un QR code, un téléphone le scanne, sa vignette s'allume dans la régie.", f: () => F.title("Scannez. Filmez.", "Un téléphone = une caméra") },
+        { t: "27–32 s", h: "Projeter et diffuser", on: "Projetez dans la salle. Diffusez en direct sur Facebook.", how: "Split : la télé de l'église et le direct Facebook, la même image.", f: () => F.live("Salle + Facebook") },
+        { t: "32–37 s", h: "Les garanties", on: "Gratuit · Open source · Hors ligne · PC modestes · Jamais d'écran noir", how: "Les mots s'allument un par un, comme des voyants.", f: () => F.chips(["Gratuit", "Open source", "Hors ligne", "PC modestes", "Jamais d'écran noir"]) },
+        { t: "37–41 s", h: "Ouvert aux autres", on: "Et aussi pour vos conférences, associations, lives…", how: "Le mot « culte » glisse et laisse place à « conférence », « live », « événement ».", f: () => F.title("Et aussi pour vos conférences, associations, lives…") },
+        { t: "41–45 s", h: "L'appel", on: "Téléchargez Regio, gratuitement. Lien dans la description.", how: "Logo, lien, fin sur le point d'or.", f: () => F.logo("Gratuit · github.com/ngangoula-jaures/Regio") },
+      ],
+    },
+    b: {
+      meta: ["45 s", "Français", "Neutre : streamers, créateurs, associations, églises", "2 formats"],
+      shots: [
+        { t: "0–3 s", h: "L'accroche", on: "Un live. Trois caméras. Une seule personne.", how: "Trois cadres apparaissent un par un, une silhouette seule au milieu.", f: () => F.title("Un live. Trois caméras.", "Une seule personne.") },
+        { t: "3–7 s", h: "Regio apparaît", on: "Regio. La régie de vos directs. Simple. Gratuite.", how: "Les trois cadres se rangent dans le logo.", f: () => F.logo("La régie de vos directs") },
+        { t: "7–13 s", h: "Changer de caméra", on: "Changez de caméra d'un clic. Touches 1 à 6.", how: "La vraie rangée de caméras ; 1, 2, 3 : l'image à l'écran bascule avec un fondu.", f: () => F.ui() },
+        { t: "13–18 s", h: "Le téléphone devient caméra", on: "Vos téléphones deviennent des caméras. Sans application.", how: "QR code → téléphone → vignette « Téléphone 2 » dans la régie.", f: () => F.title("Scannez. Filmez.", "Jusqu'à 4 téléphones") },
+        { t: "18–24 s", h: "Tout votre contenu", on: "Textes, images, PowerPoint, PDF : à l'écran en un clic.", how: "Un bandeau de texte glisse sur la caméra, puis une diapo en plein écran.", f: () => F.title("Textes · Images · PowerPoint · PDF") },
+        { t: "24–29 s", h: "Le son suit l'image", on: "Le son suit l'image. Ou gardez le micro que vous voulez.", how: "Le vumètre bouge ; le petit cadenas « Garder ce son » se ferme.", f: () => F.title("Le son suit l'image") },
+        { t: "29–33 s", h: "En direct", on: "En direct sur Facebook. YouTube bientôt.", how: "Bouton « Passer en direct », puis ● EN DIRECT 00:00:12.", f: () => F.live("Facebook · YouTube bientôt") },
+        { t: "33–38 s", h: "Les garanties", on: "Gratuit · Open source · Hors ligne · PC modestes", how: "Les mots s'allument un par un.", f: () => F.chips(["Gratuit", "Open source", "Hors ligne", "PC modestes", "Connexion faible"]) },
+        { t: "38–41 s", h: "Pour qui", on: "Streamers, créateurs, associations, églises.", how: "Quatre mots qui défilent, chacun avec son icône.", f: () => F.chips(["Streamers", "Créateurs", "Associations", "Églises", "Événements"]) },
+        { t: "41–45 s", h: "L'appel", on: "Téléchargez Regio, gratuitement. Lien dans la description.", how: "Logo, lien, fin sur le point d'or.", f: () => F.logo("Gratuit · github.com/ngangoula-jaures/Regio") },
+      ],
+    },
+  };
+  const secs = (t) => { const [a, b] = t.replace(" s", "").split("–").map(Number); return b - a; };
+  const show = (k) => {
+    const film = films[k];
+    document.getElementById("meta").innerHTML = film.meta.map((m) => `<span class="chip">${m}</span>`).join("");
+    document.getElementById("timeline").innerHTML = film.shots.map((s, i) => `<span style="flex:${secs(s.t)}">${i + 1}</span>`).join("");
+    document.getElementById("shots").innerHTML = film.shots
+      .map((s, i) => `<article class="shot"><div class="frame"><span class="tc">${i + 1} · ${s.t}</span>${s.f()}</div>
+        <div class="txt"><h3>${i + 1}. ${s.h}</h3><p class="on">${s.on}</p><p class="how">${s.how}</p><p class="v">${s.t}</p></div></article>`)
+      .join("");
+    for (const id of ["a", "b"]) {
+      const b = document.getElementById("tab-" + id);
+      b.classList.toggle("on", id === k);
+      b.setAttribute("aria-selected", id === k);
+    }
+  };
+  document.getElementById("tab-a").addEventListener("click", () => show("a"));
+  document.getElementById("tab-b").addEventListener("click", () => show("b"));
+  show(location.hash === "#video-b" ? "b" : "a");
+}
+</script>
+</body>
+</html>
