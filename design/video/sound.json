@@ -1,0 +1,34 @@
+{
+  "a": {
+    "voice": "fr-FR-RemyMultilingualNeural",
+    "music": { "title": "Africa", "url": "https://assets.mixkit.co/music/218/218.mp3", "offset": 6 },
+    "lines": [
+      [0.3, 4.4, "Dimanche, neuf heures cinquante-huit. Le culte commence dans deux minutes."],
+      [4.6, 8.1, "Projecteur, caméra, direct… pour un seul bénévole."],
+      [8.4, 11.0, "Voici Régio : la régie de vos cultes et de vos directs."],
+      [11.4, 16.8, "Préparez votre culte en moments. Le jour J, un seul bouton : Suivant."],
+      [17.3, 21.8, "La Bible complète, toujours sous la main, même sans Internet."],
+      [22.3, 26.8, "Un téléphone devient une caméra : un QR code, aucune application."],
+      [27.3, 31.8, "Projetez dans la salle, et diffusez votre culte en direct."],
+      [32.3, 36.8, "Gratuit, open source, hors ligne. Et jamais d'écran noir."],
+      [37.3, 40.9, "Et aussi pour vos conférences, vos associations, vos événements."],
+      [41.3, 44.6, "Téléchargez Régio gratuitement : lien dans la description."]
+    ]
+  },
+  "b": {
+    "voice": "fr-FR-VivienneMultilingualNeural",
+    "music": { "title": "Fashion", "url": "https://assets.mixkit.co/music/228/228.mp3", "offset": 15 },
+    "lines": [
+      [0.2, 3.2, "Un live, trois caméras, une seule personne."],
+      [3.3, 7.0, "Voici Régio : la régie de vos directs, simple et gratuite."],
+      [7.3, 12.8, "Changez de caméra d'un simple clic… ou au clavier."],
+      [13.3, 17.8, "Vos téléphones deviennent des caméras : jusqu'à quatre, sans aucune application."],
+      [18.3, 23.8, "Textes, images, PowerPoint ou PDF : tout s'affiche en un clic."],
+      [24.3, 28.8, "Le son suit l'image. Ou gardez le micro de votre choix."],
+      [29.3, 32.8, "En direct sur Facebook. Et YouTube, très bientôt."],
+      [33.3, 37.8, "Gratuit, open source, hors ligne, et pensé pour les connexions faibles."],
+      [38.2, 41.0, "Créateurs, streamers, associations, églises."],
+      [41.4, 44.8, "Téléchargez Régio gratuitement. Lien dans la description."]
+    ]
+  }
+}

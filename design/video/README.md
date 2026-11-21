@@ -12,3 +12,6 @@ Fabrication (serveur de développement `npm run dev` lancé pour les captures) :
 4. `node design/video/render.mjs` : les 4 MP4 dans `design/video/out/` (non versionnés).
 
 `film.html?v=a&fmt=169&play=1` lit la vidéo en temps réel dans un navigateur (servie par `static.mjs`).
+5. `python3 design/video/sound.py` (`pip install edge-tts`) : voix-off + musique → `out/*-son.mp4`. Textes, horaires,
+   voix (Microsoft neuronales, via edge-tts : seul le texte est envoyé) et musiques (Mixkit, licence gratuite sans
+   attribution) dans `sound.json`. La musique baisse sous la voix ; volume final -14 LUFS (réseaux sociaux).
