@@ -164,7 +164,7 @@ try {
   await app.press("#bible-q", "Enter");
   await waitRender(".verse-text:has-text('mon berger')");
   await check((await app.textContent(".next-btn")).includes("Verset suivant"), "« ps 23 1 » : Psaume 23:1 affiché, lecture suivie (« Verset suivant »)");
-  await app.click("body", { position: { x: 700, y: 30 } });
+  await app.click("body", { position: { x: 330, y: 30 } });
   await app.keyboard.press("Space");
   await waitRender(".verse-text:has-text('verts pâturages')");
   await app.keyboard.press("ArrowLeft");
@@ -214,7 +214,7 @@ try {
   await check((await app.locator(".item-card.is-live:has-text('Culte de Noël')").count()) === 1 && (await app.textContent(".moment.is-selected")).includes("Prédication"),
     "le contenu à l'écran reste repéré après le déplacement ; ↑ n'a pas changé de moment");
   await check((await app.evaluate(() => document.activeElement?.closest(".item-card")?.textContent ?? "")).includes("Culte de Noël"), "la poignée garde le focus (on peut appuyer plusieurs fois)");
-  await app.locator("body").click({ position: { x: 700, y: 30 } });
+  await app.locator("body").click({ position: { x: 330, y: 30 } });
   const order = await labels();
 
   await app.click("text=+ Ajouter un moment");
@@ -246,7 +246,7 @@ try {
   await waitRender(".text-title:has-text('Culte de Noël')");
   await app.waitForSelector(".cam-tile.is-ready");
   await check((await app.textContent(".cam-tile.is-ready")).includes("PRÊTE"), "plein écran : la caméra choisie est « PRÊTE · sous le plein écran »");
-  await app.locator("body").click({ position: { x: 700, y: 30 } });
+  await app.locator("body").click({ position: { x: 330, y: 30 } });
   await app.keyboard.press("1");
   await app.waitForSelector(".cam-tile.is-on:has-text('Cam Link 4K')");
   await render.waitForTimeout(700);

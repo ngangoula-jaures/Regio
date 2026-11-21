@@ -25,7 +25,7 @@ import { CameraStrip, cameraLabel } from "./CameraStrip";
 import { TemplateChooser } from "./TemplateChooser";
 import { useLive } from "../app/useLive";
 import { HealthPanel, LiveBanners, LiveConfirmDialog, LiveEndedDialog, LiveHeader, LiveSetupDialog, LiveStopDialog, SoundMeter } from "./LiveControls";
-import { RoomButton } from "./RoomDialog";
+import { RoomButton, RoomToggle } from "./RoomDialog";
 import { ContentArea, verseContent, type Reading, type View } from "./ContentArea";
 
 /** Le contenu couvre-t-il tout l'écran (la caméra n'est plus visible dessous) ? */
@@ -223,8 +223,9 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
   };
 
   // Clavier : espace / → = suivant ; ← = précédent ; ↑ / ↓ = choisir le moment ; Échap = caméra.
-  const keys = useRef({ go, moveSel, cameraOnly, active, cams, pickCamera });
-  keys.current = { go, moveSel, cameraOnly, active: keysOn, cams, pickCamera };
+  const roomToggle = studio.projection.kind === "none" ? null : () => studio.setRoomShown(!studio.roomShown);
+  const keys = useRef({ go, moveSel, cameraOnly, active, cams, pickCamera, roomToggle });
+  keys.current = { go, moveSel, cameraOnly, active: keysOn, cams, pickCamera, roomToggle };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!keys.current.active) return;
@@ -247,6 +248,9 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
       } else if (e.key === "Escape") {
         e.preventDefault();
         keys.current.cameraOnly();
+      } else if ((e.key === "t" || e.key === "T") && !e.ctrlKey && !e.altKey && !e.metaKey && keys.current.roomToggle) {
+        e.preventDefault();
+        keys.current.roomToggle();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -379,6 +383,7 @@ export function RegieScreen({ studio, active = true, onSources }: { studio: Stud
           {t("regie.rehearsal")}
         </button>
         <RoomButton studio={studio} />
+        <RoomToggle studio={studio} />
         <LiveHeader
           blocked={studio.rehearsal}
           live={stream}

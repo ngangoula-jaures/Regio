@@ -56,6 +56,25 @@ button { font: inherit; color: inherit; border: 0; cursor: pointer; }
   padding: 4px 8px; border-radius: 6px; font-size: 11px; background: rgba(14, 21, 48, .7); color: var(--regio-texte-doux);
 }
 .toast { position: absolute; top: 64px; left: 12px; right: 12px; padding: 10px 14px; border-radius: 10px; background: rgba(120, 30, 30, .92); font-size: 14px; }
+/* Zoom : à droite, au-dessus des commandes ; pincer l'image marche aussi. */
+.preview { touch-action: none; }
+.zoom {
+  position: absolute; right: max(12px, env(safe-area-inset-right)); top: 64px; bottom: max(84px, calc(env(safe-area-inset-bottom) + 76px));
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+}
+.zoom > * { flex: none; }
+.zoom-value { padding: 3px 9px; border-radius: 99px; font-size: 13px; font-weight: 700; background: rgba(14, 21, 48, .82); }
+.zoom-range { writing-mode: vertical-lr; direction: rtl; width: 32px; height: clamp(60px, 22vh, 120px); accent-color: var(--regio-ivoire); }
+.zoom button {
+  width: 44px; height: 44px; border-radius: 50%; font-size: 13px; font-weight: 700;
+  background: rgba(24, 33, 63, .92); border: 1px solid var(--regio-nuit-3);
+}
+.zoom button.on { background: var(--regio-ivoire); color: var(--regio-nuit); }
+@media (max-height: 380px) { .zoom-range { display: none; } }
+.zoom-hint {
+  position: absolute; left: 50%; top: 50%; translate: -50% -50%; padding: 8px 14px; border-radius: 99px;
+  font-size: 14px; background: rgba(14, 21, 48, .85); color: var(--regio-texte-doux); pointer-events: none; text-align: center;
+}
 .controls {
   position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
   padding: 12px 12px max(14px, env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(14, 21, 48, .75));

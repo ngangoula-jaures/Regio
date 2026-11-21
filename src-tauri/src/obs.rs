@@ -94,6 +94,11 @@ impl ObsManager {
         }
     }
 
+    /// Processus du moteur vidéo (pour retrouver ses fenêtres de projection).
+    pub fn pid(&self) -> Option<u32> {
+        self.child.lock().unwrap().as_ref().map(|c| c.id())
+    }
+
     pub fn stop(&self) {
         self.quitting.store(true, Ordering::SeqCst);
         if let Some(mut child) = self.child.lock().unwrap().take() {

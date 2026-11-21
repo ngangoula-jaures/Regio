@@ -22,10 +22,38 @@ try {
   const phoneCtx = await browser.newContext({ ignoreHTTPSErrors: true, permissions: ["camera", "microphone"], viewport: { width: 800, height: 400 }, locale: "fr-FR" });
   const phone = await phoneCtx.newPage();
   phone.on("pageerror", (e) => errors.push("téléphone : " + e.message));
+  // La caméra simulée de Chromium n'a pas de zoom : on simule un téléphone qui en a un (1× à 5×).
+  await phone.addInitScript(() => {
+    const caps = MediaStreamTrack.prototype.getCapabilities;
+    MediaStreamTrack.prototype.getCapabilities = function () {
+      const c = caps ? caps.call(this) : {};
+      return this.kind === "video" ? { ...c, zoom: { min: 1, max: 5, step: 0.1 } } : c;
+    };
+    const apply = MediaStreamTrack.prototype.applyConstraints;
+    window.__zooms = [];
+    MediaStreamTrack.prototype.applyConstraints = function (c) {
+      const z = c?.advanced?.[0]?.zoom;
+      if (z !== undefined) {
+        window.__zooms.push(z);
+        return Promise.resolve();
+      }
+      return apply.call(this, c);
+    };
+  });
   await phone.goto(`${PHONE_BASE}/phone.html?cam=e2e`);
   await phone.click("text=Démarrer la caméra");
   await phone.waitForSelector(".status.live", { timeout: 15000 });
   console.log("✓ téléphone en direct :", (await phone.textContent(".status")).trim());
+
+  // Zoom pendant le direct.
+  await phone.waitForSelector(".zoom button:has-text('2')", { timeout: 5000 });
+  await phone.click(".zoom button:has-text('2')");
+  await phone.waitForFunction(() => window.__zooms.includes(2), null, { timeout: 3000 }).catch(() => {});
+  const zooms = await phone.evaluate(() => window.__zooms);
+  if (!zooms.includes(2)) await fail(`zoom 2× non demandé à la caméra : ${JSON.stringify(zooms)}`);
+  if (!(await phone.textContent(".zoom-value")).startsWith("2")) await fail("valeur du zoom non affichée");
+  console.log("✓ zoom : 2× demandé à la caméra du téléphone, valeur affichée");
+  await phone.screenshot({ path: process.env.SHOT_DIR ? `${process.env.SHOT_DIR}/phone-zoom.png` : "/dev/null" }).catch(() => {});
 
   await recv.waitForFunction(videoPlaying, null, { timeout: 15000 });
   console.log("✓ vidéo reçue :", await recv.evaluate(() => `${document.querySelector("video").videoWidth}×${document.querySelector("video").videoHeight}`));

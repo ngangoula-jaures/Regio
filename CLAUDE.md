@@ -211,7 +211,8 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   Aperçus réduits : `src/components/MiniScreen.tsx` (même mise en page que la sortie projetée).
 - Pas encore fait (ne pas l'afficher comme si ça marchait) : YouTube et les autres réseaux, multidiffusion (relais),
   « musique hors direct », import PowerPoint sans PowerPoint (mode « modifiable »), plusieurs programmes enregistrés,
-  écran de Réglages (dont le changement de langue), signature de l'installeur.
+  écran de Réglages (dont le changement de langue), signature de l'installeur. (Télé « Regio à l'écran / Masqué » et
+  zoom du téléphone : FAITS le 2026-11-21, voir « 1er test en conditions réelles ».)
 
 - **1er test en conditions réelles (culte du 2026-11-15, PC de l'église)** — retours de l'utilisateur :
   1. 1er lancement depuis l'installeur : moteur vidéo « bloqué » sur Installation → fermé/relancé. Cause probable :
@@ -219,17 +220,27 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
      Regio » (fait le 2026-11-21).
   2. « Utiliser cette caméra » sans effet au 2e lancement (1er démarrage d'OBS), OK au 3e : NON reproduit (pas de
      journaux de ce PC). Récupérer `%LOCALAPPDATA%\org.regio.app\obs\33.0.1\config\obs-studio\logs` si ça revient.
-  3. Caméra du PC à l'écran en entrant dans la régie sans l'avoir choisie ce jour-là : probablement le choix RETENU
-     (`regio.cameras.on`) des essais précédents → devenue principale d'office. À clarifier.
+  3. Caméra du PC à l'écran en entrant dans la régie sans l'avoir choisie ce jour-là : le choix RETENU
+     (`regio.cameras.on`) des essais ratés → allumée et devenue principale d'office (seule caméra prête avant le
+     téléphone). Expliqué à l'utilisateur (« Ne plus utiliser cette caméra » une fois) ; comportement inchangé.
   4. PC sans Visual C++ : installé par l'installeur, OK.
   5. Direct Facebook flou/saccadé pendant le culte (mieux après) et image du TÉLÉPHONE floue en mouvement même en local :
      Wi-Fi de l'église saturé (fidèles connectés). Fait : téléphone en 720p par défaut (4,5 Mb/s ; 1080p 8 Mb/s si très
      bon Wi-Fi), encodeurs en mode qualité (QSV TU2, NVENC p5/hq/qres, AMF quality). Conseil : réseau dédié / câble.
-  6. Zoom du téléphone demandé par le caméraman → maquette.
-  7. Superposition sur la télé comme EasyWorship (Regio par-dessus un direct Facebook étendu sur la télé ; un clic
-     l'affiche / le masque) → maquette https://claude.ai/artifact/ANmc92QuRAw7vEBkX3vYAv (copie `design/maquettes/tele-zoom/`),
-     EN ATTENTE de validation. Piste technique : Win32 depuis Rust sur la fenêtre de projection d'OBS (afficher/masquer,
-     passer devant), clé OBS `[BasicWindow] ProjectorAlwaysOnTop` dans user.ini existe aussi.
+  6. Zoom du téléphone (caméraman) → FAIT le 2026-11-21 (maquette validée) : `Phone.tsx` lit
+     `track.getCapabilities().zoom` ; pincer l'image, curseur vertical, raccourcis 1×/2×/3× (et 0,5× si possible) ;
+     `applyConstraints({ advanced: [{ zoom }] })` regroupé ; sinon « Le zoom n'est pas disponible sur ce téléphone ».
+     Test : `test:phone` (zoom simulé : la caméra factice de Chromium n'en a pas).
+  7. Télé « à la EasyWorship » → FAIT le 2026-11-21, maquette https://claude.ai/artifact/ANmc92QuRAw7vEBkX3vYAv
+     (copie `design/maquettes/tele-zoom/`) validée AVEC cette précision de l'utilisateur : « Regio à l'écran » = Regio
+     n'est PAS imposé : une page étendue sur la télé peut passer devant ; revenir dans Regio (focus de sa fenêtre) ou
+     afficher quelque chose le refait passer devant ; le bouton NE bascule PAS tout seul. « Masqué » = rien de Regio sur la
+     télé, quoi qu'on affiche, jusqu'au clic sur « Regio à l'écran ». `RoomToggle` (RoomDialog.tsx, touche T, visible
+     seulement s'il y a une projection) ; `useStudio.roomShown/setRoomShown` ; commande Rust `room_screen`
+     (`src-tauri/src/room.rs`, windows-sys : fenêtres du processus OBS dont le titre contient « Regio - Salle » ;
+     montrer = SW_SHOWNA + TOPMOST puis NOTOPMOST ; masquer = SW_HIDE, la fenêtre reste ouverte). Filet : toutes les 5 s,
+     si la fenêtre de projection a disparu, elle est rouverte. Vérifié dans la vraie application
+     (`C:\dev\regio-test\tele-real.mjs`, `debug.mjs` : Bloc-notes par-dessus puis Regio repasse devant, `watchdog.mjs`).
 
 ## Architecture
 

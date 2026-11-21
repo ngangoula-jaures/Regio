@@ -13,3 +13,11 @@ export type EngineState =
 export function getEngineState(): Promise<EngineState> {
   return invoke<EngineState>("obs_status");
 }
+
+/**
+ * Télé de la salle : `shown` = la projection de Regio passe devant les autres fenêtres de la télé (une page étendue
+ * peut ensuite repasser devant) ; sinon elle est cachée. Renvoie le nombre de fenêtres de projection trouvées.
+ */
+export function roomScreen(shown: boolean | null): Promise<number> {
+  return invoke<number>("room_screen", { shown });
+}

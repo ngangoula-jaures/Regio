@@ -8,7 +8,8 @@ import { isWide, type Studio } from "../app/useStudio";
 export function RoomButton({ studio }: { studio: Studio }) {
   const [open, setOpen] = useState(false);
   const p = studio.projection;
-  const state = p.kind === "monitor" ? t("regie.roomShown") : p.kind === "window" ? t("regie.roomTest") : t("regie.roomNone");
+  const hidden = p.kind !== "none" && !studio.roomShown;
+  const state = hidden ? t("regie.roomMasked") : p.kind === "monitor" ? t("regie.roomShown") : p.kind === "window" ? t("regie.roomTest") : t("regie.roomNone");
   const tvs = studio.monitors.filter((m) => !m.primary);
   const choose = async (fn: () => Promise<void>) => {
     setOpen(false);
@@ -28,7 +29,7 @@ export function RoomButton({ studio }: { studio: Studio }) {
       >
         <Tv size={18} strokeWidth={1.75} />
         {t("regie.room")}
-        <span className={`room-state ${p.kind === "none" ? "is-warn" : "is-ok"}`}>{state}</span>
+        <span className={`room-state ${p.kind === "none" || hidden ? "is-warn" : "is-ok"}`}>{state}</span>
       </button>
       {open && (
         <div className="room-dialog" role="dialog" aria-label={t("regie.roomTitle")}>
@@ -77,6 +78,27 @@ export function RoomButton({ studio }: { studio: Studio }) {
           <p className="note">{t("regie.roomHint")}</p>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * « Regio à l'écran » / « Masqué » (touche T), comme le bouton « Live » d'EasyWorship. À l'écran, une page étendue sur
+ * la télé peut passer devant Regio ; revenir dans Regio le fait repasser devant. Masqué : rien de Regio sur la télé.
+ */
+export function RoomToggle({ studio }: { studio: Studio }) {
+  if (studio.projection.kind === "none") return null;
+  const shown = studio.roomShown;
+  return (
+    <div className="room-toggle" role="radiogroup" aria-label={t("regie.room")} title={t("regie.roomToggleHelp")}>
+      <button type="button" role="radio" aria-checked={shown} className={shown ? "on" : ""} onClick={() => studio.setRoomShown(true)}>
+        <span className="room-dot" />
+        {t("regie.roomOnScreen")}
+      </button>
+      <button type="button" role="radio" aria-checked={!shown} className={!shown ? "on" : ""} onClick={() => studio.setRoomShown(false)}>
+        {t("regie.roomHidden")}
+      </button>
+      <kbd>T</kbd>
     </div>
   );
 }

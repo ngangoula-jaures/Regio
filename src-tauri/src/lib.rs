@@ -1,6 +1,7 @@
 mod live;
 mod obs;
 mod pptx;
+mod room;
 mod server;
 mod storage;
 
@@ -24,6 +25,13 @@ fn obs_status(obs: tauri::State<'_, Arc<obs::ObsManager>>) -> obs::ObsState {
 #[tauri::command]
 fn restart_engine(obs: tauri::State<'_, Arc<obs::ObsManager>>) {
     obs.restart();
+}
+
+/// Télé de la salle : `shown` = la projection passe devant les autres fenêtres de la télé ; `false` : elle est cachée ;
+/// absent : simple vérification. Renvoie le nombre de fenêtres de projection trouvées (0 : pas ouverte).
+#[tauri::command]
+fn room_screen(obs: tauri::State<'_, Arc<obs::ObsManager>>, shown: Option<bool>) -> usize {
+    obs.pid().map(|pid| room::apply(pid, shown)).unwrap_or(0)
 }
 
 /// Dossier des enregistrements (Vidéos\\Regio) et espace libre sur son disque (octets), pour prévenir l'utilisateur.
@@ -70,7 +78,7 @@ pub fn run() {
             app.manage(obs);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![server_info, obs_status, restart_engine, recordings_info, live::upload_test, storage::load_data, storage::save_data, storage::save_media, pptx::import_pptx])
+        .invoke_handler(tauri::generate_handler![server_info, obs_status, restart_engine, room_screen, recordings_info, live::upload_test, storage::load_data, storage::save_data, storage::save_media, pptx::import_pptx])
         .build(tauri::generate_context!())
         .expect("erreur au lancement de Regio");
 

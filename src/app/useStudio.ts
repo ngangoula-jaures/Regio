@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ObsController, PHONE_QR_PREFIX, type ConnectionSettings, type Monitor } from "../obs/obs";
 import { readCustomEvent, type Content } from "../shared/content";
 import { getServerInfo, inTauri, type ServerInfo } from "../shared/server";
-import { getEngineState, type EngineState } from "../shared/engine";
+import { getEngineState, roomScreen, type EngineState } from "../shared/engine";
 import { standby } from "./library";
 
 export type Link = { kind: "off" } | { kind: "connecting" } | { kind: "on" } | { kind: "error"; message: string };
@@ -76,10 +76,55 @@ export function useStudio() {
   const currentRef = useRef<{ id: number; content: Content }>({ id: 0, content: current });
   const [renderOnline, setRenderOnline] = useState(false);
 
+  // ---------- Télé de la salle : Regio à l'écran / Masqué (comme le bouton « Live » d'EasyWorship) ----------
+  // À l'écran : Regio n'est PAS imposé au premier plan ; une page étendue sur la télé peut passer devant, et Regio
+  // repasse devant dès qu'on revient dans Regio (ou qu'on affiche quelque chose). Masqué : rien de Regio sur la télé.
+  const [roomShown, setRoomShownState] = useState(true);
+  const projectToRef = useRef<((p: Projection) => Promise<void>) | null>(null);
+  const roomShownRef = useRef(true);
+  const applyRoom = useCallback(async () => {
+    if (!inTauri) return 0;
+    return roomScreen(roomShownRef.current).catch(() => 0);
+  }, []);
+  const setRoomShown = useCallback(
+    (shown: boolean) => {
+      roomShownRef.current = shown;
+      setRoomShownState(shown);
+      applyRoom();
+    },
+    [applyRoom],
+  );
+  /** Après l'ouverture d'une projection : sa fenêtre met un instant à exister. */
+  const applyRoomSoon = useCallback(async () => {
+    for (let i = 0; i < 10; i++) {
+      await new Promise((r) => window.setTimeout(r, 300));
+      if ((await applyRoom()) > 0) return;
+    }
+  }, [applyRoom]);
+  // Filet de sécurité : si la fenêtre de projection a disparu (fermée par erreur), on la rouvre.
+  useEffect(() => {
+    if (!inTauri) return;
+    const timer = window.setInterval(async () => {
+      const p = projectionRef.current;
+      if (p.kind === "none" || linkRef.current.kind !== "on") return;
+      if ((await roomScreen(null).catch(() => 1)) === 0) projectToRef.current?.(p).catch(() => {});
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    // Retour dans Regio (clic dans sa fenêtre, sur son icône…) : Regio reprend la télé, sauf si « Masqué ».
+    const onFocus = () => {
+      if (roomShownRef.current) applyRoom();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [applyRoom]);
+
   const show = useCallback(async (content: Content) => {
     const next = { id: currentRef.current.id + 1, content };
     currentRef.current = next;
     setCurrent(content);
+    if (roomShownRef.current) applyRoom();
     if (linkRef.current.kind !== "on") return;
     try {
       await obs.current.broadcast({ type: "regio.show", id: next.id, content });
@@ -126,7 +171,9 @@ export function useStudio() {
     setProjection(p);
     if (p.kind === "monitor") await obs.current.project(p.index);
     else if (p.kind === "window") await obs.current.projectWindowed();
-  }, []);
+    applyRoomSoon();
+  }, [applyRoomSoon]);
+  projectToRef.current = projectTo;
 
   const refreshMonitors = useCallback(async () => {
     const list = await obs.current.listMonitors();
@@ -361,6 +408,9 @@ export function useStudio() {
     refreshMonitors,
     projection,
     projectTo,
+    /** Télé de la salle : Regio à l'écran (true) ou Masqué (false). */
+    roomShown,
+    setRoomShown,
     cameras,
     /** Caméras du PC utilisées aujourd'hui (les autres sont éteintes). */
     activeCameras: (cameras ?? []).filter((c) => camerasOn.includes(c.label)),

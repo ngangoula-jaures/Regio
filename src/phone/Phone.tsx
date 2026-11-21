@@ -3,6 +3,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Play, RotateCcw, Smartphone, Square, SwitchCamera } from "lucide-react";
+
+/** Zoom de la caméra (fait par le téléphone lui-même : l'image reste nette). null : non pris en charge. */
+type ZoomRange = { min: number; max: number; step: number };
 import { SignalClient, preferH264, type SignalMessage } from "../shared/signal";
 import { t } from "../i18n";
 
@@ -30,6 +33,12 @@ export default function Phone() {
   const [signalOk, setSignalOk] = useState(false);
   const [portrait, setPortrait] = useState(false);
   const [stats, setStats] = useState<string | null>(null);
+  const [zoomRange, setZoomRange] = useState<ZoomRange | null>(null);
+  const [zoom, setZoomState] = useState(1);
+  const [zoomHint, setZoomHint] = useState<string | null>(null);
+  const zoomWanted = useRef<number | null>(null);
+  const zoomBusy = useRef(false);
+  const pinchRef = useRef<{ dist: number; zoom: number } | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -140,6 +149,7 @@ export default function Phone() {
     try {
       const stream = await openCamera(facing, quality);
       streamRef.current = stream;
+      readZoom(stream.getVideoTracks()[0], true);
       if (videoRef.current) videoRef.current.srcObject = stream;
       await requestWakeLock();
       setPhase("waiting");
@@ -268,9 +278,64 @@ export default function Phone() {
       stream.addTrack(newTrack);
       if (videoRef.current) videoRef.current.srcObject = stream;
       setFacing(next);
+      readZoom(newTrack, false);
     } catch (e) {
       setError(explain(e));
     }
+  }
+
+  // ---------- Zoom (Android/Chrome ; iPhone selon la version d'iOS) ----------
+
+  function readZoom(track: MediaStreamTrack | undefined, first: boolean) {
+    const caps = track?.getCapabilities?.() as (MediaTrackCapabilities & { zoom?: { min: number; max: number; step?: number } }) | undefined;
+    const z = caps?.zoom;
+    if (!z || !(z.max > z.min)) {
+      setZoomRange(null);
+      if (first) showZoomHint(t("phone.zoomUnavailable"));
+      return;
+    }
+    setZoomRange({ min: z.min, max: z.max, step: z.step || 0.1 });
+    const cur = (track?.getSettings() as MediaTrackSettings & { zoom?: number }).zoom;
+    setZoomState(cur ?? Math.max(1, z.min));
+    if (first) showZoomHint(t("phone.zoomHint"));
+  }
+
+  function showZoomHint(text: string) {
+    setZoomHint(text);
+    window.setTimeout(() => setZoomHint((h) => (h === text ? null : h)), 4000);
+  }
+
+  /** Demande un niveau de zoom ; les demandes rapprochées (pincement) sont regroupées. */
+  function setZoom(value: number) {
+    const r = zoomRange;
+    if (!r) return;
+    const z = Math.min(r.max, Math.max(r.min, Math.round(value / r.step) * r.step));
+    setZoomState(z);
+    zoomWanted.current = z;
+    if (zoomBusy.current) return;
+    zoomBusy.current = true;
+    (async () => {
+      while (zoomWanted.current !== null) {
+        const v = zoomWanted.current;
+        zoomWanted.current = null;
+        const track = streamRef.current?.getVideoTracks()[0];
+        await track?.applyConstraints({ advanced: [{ zoom: v } as MediaTrackConstraintSet] }).catch(() => {});
+      }
+      zoomBusy.current = false;
+    })();
+  }
+
+  const touchDist = (e: React.TouchEvent) => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  function onTouchStart(e: React.TouchEvent) {
+    if (zoomRange && e.touches.length === 2) pinchRef.current = { dist: touchDist(e), zoom };
+  }
+  function onTouchMove(e: React.TouchEvent) {
+    const p = pinchRef.current;
+    if (!p || e.touches.length !== 2) return;
+    setZoom(p.zoom * (touchDist(e) / p.dist));
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (e.touches.length < 2) pinchRef.current = null;
   }
 
   function toggleMic() {
@@ -286,7 +351,16 @@ export default function Phone() {
 
   return (
     <div className="phone">
-      <video ref={videoRef} className={`preview ${facing === "user" ? "mirror" : ""}`} autoPlay playsInline muted />
+      <video
+        ref={videoRef}
+        className={`preview ${facing === "user" ? "mirror" : ""}`}
+        autoPlay
+        playsInline
+        muted
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      />
 
       {!running && (
         <div className="start">
@@ -347,6 +421,29 @@ export default function Phone() {
             </div>
           )}
           {stats && <div className="stats">{stats}</div>}
+          {zoomHint && <div className="zoom-hint">{zoomHint}</div>}
+          {zoomRange && (
+            <div className="zoom" aria-label={t("phone.zoom")}>
+              <span className="zoom-value">{formatZoom(zoom)}</span>
+              <input
+                type="range"
+                className="zoom-range"
+                min={zoomRange.min}
+                max={zoomRange.max}
+                step={zoomRange.step}
+                value={zoom}
+                aria-label={t("phone.zoom")}
+                onChange={(e) => setZoom(Number(e.target.value))}
+              />
+              {[...(zoomRange.min < 1 ? [zoomRange.min] : []), 1, 2, 3]
+                .filter((z) => z >= zoomRange.min && z <= zoomRange.max)
+                .map((z) => (
+                  <button key={z} type="button" className={Math.abs(zoom - z) < 0.05 ? "on" : ""} onClick={() => setZoom(z)}>
+                    {formatZoom(z)}
+                  </button>
+                ))}
+            </div>
+          )}
           <div className="controls">
             <button type="button" onClick={switchCamera}>
               <SwitchCamera size={20} strokeWidth={1.75} />
@@ -365,6 +462,10 @@ export default function Phone() {
       )}
     </div>
   );
+}
+
+function formatZoom(z: number) {
+  return `${(Math.round(z * 10) / 10).toLocaleString(navigator.language)}×`;
 }
 
 function Mark({ size }: { size: number }) {
