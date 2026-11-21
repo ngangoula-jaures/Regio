@@ -231,7 +231,7 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
      en mouvement 0,2–0,3 Mb/s et 320×180 ; zoom 2× → 0,1 Mb/s. Cause : contrôle de congestion WebRTC (fait pour
      Internet) qui prend le retard du Wi-Fi pour une saturation. FAIT : `localBitrates` (signal.ts) ajoute à la réponse
      reçue par le téléphone x-google-min/start/max-bitrate (720p 2200/4000/4500, 1080p 4000/6500/8000 kb/s) ;
-     `degradationPreference: "maintain-resolution"` + `contentHint = "detail"`. À CONFIRMER sur le vrai téléphone.
+     `degradationPreference: "maintain-resolution"` + `contentHint = "detail"`. VALIDÉ sur le vrai téléphone le 2026-11-21 (« beaucoup mieux qu'avant »).
   6. Zoom du téléphone (caméraman) → FAIT le 2026-11-21 (maquette validée) : `Phone.tsx` lit
      `track.getCapabilities().zoom` ; pincer l'image, curseur vertical, raccourcis 1×/2×/3× (et 0,5× si possible) ;
      `applyConstraints({ advanced: [{ zoom }] })` regroupé ; sinon « Le zoom n'est pas disponible sur ce téléphone ».
