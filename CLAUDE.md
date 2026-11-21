@@ -239,7 +239,12 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
      seulement s'il y a une projection) ; `useStudio.roomShown/setRoomShown` ; commande Rust `room_screen`
      (`src-tauri/src/room.rs`, windows-sys : fenêtres du processus OBS dont le titre contient « Regio - Salle » ;
      montrer = SW_SHOWNA + TOPMOST puis NOTOPMOST ; masquer = SW_HIDE, la fenêtre reste ouverte). Filet : toutes les 5 s,
-     si la fenêtre de projection a disparu, elle est rouverte. Vérifié dans la vraie application
+     si la fenêtre de projection a disparu, elle est rouverte. Retour dans Regio = `WindowEvent::Focused(true)` côté Rust
+     (`room::regio_focused`, `lib.rs`) : l'événement `focus` de la page WebView2 n'arrive PAS toujours. Vérifié sur un
+     VRAI 2e écran le 2026-11-21 (`C:\dev\regio-test\scenario.mjs` : Facebook dans Chrome agrandi sur la télé passe
+     devant ; vrai clic de souris dans Regio → Regio repasse devant ; Masqué/Regio à l'écran). Piège des tests : un
+     script ne peut pas voler le premier plan (SetForegroundWindow refusé) → simuler un vrai clic (`click-regio.ps1`).
+     Titre de la fenêtre = « Regio » (était « Regio — Régie du culte », pas neutre). Vérifié dans la vraie application
      (`C:\dev\regio-test\tele-real.mjs`, `debug.mjs` : Bloc-notes par-dessus puis Regio repasse devant, `watchdog.mjs`).
 
 ## Architecture

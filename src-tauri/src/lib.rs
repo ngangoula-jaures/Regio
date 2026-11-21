@@ -78,6 +78,14 @@ pub fn run() {
             app.manage(obs);
             Ok(())
         })
+        .on_window_event(|window, event| {
+            // Retour dans Regio : la projection repasse devant (l'événement « focus » de la page n'arrive pas toujours).
+            if let tauri::WindowEvent::Focused(true) = event {
+                if let Some(pid) = window.state::<Arc<obs::ObsManager>>().pid() {
+                    room::regio_focused(pid);
+                }
+            }
+        })
         .invoke_handler(tauri::generate_handler![server_info, obs_status, restart_engine, room_screen, recordings_info, live::upload_test, storage::load_data, storage::save_data, storage::save_media, pptx::import_pptx])
         .build(tauri::generate_context!())
         .expect("erreur au lancement de Regio");

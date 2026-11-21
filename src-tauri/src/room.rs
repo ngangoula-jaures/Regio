@@ -2,6 +2,11 @@
 //! Une page étendue sur la télé (direct Facebook…) peut passer devant ; quand l'opérateur revient dans Regio,
 //! Regio la fait repasser devant. « Masqué » : la fenêtre est cachée (rien de Regio sur la télé), sans être fermée.
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
+/// Dernier choix de l'opérateur : Regio à l'écran (true) ou Masqué (false).
+static SHOWN: AtomicBool = AtomicBool::new(true);
+
 /// Mot présent dans le titre des fenêtres de projection de Regio (scène projetée).
 const ROOM_TITLE: &str = "Regio - Salle";
 
@@ -60,6 +65,9 @@ mod win {
 /// (`Some(false)`), ou ne touche à rien (`None` : simple vérification). Renvoie le nombre de fenêtres trouvées.
 #[cfg(windows)]
 pub fn apply(pid: u32, shown: Option<bool>) -> usize {
+    if let Some(v) = shown {
+        SHOWN.store(v, Ordering::SeqCst);
+    }
     let list = win::windows(pid);
     for &h in &list {
         match shown {
@@ -72,6 +80,17 @@ pub fn apply(pid: u32, shown: Option<bool>) -> usize {
 }
 
 #[cfg(not(windows))]
-pub fn apply(_pid: u32, _shown: Option<bool>) -> usize {
+pub fn apply(_pid: u32, shown: Option<bool>) -> usize {
+    if let Some(v) = shown {
+        SHOWN.store(v, Ordering::SeqCst);
+    }
     0
+}
+
+/// La fenêtre de Regio reprend le focus (clic dedans, sur son icône, Alt+Tab) : la projection repasse devant
+/// les autres fenêtres de la télé, sauf si l'opérateur a choisi « Masqué ».
+pub fn regio_focused(pid: u32) {
+    if SHOWN.load(Ordering::SeqCst) {
+        apply(pid, Some(true));
+    }
 }
