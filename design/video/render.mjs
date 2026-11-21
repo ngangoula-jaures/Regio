@@ -23,15 +23,15 @@ for (const [v, fmt] of jobs) {
   await page.evaluate(() => window.filmReady);
   const duration = await page.evaluate(() => window.DURATION);
   const file = `${OUT}${NAMES[v]}-${fmt === "916" ? "vertical-9x16" : "horizontal-16x9"}.mp4`;
-  const ff = spawn("ffmpeg", ["-loglevel", "error", "-y", "-f", "image2pipe", "-framerate", String(FPS), "-i", "-",
+  const ff = spawn("ffmpeg", ["-loglevel", "error", "-y", "-f", "image2pipe", "-c:v", "mjpeg", "-framerate", String(FPS), "-i", "-",
     "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=48000",
-    "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-pix_fmt", "yuv420p", "-profile:v", "high", "-r", String(FPS),
+    "-c:v", "libx264", "-preset", "medium", "-crf", "17", "-pix_fmt", "yuv420p", "-profile:v", "high", "-r", String(FPS),
     "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", file], { stdio: ["pipe", "inherit", "inherit"] });
-  const frames = Math.round(duration * FPS);
+  const frames = Math.min(Math.round(duration * FPS), Number(process.env.RENDER_LIMIT || 1e9));
   const t0 = Date.now();
   for (let i = 0; i < frames; i++) {
     await page.evaluate((t) => window.seek(t), i / FPS);
-    const img = await page.screenshot({ type: "png" });
+    const img = await page.screenshot({ type: "jpeg", quality: 94 });
     if (!ff.stdin.write(img)) await new Promise((r) => ff.stdin.once("drain", r));
     if (i % 150 === 0) process.stdout.write(`${NAMES[v]} ${fmt} : ${Math.round((i / frames) * 100)} %\r`);
   }

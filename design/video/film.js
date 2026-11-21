@@ -52,7 +52,7 @@
   const CURSOR = `<svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M4 2l15 9-6.5 1.6L9.6 19z" fill="#f6f2e8" stroke="#0e1530" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
 
   // ---------- Photos (Unsplash, licence gratuite : voir photos.json) ----------
-  const P = (name) => `photos/${name}.jpg`;
+  const P = (name, blur = 0) => `photos/web/${name}${blur ? "-flou" + blur : ""}.jpg`;
   /** Photo plein cadre derrière un plan : assombrie (textes lisibles), légèrement floue, zoom lent façon cinéma. */
   function bgPhoto(scene, name, { dim = 0.72, blur = 0, pos = "50% 40%" } = {}) {
     const wrap = el("div", "abs", scene.root);
@@ -60,8 +60,9 @@
     place(wrap, 0, 0, W, H);
     wrap.style.overflow = "hidden";
     const img = el("img", "", wrap);
-    Object.assign(img.style, { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: pos, filter: blur ? `blur(${blur}px)` : "" });
-    img.src = P(name);
+    // Flou préparé d'avance (prep-photos.mjs) : un flou CSS recalculé à chaque image rendait l'export très lent.
+    Object.assign(img.style, { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: pos });
+    img.src = P(name, blur);
     const veil = el("div", "abs", wrap);
     place(veil, 0, 0, W, H);
     veil.style.background = `linear-gradient(180deg, rgba(14,21,48,${Math.min(0.95, dim + 0.12)}) 0%, rgba(14,21,48,${dim}) 45%, rgba(10,16,38,${Math.min(0.97, dim + 0.18)}) 100%)`;
