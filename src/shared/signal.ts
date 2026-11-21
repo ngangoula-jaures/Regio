@@ -118,3 +118,22 @@ export function preferH264(pc: RTCPeerConnection) {
     }
   }
 }
+
+/**
+ * Réseau LOCAL (téléphone → PC dans la même salle) : le réglage par défaut de WebRTC, fait pour Internet, prend un
+ * petit retard du Wi-Fi (image qui bouge = images plus lourdes) pour une saturation et divise le débit par 10 à 40
+ * (320×180, image pixelisée), puis remonte très lentement. On lui donne un PLANCHER, un départ et un plafond de débit
+ * (paramètres reconnus par les navigateurs basés sur Chromium et par Safari), en kb/s, dans la réponse du PC.
+ */
+export function localBitrates(sdp: string, kbps: { min: number; start: number; max: number }): string {
+  const video = sdp.split(/(?=^m=)/m);
+  return video
+    .map((section) => {
+      if (!section.startsWith("m=video")) return section;
+      const params = `x-google-min-bitrate=${kbps.min};x-google-start-bitrate=${kbps.start};x-google-max-bitrate=${kbps.max}`;
+      return section.replace(/^(a=fmtp:\d+ )(.*)$/gm, (line, head: string, rest: string) =>
+        rest.includes("x-google-") || rest.startsWith("apt=") ? line : `${head}${rest};${params}`,
+      );
+    })
+    .join("");
+}

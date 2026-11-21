@@ -6,7 +6,7 @@ import { Mic, MicOff, Play, RotateCcw, Smartphone, Square, SwitchCamera } from "
 
 /** Zoom de la caméra (fait par le téléphone lui-même : l'image reste nette). null : non pris en charge. */
 type ZoomRange = { min: number; max: number; step: number };
-import { SignalClient, preferH264, type SignalMessage } from "../shared/signal";
+import { SignalClient, localBitrates, preferH264, type SignalMessage } from "../shared/signal";
 import { t } from "../i18n";
 
 type Quality = "720" | "1080";
@@ -16,6 +16,11 @@ type Phase = "idle" | "starting" | "waiting" | "connecting" | "live" | "error";
 // encombre moins un Wi-Fi partagé (une église pleine sur le même Wi-Fi). 1080p : seulement avec un très bon Wi-Fi.
 const BITRATE: Record<Quality, number> = { "720": 4_500_000, "1080": 8_000_000 };
 const QUALITY_KEY = "regio.phone.quality";
+/** Plancher / départ / plafond du débit (kb/s) : jamais sous la moitié environ, même quand l'image bouge. */
+const LOCAL_KBPS: Record<Quality, { min: number; start: number; max: number }> = {
+  "720": { min: 2200, start: 4000, max: 4500 },
+  "1080": { min: 4000, start: 6500, max: 8000 },
+};
 
 export default function Phone() {
   // Numéro du QR code ; la régie peut en attribuer un autre si cette place est déjà prise.
@@ -149,6 +154,7 @@ export default function Phone() {
     try {
       const stream = await openCamera(facing, quality);
       streamRef.current = stream;
+      stream.getVideoTracks().forEach((v) => (v.contentHint = "detail")); // garder la résolution (voir applyBitrate)
       readZoom(stream.getVideoTracks()[0], true);
       if (videoRef.current) videoRef.current.srcObject = stream;
       await requestWakeLock();
@@ -228,6 +234,9 @@ export default function Phone() {
       if (!params.encodings?.length) params.encodings = [{}];
       params.encodings[0].maxBitrate = BITRATE[quality];
       params.encodings[0].maxFramerate = 30;
+      // Garder la résolution (1280×720) : si le réseau peine vraiment, quelques images en moins par seconde
+      // plutôt qu'une image floue en 320×180.
+      (params as RTCRtpSendParameters & { degradationPreference?: string }).degradationPreference = "maintain-resolution";
       sender.setParameters(params).catch(() => {});
     }
   }
@@ -252,7 +261,7 @@ export default function Phone() {
         }
         break;
       case "answer":
-        await pc?.setRemoteDescription({ type: "answer", sdp: msg.sdp }).catch(() => {});
+        await pc?.setRemoteDescription({ type: "answer", sdp: localBitrates(msg.sdp, LOCAL_KBPS[quality]) }).catch(() => {});
         break;
       case "candidate":
         await pc?.addIceCandidate(msg.candidate).catch(() => {});
@@ -269,6 +278,7 @@ export default function Phone() {
         video: { facingMode: { ideal: next }, width: { ideal: quality === "1080" ? 1920 : 1280 }, height: { ideal: quality === "1080" ? 1080 : 720 }, frameRate: { ideal: 30 } },
       });
       const newTrack = fresh.getVideoTracks()[0];
+      newTrack.contentHint = "detail";
       const stream = streamRef.current;
       if (!stream) return;
       const old = stream.getVideoTracks()[0];
