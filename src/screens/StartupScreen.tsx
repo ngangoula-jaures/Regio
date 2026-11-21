@@ -12,7 +12,7 @@ function engineRow(s: Studio): { state: RowState; detail: string } {
   const e = s.engine;
   if (e?.state === "error") return { state: "error", detail: t("startup.engineError", { message: e.message }) };
   if (e?.state === "downloading") return { state: "busy", detail: t("startup.engineDownloading", { percent: Math.round(e.progress * 100) }) };
-  if (e?.state === "installing") return { state: "busy", detail: t("startup.engineInstalling") };
+  if (e?.state === "installing") return { state: "busy", detail: t("startup.engineInstalling", { percent: Math.round(e.progress * 100) }) };
   if (e?.state === "starting") return { state: "busy", detail: t("startup.engineStarting") };
   if (e?.state === "running" || !inTauri) return { state: "busy", detail: t("startup.engineConnecting") };
   return { state: "busy", detail: t("startup.enginePreparing") };

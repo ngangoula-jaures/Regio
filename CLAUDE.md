@@ -17,8 +17,9 @@ américaine de diffusion de cultes. `regio.app` pris ; `getregio.app` et `regio.
 **Dépôt GitHub : https://github.com/ngangoula-jaures/Regio** (branche `main`, SSH). **PUBLIC depuis le 2026-11-13**
 (décision de l'utilisateur, pour la v0.1). **Version 0.1.0 publiée** : https://github.com/ngangoula-jaures/Regio/releases/tag/v0.1.0
 (installeur + empreinte SHA-256 ; GitHub CLI `C:\Program Files\GitHub CLI\gh.exe` connecté au compte de l'utilisateur).
-SignPath : **candidature ENVOYÉE le 2026-11-14** (réponse attendue par e-mail ; si acceptée : brancher la signature
-SignPath sur le workflow GitHub Actions ; texte de la candidature : `C:\dev\regio-release\signpath-candidature.md`).
+SignPath Foundation : **REFUSÉ le 2026-11-14** (projet pas encore assez visible : étoiles, contributeurs, articles…
+« vous pouvez recandidater plus tard ») ; mention SignPath retirée du README. Installeur toujours non signé
+(SmartScreen : « Exécuter quand même »). Pistes : recandidater quand Regio sera plus connu, ou certificat payant.
 Construction par CI : `.github/workflows/installeur.yml` (GitHub Actions, windows-latest, à chaque tag `v*` ou à la
 demande) → artefact `regio-installeur-windows` ; 1er build réussi le 2026-11-14 (~12 min). Confidentialité : `PRIVACY.md`.
 Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app supprime les anciennes scènes/sources

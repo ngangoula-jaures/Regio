@@ -1,4 +1,4 @@
-# Construit l'installeur Windows de Regio à partir du code public (exigé par SignPath pour signer).
+# Construit l'installeur Windows de Regio à partir du code public (build vérifiable ; servira à signer l'installeur).
 # Se lance à chaque tag de version (v…) ou à la demande (onglet Actions › Installeur Windows › Run workflow).
 name: Installeur Windows
 

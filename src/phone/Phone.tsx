@@ -9,7 +9,10 @@ import { t } from "../i18n";
 type Quality = "720" | "1080";
 type Phase = "idle" | "starting" | "waiting" | "connecting" | "live" | "error";
 
-const BITRATE: Record<Quality, number> = { "720": 3_500_000, "1080": 6_000_000 };
+// Le direct sort en 720p : en 720p, le téléphone a plus de débit par image (moins de flou quand il bouge) et
+// encombre moins un Wi-Fi partagé (une église pleine sur le même Wi-Fi). 1080p : seulement avec un très bon Wi-Fi.
+const BITRATE: Record<Quality, number> = { "720": 4_500_000, "1080": 8_000_000 };
+const QUALITY_KEY = "regio.phone.quality";
 
 export default function Phone() {
   // Numéro du QR code ; la régie peut en attribuer un autre si cette place est déjà prise.
@@ -17,7 +20,11 @@ export default function Phone() {
   const [noSlot, setNoSlot] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [quality, setQuality] = useState<Quality>("1080");
+  const [quality, setQualityState] = useState<Quality>(() => (localStorage.getItem(QUALITY_KEY) === "1080" ? "1080" : "720"));
+  const setQuality = (q: Quality) => {
+    setQualityState(q);
+    localStorage.setItem(QUALITY_KEY, q);
+  };
   const [facing, setFacing] = useState<"environment" | "user">("environment");
   const [micOn, setMicOn] = useState(true);
   const [signalOk, setSignalOk] = useState(false);

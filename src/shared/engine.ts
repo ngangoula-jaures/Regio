@@ -5,7 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 export type EngineState =
   | { state: "preparing" }
   | { state: "downloading"; progress: number }
-  | { state: "installing" }
+  | { state: "installing"; progress: number }
   | { state: "starting" }
   | { state: "running"; port: number; password: string }
   | { state: "error"; message: string };

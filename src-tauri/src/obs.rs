@@ -41,7 +41,8 @@ pub enum ObsState {
     Preparing,
     /// Téléchargement : `progress` de 0 à 1.
     Downloading { progress: f32 },
-    Installing,
+    /// Mise en place (vérification puis extraction) : `progress` de 0 à 1.
+    Installing { progress: f32 },
     Starting,
     Running { port: u16, password: String },
     Error { message: String },
@@ -204,12 +205,16 @@ impl ObsManager {
 
     /// Installe OBS : depuis l'archive livrée avec l'installeur de Regio (hors ligne) si elle est là,
     /// sinon en la téléchargeant. Dans les deux cas, l'empreinte SHA-256 est vérifiée.
-    async fn install(&self, app: &AppHandle, base: &Path, root: &Path) -> Result<(), String> {
+    async fn install(self: &Arc<Self>, app: &AppHandle, base: &Path, root: &Path) -> Result<(), String> {
         fs::create_dir_all(base).map_err(|e| e.to_string())?;
         if let Some(bundled) = bundled_zip(app) {
-            self.set(ObsState::Installing);
+            self.set(ObsState::Installing { progress: 0.0 });
             let check = bundled.clone();
-            let ok = tauri::async_runtime::spawn_blocking(move || sha256_file(&check)).await.map_err(|e| e.to_string())?;
+            let me = self.clone();
+            // Vérification = les 20 premiers % de la progression (un PC lent avec antivirus peut y passer une minute).
+            let ok = tauri::async_runtime::spawn_blocking(move || sha256_file(&check, |p| me.set(ObsState::Installing { progress: p * 0.2 })))
+                .await
+                .map_err(|e| e.to_string())?;
             if ok.as_deref() == Ok(OBS_SHA256) {
                 // Une fois OBS en place, l'archive livrée ne sert plus : on libère 224 Mo (si on a le droit).
                 return self.extract(&bundled, base, root, true).await;
@@ -219,7 +224,7 @@ impl ObsManager {
         self.download_and_install(base, root).await
     }
 
-    async fn download_and_install(&self, base: &Path, root: &Path) -> Result<(), String> {
+    async fn download_and_install(self: &Arc<Self>, base: &Path, root: &Path) -> Result<(), String> {
         let zip_path = base.join(format!("OBS-Studio-{OBS_VERSION}.zip"));
 
         // Téléchargement avec progression et empreinte calculée au fil de l'eau.
@@ -253,16 +258,37 @@ impl ObsManager {
     }
 
     /// Extraction dans un dossier temporaire, renommé seulement si tout s'est bien passé.
-    async fn extract(&self, zip_path: &Path, base: &Path, root: &Path, delete_zip: bool) -> Result<(), String> {
-        self.set(ObsState::Installing);
+    async fn extract(self: &Arc<Self>, zip_path: &Path, base: &Path, root: &Path, delete_zip: bool) -> Result<(), String> {
+        self.set(ObsState::Installing { progress: 0.2 });
         let tmp = base.join(format!("{OBS_VERSION}.tmp"));
         let _ = fs::remove_dir_all(&tmp);
         let zip_for_task = zip_path.to_path_buf();
         let tmp_for_task = tmp.clone();
+        let me = self.clone();
+        // Fichier par fichier, avec progression : sur un PC modeste (antivirus qui inspecte chaque fichier),
+        // l'extraction peut prendre plusieurs minutes ; sans progression, on croit l'application bloquée.
         tauri::async_runtime::spawn_blocking(move || -> Result<(), String> {
             let f = fs::File::open(&zip_for_task).map_err(|e| e.to_string())?;
             let mut archive = zip::ZipArchive::new(f).map_err(|e| e.to_string())?;
-            archive.extract(&tmp_for_task).map_err(|e| e.to_string())
+            let n = archive.len().max(1);
+            for i in 0..archive.len() {
+                let mut entry = archive.by_index(i).map_err(|e| e.to_string())?;
+                let Some(rel) = entry.enclosed_name() else { continue };
+                let out = tmp_for_task.join(rel);
+                if entry.is_dir() {
+                    fs::create_dir_all(&out).map_err(|e| e.to_string())?;
+                } else {
+                    if let Some(parent) = out.parent() {
+                        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+                    }
+                    let mut file = fs::File::create(&out).map_err(|e| e.to_string())?;
+                    std::io::copy(&mut entry, &mut file).map_err(|e| e.to_string())?;
+                }
+                if i % 20 == 0 {
+                    me.set(ObsState::Installing { progress: 0.2 + 0.8 * (i as f32 / n as f32) });
+                }
+            }
+            Ok(())
         })
         .await
         .map_err(|e| e.to_string())??;
@@ -285,10 +311,21 @@ fn bundled_zip(app: &AppHandle) -> Option<PathBuf> {
     p.exists().then_some(p)
 }
 
-fn sha256_file(path: &Path) -> Result<String, String> {
+fn sha256_file(path: &Path, progress: impl Fn(f32)) -> Result<String, String> {
     let mut f = fs::File::open(path).map_err(|e| e.to_string())?;
+    let total = f.metadata().map(|m| m.len()).unwrap_or(0).max(1);
     let mut hasher = Sha256::new();
-    std::io::copy(&mut f, &mut hasher).map_err(|e| e.to_string())?;
+    let mut buf = vec![0u8; 1 << 20];
+    let mut done: u64 = 0;
+    loop {
+        let n = std::io::Read::read(&mut f, &mut buf).map_err(|e| e.to_string())?;
+        if n == 0 {
+            break;
+        }
+        hasher.update(&buf[..n]);
+        done += n as u64;
+        progress(done as f32 / total as f32);
+    }
     Ok(hasher.finalize().iter().map(|b| format!("{b:02x}")).collect())
 }
 
@@ -413,7 +450,6 @@ fn write_live_profile(cfg: &Path, paths: &LaunchPaths) -> Result<(), String> {
         _ => (1280, 720, 3000),
     };
     let enc = encoder(&paths.root);
-    let software = enc == "obs_x264";
     let _ = fs::create_dir_all(&paths.videos);
     let videos = paths.videos.to_string_lossy().replace('\\', "/");
 
@@ -435,9 +471,27 @@ fn write_live_profile(cfg: &Path, paths: &LaunchPaths) -> Result<(), String> {
     );
     fs::write(dir.join("basic.ini"), ini).map_err(|e| e.to_string())?;
     let mut stream = serde_json::json!({ "rate_control": "CBR", "bitrate": kbps, "keyint_sec": 2 });
-    if software {
-        stream["preset"] = "veryfast".into();
-        stream["profile"] = "main".into();
+    // Même débit, meilleure image : réglages « qualité » de chaque encodeur matériel (clés inconnues ignorées par OBS).
+    match enc.as_str() {
+        "obs_x264" => {
+            stream["preset"] = "veryfast".into();
+            stream["profile"] = "main".into();
+        }
+        "obs_qsv11_v2" => {
+            stream["target_usage"] = "TU2".into();
+            stream["profile"] = "high".into();
+        }
+        "obs_nvenc_h264_tex" => {
+            stream["preset2"] = "p5".into();
+            stream["tune"] = "hq".into();
+            stream["multipass"] = "qres".into();
+            stream["profile"] = "high".into();
+        }
+        "h264_texture_amf" => {
+            stream["preset"] = "quality".into();
+            stream["profile"] = "high".into();
+        }
+        _ => {}
     }
     fs::write(dir.join("streamEncoder.json"), stream.to_string()).map_err(|e| e.to_string())?;
 

@@ -98,11 +98,6 @@ Built for little equipment, weak internet and modest PCs; works **offline** exce
 
 ---
 
-## Signature du code · Code signing
-
-Signature gratuite du code fournie par [SignPath.io](https://about.signpath.io), certificat de la [SignPath Foundation](https://signpath.org).
-Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
-
 ## Confidentialité · Privacy
 
 Regio ne collecte aucune donnée : voir [PRIVACY.md](PRIVACY.md) · Regio collects no data: see [PRIVACY.md](PRIVACY.md).
