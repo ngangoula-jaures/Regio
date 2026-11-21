@@ -213,6 +213,24 @@ Renommage DiffChurch → Regio fait le 2026-11-12 ; à la connexion, l'app suppr
   « musique hors direct », import PowerPoint sans PowerPoint (mode « modifiable »), plusieurs programmes enregistrés,
   écran de Réglages (dont le changement de langue), signature de l'installeur.
 
+- **1er test en conditions réelles (culte du 2026-11-15, PC de l'église)** — retours de l'utilisateur :
+  1. 1er lancement depuis l'installeur : moteur vidéo « bloqué » sur Installation → fermé/relancé. Cause probable :
+     extraction d'OBS longue (antivirus) SANS progression → ajouté : % (vérification 20 % + extraction) et « ne fermez pas
+     Regio » (fait le 2026-11-21).
+  2. « Utiliser cette caméra » sans effet au 2e lancement (1er démarrage d'OBS), OK au 3e : NON reproduit (pas de
+     journaux de ce PC). Récupérer `%LOCALAPPDATA%\org.regio.app\obs\33.0.1\config\obs-studio\logs` si ça revient.
+  3. Caméra du PC à l'écran en entrant dans la régie sans l'avoir choisie ce jour-là : probablement le choix RETENU
+     (`regio.cameras.on`) des essais précédents → devenue principale d'office. À clarifier.
+  4. PC sans Visual C++ : installé par l'installeur, OK.
+  5. Direct Facebook flou/saccadé pendant le culte (mieux après) et image du TÉLÉPHONE floue en mouvement même en local :
+     Wi-Fi de l'église saturé (fidèles connectés). Fait : téléphone en 720p par défaut (4,5 Mb/s ; 1080p 8 Mb/s si très
+     bon Wi-Fi), encodeurs en mode qualité (QSV TU2, NVENC p5/hq/qres, AMF quality). Conseil : réseau dédié / câble.
+  6. Zoom du téléphone demandé par le caméraman → maquette.
+  7. Superposition sur la télé comme EasyWorship (Regio par-dessus un direct Facebook étendu sur la télé ; un clic
+     l'affiche / le masque) → maquette https://claude.ai/artifact/ANmc92QuRAw7vEBkX3vYAv (copie `design/maquettes/tele-zoom/`),
+     EN ATTENTE de validation. Piste technique : Win32 depuis Rust sur la fenêtre de projection d'OBS (afficher/masquer,
+     passer devant), clé OBS `[BasicWindow] ProjectorAlwaysOnTop` dans user.ini existe aussi.
+
 ## Architecture
 
 ```

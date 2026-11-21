@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regio — Télé et zoom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=Source+Serif+4:wght@500&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday tool, calm and precise: a church volunteer must get it in one look
+   IDEA the real Regio régie and the real phone page, drawn as shipped product screens
+   PICTURE the TV of the room in its two states (Regio on top / hidden), then the phone filming with its zoom
+   COLOUR Regio tokens: night blue ground, ivory ink, one gold element per screen, green = ready
+   TYPE Sora for titles, Inter for the interface, Source Serif for the verse on the TV
+   LAYOUT two bands: the TV (régie header + two TV states side by side), then the phone (phone left, rules right); stacked on phones */
+:root{color-scheme:dark;--nuit:#0e1530;--nuit2:#18213f;--nuit3:#253055;--prof:#111933;--or:#e8b44c;--ivoire:#f6f2e8;--ardoise:#9aa3bf;--doux:#c9cedd;--bord:#3a4568;--pret:#4cc38a;--direct:#ff6b6b;--att:#f5b451}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;background:var(--nuit);color:var(--ivoire)}
+body{font:16px/1.55 Inter,"Segoe UI",system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Sora,Inter,sans-serif;letter-spacing:-.02em;line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(30px,4vw,44px)}
+h2{font-size:clamp(24px,3vw,32px)}
+h3{font-size:18px}
+p{margin:0}
+.band{padding:clamp(28px,4vw,60px) max(5vw,16px)}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:28px}
+.lead{color:var(--doux);max-width:68ch;font-size:17px}
+.note{color:var(--ardoise);font-size:14px}
+.band.alt{background:var(--prof);border-top:1px solid var(--nuit3)}
+/* barre de la régie */
+.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:var(--nuit2);border:1px solid var(--nuit3);border-radius:14px}
+.logo{display:flex;align-items:center;gap:8px;font:600 19px Sora,sans-serif}
+.logo i{width:26px;height:20px;border:3px solid var(--ivoire);border-radius:6px;position:relative}
+.logo i::after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:var(--or);top:2px;right:4px}
+.spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--bord);background:transparent;color:var(--ivoire);font:500 14px Inter,sans-serif}
+.tv-ctl{display:inline-flex;align-items:center;gap:10px;padding:4px 4px 4px 12px;border-radius:12px;border:1px solid var(--bord);font-size:14px}
+.seg{display:inline-flex;background:var(--nuit);border-radius:9px;padding:3px}
+.seg button{min-height:36px;padding:0 12px;border:0;border-radius:7px;background:transparent;color:var(--ardoise);font:600 13px Inter,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.seg button.on{background:var(--nuit3);color:var(--ivoire)}
+.seg button.on .dot{background:var(--pret)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ardoise)}
+kbd{font:600 12px Inter,sans-serif;border:1px solid var(--bord);border-bottom-width:2px;border-radius:5px;padding:1px 6px;color:var(--doux)}
+.fb{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:10px;background:var(--ivoire);color:var(--nuit);font:600 14px Inter,sans-serif}
+/* les deux télés */
+.tvs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.tvcard{display:grid;gap:12px;align-content:start}
+.tvcard h3{display:flex;gap:10px;align-items:center}
+.tag{font:600 12px Inter,sans-serif;padding:3px 9px;border-radius:99px;background:var(--nuit3);color:var(--doux)}
+.tag.ok{background:color-mix(in srgb,var(--pret) 18%,transparent);color:var(--pret)}
+.tv{position:relative;aspect-ratio:16/9;border-radius:12px;border:10px solid #05070f;box-shadow:0 18px 0 -8px #05070f;overflow:hidden;background:#000}
+.tv .browser{position:absolute;inset:0;background:#f0f2f5;display:grid;grid-template-rows:auto 1fr}
+.tv .fbbar{height:16%;background:#fff;border-bottom:1px solid #dadde1;display:flex;align-items:center;gap:6%;padding:0 4%}
+.tv .fbbar b{width:9%;aspect-ratio:1;border-radius:50%;background:#1877f2}
+.tv .fbbar s{height:22%;width:30%;border-radius:99px;background:#e4e6eb}
+.tv .video{margin:4% 12%;border-radius:6px;background:linear-gradient(160deg,#4a3a2a,#1e1812);position:relative;overflow:hidden}
+.tv .video::before{content:"";position:absolute;left:38%;bottom:0;width:24%;height:70%;border-radius:40% 40% 0 0;background:#0e0b08}
+.tv .video::after{content:"EN DIRECT";position:absolute;top:6%;left:4%;font:700 9px Inter,sans-serif;color:#fff;background:#e41e3f;padding:2px 5px;border-radius:3px}
+.tv .regio{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 30%,#1d2a5c,var(--nuit));display:grid;place-items:center;text-align:center;padding:8%;transition:opacity .5s ease}
+.tv .regio p{font:500 clamp(13px,2.1vw,22px)/1.35 "Source Serif 4",Georgia,serif;color:var(--ivoire)}
+.tv .regio small{display:block;margin-top:6%;font:600 clamp(9px,1.1vw,12px) Inter,sans-serif;color:var(--or);letter-spacing:.02em}
+.tv.hidden .regio{opacity:0}
+.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.rule{background:var(--nuit2);border:1px solid var(--nuit3);border-radius:14px;padding:18px;display:grid;gap:6px;align-content:start}
+.rule strong{font-size:15px}
+.rule span{color:var(--doux);font-size:14px}
+.ask{border:1px dashed var(--or);border-radius:14px;padding:16px 18px;display:grid;gap:4px}
+.ask strong{color:var(--or)}
+/* téléphone */
+.phone-row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:36px;align-items:center}
+.phone{position:relative;aspect-ratio:19.5/9;border-radius:34px;border:12px solid #05070f;background:#000;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.45)}
+.scene{position:absolute;inset:0;background:linear-gradient(180deg,#3d3226 0%,#2a2219 55%,#17120d 100%);transform-origin:52% 48%;transition:transform .25s ease}
+.scene .pulpit{position:absolute;left:44%;bottom:0;width:14%;height:38%;background:#5a4632;border-radius:4px 4px 0 0}
+.scene .man{position:absolute;left:47%;bottom:36%;width:8%;height:30%;border-radius:45% 45% 10% 10%;background:#0f0c09}
+.scene .cross{position:absolute;left:49.2%;top:8%;width:1.8%;height:22%;background:#b89a5e}
+.scene .cross::after{content:"";position:absolute;left:-180%;top:22%;width:460%;height:16%;background:#b89a5e}
+.scene .row{position:absolute;bottom:0;height:12%;width:20%;background:#0b0907;border-radius:50% 50% 0 0}
+.hud{position:absolute;inset:0;display:grid;grid-template-columns:1fr auto;padding:4% 3%}
+.live{align-self:start;justify-self:start;display:inline-flex;align-items:center;gap:6px;background:rgba(14,21,48,.82);padding:5px 10px;border-radius:99px;font:600 12px Inter,sans-serif}
+.live .dot{background:var(--pret)}
+.zoom{grid-row:1/3;grid-column:2;display:grid;justify-items:center;align-content:center;gap:8px;background:rgba(14,21,48,.78);border-radius:22px;padding:10px 8px}
+.zoom button{width:44px;height:44px;border-radius:50%;border:0;background:transparent;color:var(--ivoire);font:600 13px Inter,sans-serif;cursor:pointer}
+.zoom button.on{background:var(--ivoire);color:var(--nuit)}
+.zoom input{writing-mode:vertical-lr;direction:rtl;height:96px;width:28px;accent-color:var(--ivoire)}
+.zval{font:700 13px Inter,sans-serif}
+.bottom{grid-column:1;align-self:end;display:flex;gap:10px}
+.bottom span{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:rgba(14,21,48,.82);font-size:12px;color:var(--doux)}
+.pinch{position:absolute;left:50%;top:50%;translate:-50% -50%;font:500 13px Inter,sans-serif;background:rgba(14,21,48,.82);padding:6px 12px;border-radius:99px;color:var(--doux);transition:opacity .4s}
+.side{display:grid;gap:14px}
+.side .rule{grid-template-columns:auto 1fr;column-gap:12px}
+.side .rule b{grid-row:1/3;width:30px;height:30px;border-radius:50%;background:var(--nuit3);display:grid;place-items:center;font:700 13px Inter,sans-serif}
+@media(max-width:860px){.tvs,.phone-row{grid-template-columns:minmax(0,1fr)}.rules{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.topbar .hide-s{display:none}.phone{border-width:8px;border-radius:24px}}
+@media(prefers-reduced-motion:reduce){.scene,.tv .regio,.pinch{transition:none}}
+</style>
+</head>
+<body>
+<section class="band">
+  <div class="wrap">
+    <h1>Regio reprend la télé de la salle quand vous le décidez</h1>
+    <p class="lead">Comme le bouton « Live » d'EasyWorship : même si un direct Facebook est ouvert en plein écran sur la télé, Regio passe par-dessus pour un verset, une affiche ou une annonce, puis s'efface d'un clic pour laisser revoir ce qu'il y a dessous.</p>
+
+    <div class="topbar" aria-label="Barre du haut de la régie">
+      <span class="logo"><i></i>regio</span>
+      <span class="spacer"></span>
+      <span class="btn hide-s">Répétition</span>
+      <div class="tv-ctl">
+        <span>Télé de la salle</span>
+        <div class="seg" role="radiogroup" aria-label="Télé de la salle">
+          <button type="button" id="tv-on" class="on" role="radio" aria-checked="true"><span class="dot"></span>Regio à l'écran</button>
+          <button type="button" id="tv-off" role="radio" aria-checked="false">Masqué</button>
+        </div>
+        <kbd class="hide-s">T</kbd>
+      </div>
+      <span class="fb">Diffuser sur Facebook</span>
+    </div>
+    <p class="note">Cliquez sur « Regio à l'écran » / « Masqué » (ou touche T) pour voir la télé changer.</p>
+
+    <div class="tvs">
+      <div class="tvcard">
+        <h3>Regio à l'écran <span class="tag ok">par-dessus le reste</span></h3>
+        <div class="tv" id="tv-a"><div class="browser"><div class="fbbar"><b></b><s></s></div><div class="video"></div></div>
+          <div class="regio"><p>« Car Dieu a tant aimé le monde qu'il a donné son Fils unique… »<small>Jean 3:16</small></p></div></div>
+        <p class="note">Le direct Facebook reste ouvert derrière : Regio le couvre, avec un fondu.</p>
+      </div>
+      <div class="tvcard">
+        <h3>Masqué <span class="tag">on revoit le direct</span></h3>
+        <div class="tv hidden" id="tv-b"><div class="browser"><div class="fbbar"><b></b><s></s></div><div class="video"></div></div>
+          <div class="regio"><p>« Car Dieu a tant aimé le monde… »<small>Jean 3:16</small></p></div></div>
+        <p class="note">Regio s'efface sans rien fermer : la projection reste prête, aucun écran noir.</p>
+      </div>
+    </div>
+
+    <div class="rules">
+      <div class="rule"><strong>Un clic l'affiche, un clic le masque</strong><span>« Regio à l'écran » / « Masqué », ou la touche T. Toujours au même endroit, en haut de la régie.</span></div>
+      <div class="rule"><strong>Afficher un contenu reprend la télé</strong><span>Masqué, vous cliquez sur un verset ou sur Suivant : Regio repasse devant tout seul. Pas de « pourquoi rien ne s'affiche ? ».</span></div>
+      <div class="rule"><strong>Cliquer sur le navigateur reprend la main</strong><span>Sur la télé, cliquer sur la fenêtre Facebook la ramène devant, comme avec EasyWorship. Regio passe alors en « Masqué ».</span></div>
+    </div>
+    <div class="ask"><strong>À valider</strong><span>Le 2e point (afficher un contenu reprend la télé tout seul) vous convient-il, ou préférez-vous que Regio ne reprenne la télé QUE par le bouton ?</span></div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap">
+    <h2>Zoomer pendant qu'on filme avec le téléphone</h2>
+    <div class="phone-row">
+      <div class="phone" aria-label="Page caméra du téléphone pendant le direct">
+        <div class="scene" id="scene"><span class="cross"></span><span class="man"></span><span class="pulpit"></span>
+          <span class="row" style="left:0"></span><span class="row" style="left:22%"></span><span class="row" style="left:58%"></span><span class="row" style="left:80%"></span></div>
+        <div class="hud">
+          <span class="live"><span class="dot"></span>Téléphone 1 · envoyé à Regio</span>
+          <div class="zoom">
+            <span class="zval" id="zval">1×</span>
+            <input type="range" id="zr" min="1" max="5" step="0.1" value="1" aria-label="Zoom">
+            <button type="button" data-z="1" class="on">1×</button>
+            <button type="button" data-z="2">2×</button>
+            <button type="button" data-z="3">3×</button>
+          </div>
+          <div class="bottom"><span>Son</span><span>Cam</span><span>Stop</span></div>
+        </div>
+        <span class="pinch" id="pinch">Pincez l'image pour zoomer</span>
+      </div>
+      <div class="side">
+        <div class="rule"><b>1</b><strong>Pincer l'image ou glisser le curseur</strong><span>Comme dans l'appareil photo : deux doigts pour zoomer et dézoomer, en douceur, pendant le direct.</span></div>
+        <div class="rule"><b>2</b><strong>Raccourcis 1×, 2×, 3×</strong><span>Pour passer vite du plan large au prédicateur. Le zoom est fait par le téléphone lui-même : l'image reste nette.</span></div>
+        <div class="rule"><b>3</b><strong>Selon le téléphone</strong><span>Android (Chrome) : oui. iPhone : selon la version d'iOS. Si le téléphone ne le permet pas, les commandes de zoom n'apparaissent pas et la page le dit simplement.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+{
+  const on = document.getElementById("tv-on"), off = document.getElementById("tv-off");
+  const a = document.getElementById("tv-a");
+  const set = (shown) => {
+    on.classList.toggle("on", shown); off.classList.toggle("on", !shown);
+    on.setAttribute("aria-checked", shown); off.setAttribute("aria-checked", !shown);
+    a.classList.toggle("hidden", !shown);
+  };
+  on.addEventListener("click", () => set(true));
+  off.addEventListener("click", () => set(false));
+  document.addEventListener("keydown", (e) => { if (e.key === "t" || e.key === "T") set(a.classList.contains("hidden")); });
+
+  const scene = document.getElementById("scene"), zr = document.getElementById("zr"), zval = document.getElementById("zval"), pinch = document.getElementById("pinch");
+  const chips = [...document.querySelectorAll(".zoom button")];
+  const zoom = (z) => {
+    z = Math.min(5, Math.max(1, z));
+    scene.style.transform = `scale(${z})`;
+    zr.value = z;
+    zval.textContent = (Math.round(z * 10) / 10).toString().replace(".", ",") + "×";
+    chips.forEach((c) => c.classList.toggle("on", Math.abs(+c.dataset.z - z) < 0.05));
+    pinch.style.opacity = 0;
+  };
+  zr.addEventListener("input", () => zoom(+zr.value));
+  chips.forEach((c) => c.addEventListener("click", () => zoom(+c.dataset.z)));
+}
+</script>
+</body>
+</html>
